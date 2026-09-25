@@ -432,7 +432,7 @@ export function ServicesView({ session }: ServicesViewProps) {
                 {/* Submit Button */}
                 <button
                   onClick={handleSubmitRequest}
-                  disabled={isSubmitting || !isVerifiedStay}
+                  disabled={isSubmitting}
                   className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 text-slate-950 font-black text-xs shadow-xl flex items-center justify-center gap-2 transition active:scale-[0.99]"
                 >
                   {isSubmitting ? (

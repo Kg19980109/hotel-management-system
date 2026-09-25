@@ -18,6 +18,7 @@
  */
 
 const { Client } = require('pg');
+const crypto = require('crypto');
 
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:Koushik%400109@db.tfnusdxtwqzrzblujaju.supabase.co:5432/postgres';
 
@@ -608,15 +609,25 @@ async function seed() {
     // 13. GUEST QR PORTAL & SERVICE REQUESTS (PHASES 14 & 15)
     console.log('13. Seeding Guest QR Codes & In-House Concierge Service Requests...');
     
-    // QR Code for Room 101, 103, 401
-    await client.query(`
-      INSERT INTO guest_qr_codes (property_id, qr_type, room_id, name, token_hash, is_active)
-      VALUES 
-        ('${propId}', 'ROOM', '${roomMap['101']}', 'Room 101 In-Room Portal QR', 'hash_qr_room_101_demo_token', true),
-        ('${propId}', 'ROOM', '${roomMap['103']}', 'Room 103 In-Room Portal QR', 'hash_qr_room_103_demo_token', true),
-        ('${propId}', 'ROOM', '${roomMap['401']}', 'Penthouse 401 VIP Portal QR', 'hash_qr_room_401_demo_token', true)
-      ON CONFLICT (token_hash) DO NOTHING;
-    `);
+    // Clear existing QR codes for clean deterministic seed
+    await client.query(`DELETE FROM guest_qr_codes WHERE property_id = '${propId}';`);
+
+    const qrDefinitions = [
+      { type: 'HOTEL_GENERAL', room: null, name: 'Lobby & Public Directory Portal QR', token: 'hotel-general-token' },
+      { type: 'ROOM', room: roomMap['101'], name: 'Room 101 In-Room Portal QR', token: 'room-101-portal-token' },
+      { type: 'ROOM', room: roomMap['103'], name: 'Room 103 In-Room Portal QR', token: 'room-103-portal-token' },
+      { type: 'ROOM', room: roomMap['401'], name: 'Penthouse 401 VIP Portal QR', token: 'room-401-portal-token' },
+      { type: 'ROOM', room: roomMap['201'], name: 'Room 201 In-Room Portal QR', token: 'room-201-portal-token' }
+    ];
+
+    for (const qr of qrDefinitions) {
+      const hash = crypto.createHash('sha256').update(qr.token).digest('hex');
+      await client.query(`
+        INSERT INTO guest_qr_codes (property_id, qr_type, room_id, name, token_hash, raw_token, is_active)
+        VALUES ('${propId}', '${qr.type}', ${qr.room ? `'${qr.room}'` : 'NULL'}, '${qr.name}', '${hash}', '${qr.token}', true)
+        ON CONFLICT (token_hash) DO UPDATE SET raw_token = EXCLUDED.raw_token, is_active = true;
+      `);
+    }
 
     // Guest Service Requests
     await client.query(`DELETE FROM guest_service_requests WHERE property_id = '${propId}';`);

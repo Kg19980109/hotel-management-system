@@ -12,6 +12,7 @@ export interface GuestQrCode {
   restaurant_table_id: string | null;
   name: string;
   token_hash: string;
+  raw_token?: string | null;
   is_active: boolean;
   expires_at: string | null;
   created_by: string | null;

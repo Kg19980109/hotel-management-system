@@ -81,6 +81,7 @@ export async function createGuestQrCodeAction(formData: {
     p_restaurant_table_id: formData.restaurantTableId || null,
     p_expires_at: formData.expiresAt || null,
     p_created_by: auth.userId,
+    p_raw_token: rawToken,
   });
 
   if (error || !data?.success) {
@@ -115,6 +116,7 @@ export async function rotateGuestQrCodeAction(qrId: string, propertyId: string) 
     p_property_id: propertyId,
     p_new_token_hash: newTokenHash,
     p_updated_by: auth.userId,
+    p_new_raw_token: newRawToken,
   });
 
   if (error || !data?.success) {

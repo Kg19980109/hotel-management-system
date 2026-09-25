@@ -23,8 +23,8 @@ export function PrintQrModal({
 
   if (!isOpen || !qrCode) return null;
 
-  // Use rawToken if provided (fresh creation/rotation) or token hash placeholder
-  const tokenString = rawToken || qrCode.token_hash.slice(0, 16);
+  // Use rawToken if provided, then persistent raw_token, fallback to token_hash
+  const tokenString = rawToken || qrCode.raw_token || qrCode.token_hash;
   const portalUrl = typeof window !== "undefined"
     ? `${window.location.origin}/guest/qr/${tokenString}`
     : `/guest/qr/${tokenString}`;

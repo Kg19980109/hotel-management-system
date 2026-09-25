@@ -1,0 +1,1 @@
+# Staff, Attendance & Expenses Architecture\n\nPhase 18 covers staff lifecycle, attendance shifts, leave, and expenses.

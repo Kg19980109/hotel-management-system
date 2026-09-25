@@ -229,4 +229,6 @@ const ConfirmationDialog = ({
   </Modal>
 );
 
-export { Modal, Drawer, ConfirmationDialog };
+const ConfirmModal = ConfirmationDialog;
+
+export { Modal, Drawer, ConfirmationDialog, ConfirmModal };

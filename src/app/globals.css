@@ -1,4 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+/* Font is loaded via next/font in layout.tsx (Phase 3 migration) */
+/* --font-inter CSS variable is injected by next/font on <html> */
 @import "tailwindcss";
 
 /* ============================================================
@@ -111,8 +112,8 @@
   --topbar-border: #e2e8f0;
 
   /* --- Typography --- */
-  --font-display: "Inter", system-ui, -apple-system, sans-serif;
-  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);
+  --font-body: var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);
 
   /* --- Transitions --- */
   --transition-fast: 120ms ease;

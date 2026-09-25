@@ -314,7 +314,7 @@ interface BookingCardProps {
   checkOut: string;
   nights: number;
   adults: number;
-  children?: number;
+  childrenCount?: number;
   status: "confirmed" | "pending" | "checked_in" | "checked_out" | "cancelled" | "no_show";
   paymentStatus: "paid" | "pending" | "partial" | "refunded";
   totalAmount?: number;
@@ -332,7 +332,7 @@ const BookingCard = ({
   checkOut,
   nights,
   adults,
-  children: guestChildren,
+  childrenCount,
   status,
   paymentStatus,
   totalAmount,
@@ -380,7 +380,7 @@ const BookingCard = ({
         <p className="text-[13px] font-semibold text-[var(--foreground)] mt-0.5">{checkOut}</p>
         <p className="text-[11px] text-[var(--foreground-muted)]">
           {adults} adult{adults > 1 ? "s" : ""}
-          {guestChildren ? `, ${guestChildren} child` : ""}
+          {childrenCount ? `, ${childrenCount} child` : ""}
         </p>
       </div>
     </div>

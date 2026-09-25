@@ -1,0 +1,1 @@
+# Inventory Architecture\n\nPhase 17 covers inventory, locations, items, po, receipts, movements.

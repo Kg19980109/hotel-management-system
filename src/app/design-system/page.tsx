@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Badge, StatusBadge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Input, Textarea, Label, FormGroup, SearchInput, Select } from "@/components/ui/input";
+import { Input, Textarea, FormGroup, SearchInput, Select } from "@/components/ui/input";
 import { Avatar, AvatarGroup } from "@/components/ui/avatar";
 import { Tabs } from "@/components/ui/tabs";
 import { Modal, Drawer, ConfirmationDialog } from "@/components/ui/modal";
@@ -15,8 +15,6 @@ import { KPIWidget, RoomCard, GuestCard, BookingCard } from "@/components/hotel/
 import { useToast } from "@/components/ui/toast";
 import {
   BedDouble,
-  TrendingUp,
-  Users,
   DollarSign,
   CalendarCheck,
   Star,
@@ -331,7 +329,7 @@ export default function DesignSystemPage() {
                   checkOut="27 Sep"
                   nights={2}
                   adults={1}
-                  children={1}
+                  childrenCount={1}
                   status="checked_in"
                   paymentStatus="partial"
                   totalAmount={9000}

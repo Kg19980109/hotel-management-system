@@ -1,0 +1,110 @@
+// ============================================================
+// STAYHUB RESTAURANT PERMISSIONS (Phase 12)
+// ============================================================
+
+import { RoleCode } from "@/lib/auth/roles";
+
+export type RestaurantPermission =
+  | "RESTAURANT_VIEW"
+  | "RESTAURANT_MANAGE"
+  | "RESTAURANT_MENU_VIEW"
+  | "RESTAURANT_MENU_MANAGE"
+  | "RESTAURANT_POS_ACCESS"
+  | "RESTAURANT_ORDER_CREATE"
+  | "RESTAURANT_ORDER_UPDATE"
+  | "RESTAURANT_ORDER_CANCEL"
+  | "RESTAURANT_ORDER_VIEW"
+  | "RESTAURANT_TABLE_MANAGE"
+  | "RESTAURANT_DISCOUNT_APPLY";
+
+export const RESTAURANT_ROLE_PERMISSIONS: Record<RoleCode, RestaurantPermission[]> = {
+  SUPER_ADMIN: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MANAGE",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_MENU_MANAGE",
+    "RESTAURANT_POS_ACCESS",
+    "RESTAURANT_ORDER_CREATE",
+    "RESTAURANT_ORDER_UPDATE",
+    "RESTAURANT_ORDER_CANCEL",
+    "RESTAURANT_ORDER_VIEW",
+    "RESTAURANT_TABLE_MANAGE",
+    "RESTAURANT_DISCOUNT_APPLY",
+  ],
+  HOTEL_OWNER: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MANAGE",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_MENU_MANAGE",
+    "RESTAURANT_POS_ACCESS",
+    "RESTAURANT_ORDER_CREATE",
+    "RESTAURANT_ORDER_UPDATE",
+    "RESTAURANT_ORDER_CANCEL",
+    "RESTAURANT_ORDER_VIEW",
+    "RESTAURANT_TABLE_MANAGE",
+    "RESTAURANT_DISCOUNT_APPLY",
+  ],
+  GENERAL_MANAGER: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MANAGE",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_MENU_MANAGE",
+    "RESTAURANT_POS_ACCESS",
+    "RESTAURANT_ORDER_CREATE",
+    "RESTAURANT_ORDER_UPDATE",
+    "RESTAURANT_ORDER_CANCEL",
+    "RESTAURANT_ORDER_VIEW",
+    "RESTAURANT_TABLE_MANAGE",
+    "RESTAURANT_DISCOUNT_APPLY",
+  ],
+  RESTAURANT_STAFF: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_POS_ACCESS",
+    "RESTAURANT_ORDER_CREATE",
+    "RESTAURANT_ORDER_UPDATE",
+    "RESTAURANT_ORDER_CANCEL",
+    "RESTAURANT_ORDER_VIEW",
+    "RESTAURANT_TABLE_MANAGE",
+    "RESTAURANT_DISCOUNT_APPLY",
+  ],
+  FRONT_DESK: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_POS_ACCESS",
+    "RESTAURANT_ORDER_CREATE",
+    "RESTAURANT_ORDER_VIEW",
+  ],
+  RECEPTIONIST: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_ORDER_VIEW",
+  ],
+  ACCOUNTANT: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_ORDER_VIEW",
+  ],
+  KITCHEN_STAFF: [
+    "RESTAURANT_VIEW",
+    "RESTAURANT_MENU_VIEW",
+    "RESTAURANT_ORDER_VIEW",
+  ],
+  HOUSEKEEPING: [],
+  MAINTENANCE: [],
+};
+
+/**
+ * Checks whether the given user roles have a specific restaurant permission
+ */
+export function hasRestaurantPermission(
+  roles: RoleCode[] | string[] | undefined,
+  permission: RestaurantPermission
+): boolean {
+  if (!roles || roles.length === 0) return false;
+
+  return roles.some((role) => {
+    const permissions = RESTAURANT_ROLE_PERMISSIONS[role as RoleCode] || [];
+    return permissions.includes(permission);
+  });
+}

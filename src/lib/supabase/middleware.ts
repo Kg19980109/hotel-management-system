@@ -26,13 +26,14 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Do not run on static assets, API, design system demo, or public guest portal routes
+  // Do not run on static assets, API, design system demo, guest portal or public booking routes
   const pathname = request.nextUrl.pathname;
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/design-system") ||
     pathname.startsWith("/guest") ||
+    pathname.startsWith("/book") ||
     pathname.includes(".")
   ) {
     return supabaseResponse;

@@ -32,7 +32,10 @@ export default function MaintenancePage() {
   const [isNewModalOpen, setIsNewModalOpen] = React.useState(false);
 
   const loadData = React.useCallback(async () => {
-    if (!activePropertyId) return;
+    if (!activePropertyId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -73,18 +76,22 @@ export default function MaintenancePage() {
 
   React.useEffect(() => {
     let isMounted = true;
-    if (!authLoading && activePropertyId) {
-      void Promise.resolve().then(() => {
-        if (!isMounted) return;
-        loadData();
-      });
+    if (!authLoading) {
+      if (activePropertyId) {
+        void Promise.resolve().then(() => {
+          if (!isMounted) return;
+          loadData();
+        });
+      } else {
+        setLoading(false);
+      }
     }
     return () => {
       isMounted = false;
     };
   }, [authLoading, activePropertyId, loadData]);
 
-  if (authLoading || (!activePropertyId && loading)) {
+  if (authLoading || (loading && !stats)) {
     return <LoadingState message="Loading maintenance dashboard..." />;
   }
 

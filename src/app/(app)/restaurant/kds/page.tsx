@@ -34,7 +34,10 @@ export default function KitchenDisplayPage() {
   const [stations, setStations] = useState<KitchenStation[]>([]);
 
   const loadData = useCallback(async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -62,8 +65,12 @@ export default function KitchenDisplayPage() {
   }, [propertyId, selectedRestaurant]);
 
   useEffect(() => {
-    if (!authLoading && propertyId) {
-      void Promise.resolve().then(() => loadData());
+    if (!authLoading) {
+      if (propertyId) {
+        void Promise.resolve().then(() => loadData());
+      } else {
+        setLoading(false);
+      }
     }
   }, [authLoading, propertyId, loadData]);
 

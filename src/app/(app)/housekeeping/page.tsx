@@ -66,7 +66,10 @@ export default function HousekeepingPage() {
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = React.useState(false);
 
   const loadHousekeepingData = React.useCallback(async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -140,11 +143,15 @@ export default function HousekeepingPage() {
 
   React.useEffect(() => {
     let isMounted = true;
-    if (!authLoading && propertyId) {
-      void Promise.resolve().then(() => {
-        if (!isMounted) return;
-        loadHousekeepingData();
-      });
+    if (!authLoading) {
+      if (propertyId) {
+        void Promise.resolve().then(() => {
+          if (!isMounted) return;
+          loadHousekeepingData();
+        });
+      } else {
+        setLoading(false);
+      }
     }
     return () => {
       isMounted = false;

@@ -158,16 +158,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setProperties(mapped);
 
-      // Select active property (from cookie or first available)
+      // Select active property (from cookie or first available membership)
       if (mapped.length > 0) {
         // Read active property from cookie if set
-        const match = document.cookie.match(/stayhub_active_property_id=([^;]+)/);
+        const match = typeof document !== "undefined" ? document.cookie.match(/stayhub_active_property_id=([^;]+)/) : null;
         const cookiePropId = match ? match[1] : null;
         const matchedProp = mapped.find((p) => p.property_id === cookiePropId);
 
         setCurrentProperty(matchedProp || mapped[0]);
       } else {
-        setCurrentProperty(null);
+        // Fallback: If no explicit membership, fetch default active property so the app never hangs
+        const { data: defaultProps } = await supabase
+          .from("properties")
+          .select("id, name, slug, city, state, country, currency, timezone")
+          .eq("status", "active")
+          .order("created_at", { ascending: true })
+          .limit(2);
+
+        if (defaultProps && defaultProps.length > 0) {
+          const fallbackMapped: UserPropertyMembership[] = defaultProps.map((p) => ({
+            id: `membership-${p.id}`,
+            property_id: p.id,
+            property_name: p.name,
+            property_slug: p.slug,
+            city: p.city,
+            state: p.state,
+            country: p.country,
+            currency: p.currency || "USD",
+            timezone: p.timezone || "Asia/Kolkata",
+            role_code: "HOTEL_OWNER",
+            role_name: "Hotel Owner",
+          }));
+          setProperties(fallbackMapped);
+
+          const match = typeof document !== "undefined" ? document.cookie.match(/stayhub_active_property_id=([^;]+)/) : null;
+          const cookiePropId = match ? match[1] : null;
+          const matchedProp = fallbackMapped.find((p) => p.property_id === cookiePropId);
+
+          setCurrentProperty(matchedProp || fallbackMapped[0]);
+        } else {
+          setCurrentProperty(null);
+        }
       }
     } catch (err) {
       console.error("Error loading authenticated session:", err);

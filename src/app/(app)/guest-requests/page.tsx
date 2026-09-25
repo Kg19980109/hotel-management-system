@@ -20,7 +20,10 @@ export default function GuestRequestsPage() {
   const [staff, setStaff] = React.useState<{ id: string; full_name: string; email: string }[]>([]);
 
   const loadData = React.useCallback(async () => {
-    if (!activePropertyId) return;
+    if (!activePropertyId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -48,11 +51,15 @@ export default function GuestRequestsPage() {
 
   React.useEffect(() => {
     let isMounted = true;
-    if (!authLoading && activePropertyId) {
-      void Promise.resolve().then(() => {
-        if (!isMounted) return;
-        loadData();
-      });
+    if (!authLoading) {
+      if (activePropertyId) {
+        void Promise.resolve().then(() => {
+          if (!isMounted) return;
+          loadData();
+        });
+      } else {
+        setLoading(false);
+      }
     }
     return () => {
       isMounted = false;

@@ -50,7 +50,10 @@ export default function GuestsPage() {
   }, [search]);
 
   const loadData = React.useCallback(async () => {
-    if (!activePropertyId) return;
+    if (!activePropertyId) {
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     setError(null);

@@ -65,7 +65,10 @@ export default function RestaurantPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -94,8 +97,12 @@ export default function RestaurantPage() {
   }, [propertyId, selectedRestaurantId]);
 
   useEffect(() => {
-    if (!authLoading && propertyId) {
-      void Promise.resolve().then(() => loadData());
+    if (!authLoading) {
+      if (propertyId) {
+        void Promise.resolve().then(() => loadData());
+      } else {
+        setLoading(false);
+      }
     }
   }, [authLoading, propertyId, selectedRestaurantId, loadData]);
 

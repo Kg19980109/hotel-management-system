@@ -1,26 +1,340 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
+/* ============================================================
+   STAYHUB DESIGN TOKENS
+   Central source of truth for all visual properties
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Core Backgrounds --- */
+  --background: #f0f2f8;
+  --surface: #ffffff;
+  --surface-hover: #f8f9fc;
+
+  /* --- Sidebar --- */
+  --sidebar-bg: #0f172a;
+  --sidebar-item-hover: #1e293b;
+  --sidebar-item-active: #3b3d8a;
+  --sidebar-item-active-bg: rgba(99, 102, 241, 0.18);
+  --sidebar-text: #94a3b8;
+  --sidebar-text-active: #ffffff;
+  --sidebar-border: #1e293b;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+
+  /* --- Primary (Indigo/Purple) --- */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-active: #3730a3;
+  --primary-foreground: #ffffff;
+  --primary-subtle: rgba(79, 70, 229, 0.08);
+  --primary-light: #e0e7ff;
+
+  /* --- Secondary --- */
+  --secondary: #f1f5f9;
+  --secondary-hover: #e2e8f0;
+  --secondary-foreground: #1e293b;
+
+  /* --- Muted --- */
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+
+  /* --- Foreground / Text --- */
+  --foreground: #0f172a;
+  --foreground-muted: #64748b;
+  --foreground-subtle: #94a3b8;
+
+  /* --- Card --- */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --card-border: #e2e8f0;
+  --card-shadow: 0px 1px 3px 0px rgba(15, 23, 42, 0.06), 0px 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --card-shadow-hover: 0px 4px 16px 0px rgba(15, 23, 42, 0.10), 0px 2px 6px -1px rgba(15, 23, 42, 0.06);
+
+  /* --- Status Colors --- */
+  --success: #16a34a;
+  --success-light: #dcfce7;
+  --success-foreground: #14532d;
+
+  --warning: #d97706;
+  --warning-light: #fef3c7;
+  --warning-foreground: #92400e;
+
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --danger-foreground: #7f1d1d;
+
+  --info: #2563eb;
+  --info-light: #dbeafe;
+  --info-foreground: #1e3a8a;
+
+  /* --- Accent (Warm Gold) --- */
+  --accent: #f59e0b;
+  --accent-light: #fef3c7;
+  --accent-foreground: #92400e;
+
+  /* --- Purple Status --- */
+  --purple: #7c3aed;
+  --purple-light: #ede9fe;
+  --purple-foreground: #4c1d95;
+
+  /* --- Border & Input --- */
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-border-focus: #4f46e5;
+  --ring: rgba(79, 70, 229, 0.3);
+
+  /* --- Border Radius --- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* --- Shadows --- */
+  --shadow-xs: 0px 1px 2px 0px rgba(15, 23, 42, 0.05);
+  --shadow-sm: 0px 1px 3px 0px rgba(15, 23, 42, 0.08), 0px 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow: 0px 4px 6px -1px rgba(15, 23, 42, 0.08), 0px 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0px 10px 15px -3px rgba(15, 23, 42, 0.08), 0px 4px 6px -4px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0px 20px 25px -5px rgba(15, 23, 42, 0.08), 0px 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0px 25px 50px -12px rgba(15, 23, 42, 0.18);
+
+  /* --- Topbar --- */
+  --topbar-height: 64px;
+  --topbar-bg: #ffffff;
+  --topbar-border: #e2e8f0;
+
+  /* --- Typography --- */
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* --- Transitions --- */
+  --transition-fast: 120ms ease;
+  --transition: 200ms ease;
+  --transition-slow: 300ms ease;
 }
+
+/* ============================================================
+   TAILWIND THEME EXTENSION (v4 style)
+   ============================================================ */
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-light: var(--primary-light);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-card-border: var(--card-border);
+
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-text-active: var(--sidebar-text-active);
+
+  --color-success: var(--success);
+  --color-success-light: var(--success-light);
+  --color-warning: var(--warning);
+  --color-warning-light: var(--warning-light);
+  --color-danger: var(--danger);
+  --color-danger-light: var(--danger-light);
+  --color-info: var(--info);
+  --color-info-light: var(--info-light);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-purple: var(--purple);
+  --color-purple-light: var(--purple-light);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input-bg);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-DEFAULT: var(--radius);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+/* ============================================================
+   SCROLLBAR STYLING
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================================
+   FOCUS RING OVERRIDE
+   ============================================================ */
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================================
+   TYPOGRAPHY SCALE
+   ============================================================ */
+
+.text-display {
+  font-size: 2.25rem; /* 36px */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.text-page-heading {
+  font-size: 1.75rem; /* 28px */
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--foreground);
+}
+
+.text-section-heading {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.text-card-heading {
+  font-size: 0.9375rem; /* 15px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--foreground);
+}
+
+.text-body {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 400;
+  line-height: 1.57;
+  color: var(--foreground);
+}
+
+.text-small {
+  font-size: 0.75rem; /* 12px */
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--foreground-muted);
+}
+
+.text-kpi {
+  font-size: 2rem; /* 32px */
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.stayhub-card {
+  background-color: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition);
+}
+
+.stayhub-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.stayhub-input-base {
+  width: 100%;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+}
+
+.stayhub-input-base:focus {
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+.stayhub-input-base::placeholder {
+  color: var(--foreground-subtle);
+}
+
+.page-container {
+  padding: 24px;
+}
+
+.section-gap {
+  margin-bottom: 24px;
 }

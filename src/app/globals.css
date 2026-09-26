@@ -2,6 +2,8 @@
 /* --font-inter CSS variable is injected by next/font on <html> */
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================
    STAYHUB DESIGN SYSTEM — PHASE 1
    Luxury Hospitality OS · Premium SaaS · Hotel Operations

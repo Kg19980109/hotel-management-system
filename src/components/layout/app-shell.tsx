@@ -21,14 +21,20 @@ export function AppShell({ children, contentWidth = "default" }: AppShellProps) 
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const [isLargeScreen, setIsLargeScreen] = React.useState(true);
 
-  // Track viewport size for correct topbar offset
+  // Track viewport size for correct topbar offset (debounced — old version
+  // setState on every resize pixel, thrashing mobile rotate/scroll)
   React.useEffect(() => {
+    let t: ReturnType<typeof setTimeout> | null = null;
     const checkScreen = () => {
-      setIsLargeScreen(window.innerWidth >= 1024);
+      if (t) clearTimeout(t);
+      t = setTimeout(() => setIsLargeScreen(window.innerWidth >= 1024), 150);
     };
-    checkScreen();
-    window.addEventListener("resize", checkScreen);
-    return () => window.removeEventListener("resize", checkScreen);
+    setIsLargeScreen(window.innerWidth >= 1024);
+    window.addEventListener("resize", checkScreen, { passive: true });
+    return () => {
+      if (t) clearTimeout(t);
+      window.removeEventListener("resize", checkScreen);
+    };
   }, []);
 
   const currentSidebarWidth = isLargeScreen

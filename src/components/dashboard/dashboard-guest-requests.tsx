@@ -120,7 +120,8 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
     void loadRequests();
   }, [loadRequests]);
 
-  // Real-time listener
+  // Real-time listener (primary). 30s visible-only backup poll replaces
+  // the old 4s aggressive poll that kept mobile radios awake.
   React.useEffect(() => {
     if (!propertyId) return;
     const supabase = createClient();
@@ -129,7 +130,12 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
       .channel(channelName)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "guest_service_requests" },
+        {
+          event: "*",
+          schema: "public",
+          table: "guest_service_requests",
+          filter: `property_id=eq.${propertyId}`,
+        },
         (payload) => {
           const rec = (payload.new || payload.old) as { property_id?: string };
           if (rec?.property_id && rec.property_id !== propertyId) return;
@@ -138,7 +144,10 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
       )
       .subscribe();
 
-    const interval = setInterval(() => { void loadRequests(); }, 4000);
+    const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadRequests();
+    }, 30000);
     return () => {
       clearInterval(interval);
       void supabase.removeChannel(channel);

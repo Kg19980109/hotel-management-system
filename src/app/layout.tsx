@@ -10,14 +10,14 @@ import { AuthProvider } from "@/lib/auth/context";
 // ============================================================
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700"],
   variable: "--font-inter",
   display: "swap",
 });
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+  weight: ["600", "700"],
   variable: "--font-serif",
   display: "swap",
 });

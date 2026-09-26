@@ -77,7 +77,7 @@ export function AssignRequestModal({
       size="md"
     >
       <div className="space-y-4 pt-2">
-        <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-[var(--border)] rounded-lg text-sm space-y-1">
+        <div className="p-3 bg-slate-50 border border-[var(--border)] rounded-[var(--radius-md)] text-sm space-y-1">
           <p className="font-semibold text-[var(--foreground)]">{request.title}</p>
           <p className="text-xs text-[var(--foreground-muted)]">
             Room {request.room?.room_number} • Category: {request.category}
@@ -85,13 +85,13 @@ export function AssignRequestModal({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
             Target Department
           </label>
           <select
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
-            className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+            className="stayhub-input-base h-10 text-sm"
           >
             <option value="">Select Department...</option>
             {DEPARTMENTS.map((dept) => (
@@ -103,13 +103,13 @@ export function AssignRequestModal({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
             Assign Staff Member
           </label>
           <select
             value={assignedTo}
             onChange={(e) => setAssignedTo(e.target.value)}
-            className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+            className="stayhub-input-base h-10 text-sm"
           >
             <option value="UNASSIGNED">-- Unassigned (Department Only) --</option>
             {staffMembers.map((s) => (
@@ -121,7 +121,7 @@ export function AssignRequestModal({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
             Assignment Notes (Optional)
           </label>
           <textarea
@@ -129,7 +129,7 @@ export function AssignRequestModal({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Internal instruction or notes for assigned staff..."
-            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)] resize-none"
+            className="stayhub-input-base resize-none text-sm"
           />
         </div>
 

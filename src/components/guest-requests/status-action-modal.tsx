@@ -106,7 +106,7 @@ export function StatusActionModal({
       size="md"
     >
       <div className="space-y-4 pt-2">
-        <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-[var(--border)] rounded-lg text-sm space-y-1">
+        <div className="p-3 bg-slate-50 border border-[var(--border)] rounded-[var(--radius-md)] text-sm space-y-1">
           <p className="font-semibold text-[var(--foreground)]">{request.title}</p>
           <p className="text-xs text-[var(--foreground-muted)]">
             Room {request.room?.room_number} • Current Status: {request.status}
@@ -115,7 +115,7 @@ export function StatusActionModal({
 
         {actionType === "COMPLETE" && (
           <div>
-            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
               Message to Guest (Visible in Guest Portal)
             </label>
             <textarea
@@ -123,13 +123,13 @@ export function StatusActionModal({
               value={guestNotes}
               onChange={(e) => setGuestNotes(e.target.value)}
               placeholder="E.g., Your extra towels have been placed in your room. Enjoy your stay!"
-              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)] resize-none"
+              className="stayhub-input-base resize-none text-sm"
             />
           </div>
         )}
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
             {actionType === "CANCEL" || actionType === "REJECT"
               ? "Reason / Internal Notes"
               : "Internal Staff Notes"}
@@ -139,7 +139,7 @@ export function StatusActionModal({
             value={staffNotes}
             onChange={(e) => setStaffNotes(e.target.value)}
             placeholder="Internal operational note..."
-            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)] resize-none"
+            className="stayhub-input-base resize-none text-sm"
           />
         </div>
 

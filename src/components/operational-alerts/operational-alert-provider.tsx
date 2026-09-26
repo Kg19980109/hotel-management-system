@@ -177,10 +177,12 @@ export function OperationalAlertProvider({
     // Initial sync
     void syncOpenRequests(propertyId, currentRole);
 
-    // High-frequency 3.5s polling heartbeat backup to ensure ZERO missed requests
+    // Low-frequency 30s polling backup (was 3.5s — kept radio/CPU awake on
+    // mobile). Paused when tab hidden. Realtime is the primary path.
     const heartbeatInterval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       void syncOpenRequests(propertyId, currentRole);
-    }, 3500);
+    }, 30000);
 
     // Channel dedicated to this property's operational events
     const channelName = `stayhub:operational-alerts:${propertyId}:${Math.random().toString(36).slice(2, 7)}`;
@@ -190,13 +192,14 @@ export function OperationalAlertProvider({
       },
     });
 
-    // 1. Listen for changes on guest_service_requests (filter verified in JS for robust delivery)
+    // 1. Listen for changes on guest_service_requests (server-filtered by property)
     channel.on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "guest_service_requests",
+        filter: `property_id=eq.${propertyId}`,
       },
       async (payload) => {
         const { eventType, new: newRec } = payload;
@@ -285,6 +288,7 @@ export function OperationalAlertProvider({
         event: "INSERT",
         schema: "public",
         table: "restaurant_orders",
+        filter: `property_id=eq.${propertyId}`,
       },
       async (payload) => {
         const order = payload.new;

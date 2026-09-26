@@ -47,69 +47,45 @@ export async function queryPropertyDetails(
 }
 
 /**
- * Query room inventory summary.
- * In Phase 5, rooms table does not exist yet. This query safely checks or degrades
- * so future Phase 6 (Room Management) can immediately populate this.
+ * Query room inventory summary using server-side COUNTs.
+ * Old version downloaded every room row and counted in JS — slow on mobile.
  */
 export async function queryRoomInventorySummary(
   supabase: SupabaseClient,
   propertyId: string
 ): Promise<RoomStatusSummary> {
   try {
-    const { data, error } = await supabase
-      .from("rooms")
-      .select("id, status, housekeeping_status, is_active")
-      .eq("property_id", propertyId);
+    const [
+      totalRes,
+      availableRes,
+      occupiedRes,
+      outOfOrderRes,
+      dirtyRes,
+    ] = await Promise.all([
+      supabase.from("rooms").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("is_active", true),
+      supabase.from("rooms").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("is_active", true).eq("status", "AVAILABLE"),
+      supabase.from("rooms").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("is_active", true).eq("status", "OCCUPIED"),
+      supabase.from("rooms").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("is_active", true).in("status", ["OUT_OF_ORDER", "OUT_OF_SERVICE"]),
+      supabase.from("rooms").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("is_active", true).eq("housekeeping_status", "DIRTY"),
+    ]);
 
-    if (error || !data || data.length === 0) {
-      // Room inventory not configured yet
-      return {
-        total: 0,
-        available: 0,
-        occupied: 0,
-        dirty: 0,
-        maintenance: 0,
-        outOfOrder: 0,
-        isConfigured: false,
-      };
+    const total = totalRes.count ?? 0;
+    if (!total) {
+      return { total: 0, available: 0, occupied: 0, dirty: 0, maintenance: 0, outOfOrder: 0, isConfigured: false };
     }
 
-    const total = data.length;
-    let available = 0;
-    let occupied = 0;
-    let dirty = 0;
-    let maintenance = 0;
-    let outOfOrder = 0;
-
-    for (const room of data as Array<{
-      status: string;
-      housekeeping_status?: string;
-      is_active?: boolean;
-    }>) {
-      if (room.is_active === false) {
-        continue;
-      }
-
-      const statusUpper = (room.status || "").toUpperCase();
-      const hkUpper = (room.housekeeping_status || "").toUpperCase();
-
-      if (statusUpper === "AVAILABLE") available++;
-      else if (statusUpper === "OCCUPIED") occupied++;
-      else if (statusUpper === "OUT_OF_ORDER" || statusUpper === "OUT_OF_SERVICE") {
-        outOfOrder++;
-        maintenance++;
-      }
-
-      if (hkUpper === "DIRTY") dirty++;
-      else if (hkUpper === "CLEANING" || statusUpper === "CLEANING") maintenance++;
-    }
-
+    const outOfOrder = outOfOrderRes.count ?? 0;
     return {
       total,
-      available,
-      occupied,
-      dirty,
-      maintenance,
+      available: availableRes.count ?? 0,
+      occupied: occupiedRes.count ?? 0,
+      dirty: dirtyRes.count ?? 0,
+      maintenance: outOfOrder,
       outOfOrder,
       isConfigured: true,
     };
@@ -324,6 +300,7 @@ export async function queryRecentActivity(
 
 /**
  * Query actual in-house guest count from active CHECKED_IN stays (Phase 8)
+ * Capped at 500 rows to avoid downloading full stay history on mobile.
  */
 export async function queryInHouseGuestsCount(
   supabase: SupabaseClient,
@@ -334,7 +311,8 @@ export async function queryInHouseGuestsCount(
       .from("stays")
       .select("adults, children")
       .eq("property_id", propertyId)
-      .eq("status", "CHECKED_IN");
+      .eq("status", "CHECKED_IN")
+      .limit(500);
 
     if (error || !data) return 0;
     return data.reduce((acc, s) => acc + (s.adults || 1) + (s.children || 0), 0);

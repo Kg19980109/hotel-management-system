@@ -233,75 +233,43 @@ export async function fetchRoomById(
 
 /**
  * Fetch operational room statistics for dashboard and room KPI widgets
+ * Uses server-side COUNTs instead of downloading all rows.
  */
 export async function fetchRoomStats(
   supabase: SupabaseClient,
   propertyId: string
 ): Promise<RoomStats> {
+  const zero: RoomStats = {
+    total: 0, available: 0, occupied: 0, dirty: 0,
+    cleaning: 0, inspected: 0, outOfOrder: 0, inactive: 0,
+  };
   try {
-    const { data, error } = await supabase
-      .from("rooms")
-      .select("status, housekeeping_status, is_active")
-      .eq("property_id", propertyId);
-
-    if (error || !data) {
-      return {
-        total: 0,
-        available: 0,
-        occupied: 0,
-        dirty: 0,
-        cleaning: 0,
-        inspected: 0,
-        outOfOrder: 0,
-        inactive: 0,
-      };
-    }
-
-    let available = 0;
-    let occupied = 0;
-    let dirty = 0;
-    let cleaning = 0;
-    let inspected = 0;
-    let outOfOrder = 0;
-    let inactive = 0;
-
-    for (const r of data) {
-      if (!r.is_active) {
-        inactive++;
-        continue;
-      }
-
-      if (r.status === "AVAILABLE") available++;
-      else if (r.status === "OCCUPIED") occupied++;
-      else if (r.status === "OUT_OF_ORDER" || r.status === "OUT_OF_SERVICE") outOfOrder++;
-
-      if (r.housekeeping_status === "DIRTY") dirty++;
-      else if (r.housekeeping_status === "CLEANING") cleaning++;
-      else if (r.housekeeping_status === "INSPECTION_PENDING") inspected++;
-    }
-
+    const [
+      totalRes, availableRes, occupiedRes, dirtyRes,
+      cleaningRes, inspectedRes, outOfOrderRes, inactiveRes,
+    ] = await Promise.all([
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId),
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId).eq("is_active", true).eq("status", "AVAILABLE"),
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId).eq("is_active", true).eq("status", "OCCUPIED"),
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId).eq("is_active", true).eq("housekeeping_status", "DIRTY"),
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId).eq("is_active", true).eq("housekeeping_status", "CLEANING"),
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId).eq("is_active", true).eq("housekeeping_status", "INSPECTION_PENDING"),
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId).eq("is_active", true).in("status", ["OUT_OF_ORDER", "OUT_OF_SERVICE"]),
+      supabase.from("rooms").select("id", { count: "exact", head: true }).eq("property_id", propertyId).eq("is_active", false),
+    ]);
     return {
-      total: data.length,
-      available,
-      occupied,
-      dirty,
-      cleaning,
-      inspected,
-      outOfOrder,
-      inactive,
+      total: totalRes.count ?? 0,
+      available: availableRes.count ?? 0,
+      occupied: occupiedRes.count ?? 0,
+      dirty: dirtyRes.count ?? 0,
+      cleaning: cleaningRes.count ?? 0,
+      inspected: inspectedRes.count ?? 0,
+      outOfOrder: outOfOrderRes.count ?? 0,
+      inactive: inactiveRes.count ?? 0,
     };
   } catch (err) {
     console.error("fetchRoomStats exception:", err);
-    return {
-      total: 0,
-      available: 0,
-      occupied: 0,
-      dirty: 0,
-      cleaning: 0,
-      inspected: 0,
-      outOfOrder: 0,
-      inactive: 0,
-    };
+    return zero;
   }
 }
 

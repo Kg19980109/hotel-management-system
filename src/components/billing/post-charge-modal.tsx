@@ -99,13 +99,13 @@ export function PostChargeModal({
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
               Charge Type
             </label>
             <select
               value={chargeType}
               onChange={(e) => setChargeType(e.target.value as ChargeType)}
-              className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+              className="stayhub-input-base h-10 text-sm"
             >
               <option value="SERVICE">Service</option>
               <option value="ROOM">Room</option>
@@ -117,7 +117,7 @@ export function PostChargeModal({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
               Quantity
             </label>
             <input
@@ -126,14 +126,14 @@ export function PostChargeModal({
               step="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+              className="stayhub-input-base h-10 text-sm"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
             Description
           </label>
           <input
@@ -141,14 +141,14 @@ export function PostChargeModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="E.g., Airport Luxury Transfer, Spa Massage, Laundry"
-            className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+            className="stayhub-input-base h-10 text-sm"
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
               Unit Price ({currency})
             </label>
             <input
@@ -158,13 +158,13 @@ export function PostChargeModal({
               value={unitPrice}
               onChange={(e) => setUnitPrice(e.target.value)}
               placeholder="0.00"
-              className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+              className="stayhub-input-base h-10 text-sm"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
               Discount ({discountType === "PERCENTAGE" ? "%" : currency})
             </label>
             <div className="flex gap-1">
@@ -175,14 +175,14 @@ export function PostChargeModal({
                 value={discountValue}
                 onChange={(e) => setDiscountValue(e.target.value)}
                 placeholder="0"
-                className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+                className="stayhub-input-base h-10 text-sm"
               />
               <button
                 type="button"
                 onClick={() =>
                   setDiscountType(discountType === "FIXED" ? "PERCENTAGE" : "FIXED")
                 }
-                className="px-2.5 h-10 rounded-lg border border-[var(--border)] bg-slate-100 dark:bg-slate-900 text-xs font-bold"
+                className="px-2.5 h-10 rounded-lg border border-[var(--border)] bg-[var(--secondary)] text-xs font-bold text-[var(--foreground)] hover:bg-[var(--secondary-hover)] transition-colors"
               >
                 {discountType === "FIXED" ? currency : "%"}
               </button>
@@ -204,7 +204,7 @@ export function PostChargeModal({
         </div>
 
         {/* Calculation Preview */}
-        <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-[var(--border)] rounded-lg space-y-1 text-xs">
+        <div className="p-3 bg-slate-50 border border-[var(--border)] rounded-[var(--radius-md)] space-y-1 text-xs">
           <div className="flex justify-between text-[var(--foreground-muted)]">
             <span>Subtotal</span>
             <span>{currency} {calculated.subtotal.toFixed(2)}</span>

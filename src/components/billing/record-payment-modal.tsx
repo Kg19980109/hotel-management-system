@@ -74,22 +74,22 @@ function RecordPaymentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pt-2">
       {balanceDue > 0 && (
-        <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg flex items-center justify-between text-xs">
-          <span className="text-amber-800 dark:text-amber-300 font-medium">Outstanding Balance:</span>
-          <span className="font-mono font-bold text-amber-900 dark:text-amber-200">
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-[var(--radius-md)] flex items-center justify-between text-xs">
+          <span className="text-amber-800 font-medium">Outstanding Balance:</span>
+          <span className="font-mono font-bold text-amber-900">
             {currency} {balanceDue.toFixed(2)}
           </span>
         </div>
       )}
 
       <div>
-        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
           Payment Method
         </label>
         <select
           value={paymentMethod}
           onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-          className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[var(--foreground)]"
+          className="stayhub-input-base h-10 text-sm"
         >
           {PAYMENT_METHODS.map((m) => (
             <option key={m.value} value={m.value}>
@@ -100,7 +100,7 @@ function RecordPaymentForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
           Amount ({currency}) <span className="text-rose-500">*</span>
         </label>
         <div className="relative">
@@ -111,14 +111,14 @@ function RecordPaymentForm({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-[var(--foreground)]"
+            className="stayhub-input-base h-10 font-mono text-sm pr-20"
             required
           />
           {balanceDue > 0 && (
             <button
               type="button"
               onClick={() => setAmount(balanceDue.toFixed(2))}
-              className="absolute right-2 top-2 text-[10px] font-bold px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 rounded hover:bg-emerald-200"
+              className="absolute right-2 top-2 text-[10px] font-bold px-2 py-1 bg-emerald-100 text-emerald-800 rounded hover:bg-emerald-200 transition-colors"
             >
               Pay Full
             </button>
@@ -127,7 +127,7 @@ function RecordPaymentForm({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
           Transaction Reference / Notes (Optional)
         </label>
         <textarea
@@ -135,7 +135,7 @@ function RecordPaymentForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Receipt #, UPI UTR #, last 4 digits of card..."
-          className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-[var(--foreground)] resize-none"
+          className="stayhub-input-base resize-none text-sm"
         />
       </div>
 

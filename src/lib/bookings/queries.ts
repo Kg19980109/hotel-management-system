@@ -81,6 +81,7 @@ interface RawReservationRow {
 
 /**
  * Fetch paginated, filtered, searched reservations for the active property
+ * NOTE: explicit column list (no SELECT *) to keep mobile payloads small.
  */
 export async function fetchBookings(
   supabase: SupabaseClient,
@@ -95,10 +96,13 @@ export async function fetchBookings(
     .from("reservations")
     .select(
       `
-      *,
-      primary_guest:guests(*),
+      id, property_id, confirmation_number, status, booking_source,
+      booked_at, check_in_date, check_out_date, adults, children,
+      total_amount, currency, primary_guest_id, created_at,
+      primary_guest:guests(id, first_name, last_name, email, phone),
       reservation_rooms(
-        *,
+        id, room_type_id, room_id, check_in_date, check_out_date,
+        is_cancelled, adults, children, nightly_rate, total_amount, currency,
         room_type:room_types(name, code),
         room:rooms(room_number, room_name),
         stays:stays(id, status, actual_check_in_at, actual_check_out_at, room_id)
@@ -201,12 +205,15 @@ export async function fetchBookingById(
     .from("reservations")
     .select(
       `
-      *,
-      primary_guest:guests(*),
+      id, property_id, confirmation_number, status, booking_source,
+      booked_at, check_in_date, check_out_date, adults, children,
+      special_requests, total_amount, currency, primary_guest_id, created_at,
+      primary_guest:guests(id, first_name, last_name, email, phone),
       reservation_rooms(
-        *,
-        room_type:room_types(*),
-        room:rooms(id, room_number, room_name, floor_id, status),
+        id, room_type_id, room_id, check_in_date, check_out_date,
+        is_cancelled, adults, children, nightly_rate, total_amount, currency,
+        room_type:room_types(id, name, code),
+        room:rooms(id, room_number, room_name, status),
         stays:stays(id, status, actual_check_in_at, actual_check_out_at, room_id)
       )
     `
@@ -249,67 +256,64 @@ export async function fetchBookingById(
 
 /**
  * Fetch reservation operational KPI statistics for active property
+ * Uses server-side COUNT queries (no full-table download) so it stays
+ * fast at 10k+ reservations on laptop/mobile.
  */
 export async function fetchBookingKPIStats(
   supabase: SupabaseClient,
   propertyId: string
 ): Promise<BookingKPIStats> {
   const todayStr = new Date().toISOString().split("T")[0];
-
-  const { data, error } = await supabase
-    .from("reservations")
-    .select("status, check_in_date, check_out_date")
-    .eq("property_id", propertyId);
-
-  if (error) {
-    console.error("fetchBookingKPIStats error:", error);
-    return {
-      todayArrivals: 0,
-      todayDepartures: 0,
-      confirmed: 0,
-      pending: 0,
-      cancelled: 0,
-      activeStays: 0,
-      totalBookings: 0,
-    };
-  }
-
-  let todayArrivals = 0;
-  let todayDepartures = 0;
-  let confirmed = 0;
-  let pending = 0;
-  let cancelled = 0;
-  let activeStays = 0;
-
-  for (const r of data || []) {
-    if (r.status === "CONFIRMED") confirmed++;
-    if (r.status === "PENDING") pending++;
-    if (r.status === "CANCELLED") cancelled++;
-
-    // Operational expected arrivals and departures
-    if (r.status !== "CANCELLED") {
-      if (r.check_in_date === todayStr) {
-        todayArrivals++;
-      }
-      if (r.check_out_date === todayStr) {
-        todayDepartures++;
-      }
-      // Ongoing reservation night
-      if (r.check_in_date <= todayStr && r.check_out_date > todayStr) {
-        activeStays++;
-      }
-    }
-  }
-
-  return {
-    todayArrivals,
-    todayDepartures,
-    confirmed,
-    pending,
-    cancelled,
-    activeStays,
-    totalBookings: data?.length || 0,
+  const empty: BookingKPIStats = {
+    todayArrivals: 0,
+    todayDepartures: 0,
+    confirmed: 0,
+    pending: 0,
+    cancelled: 0,
+    activeStays: 0,
+    totalBookings: 0,
   };
+
+  try {
+    const [
+      arrivalsRes,
+      departuresRes,
+      confirmedRes,
+      pendingRes,
+      cancelledRes,
+      totalRes,
+      activeRes,
+    ] = await Promise.all([
+      supabase.from("reservations").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("check_in_date", todayStr).neq("status", "CANCELLED"),
+      supabase.from("reservations").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("check_out_date", todayStr).neq("status", "CANCELLED"),
+      supabase.from("reservations").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("status", "CONFIRMED"),
+      supabase.from("reservations").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("status", "PENDING"),
+      supabase.from("reservations").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).eq("status", "CANCELLED"),
+      supabase.from("reservations").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId),
+      supabase.from("reservations").select("id", { count: "exact", head: true })
+        .eq("property_id", propertyId).neq("status", "CANCELLED")
+        .lte("check_in_date", todayStr).gt("check_out_date", todayStr),
+    ]);
+
+    return {
+      todayArrivals: arrivalsRes.count ?? 0,
+      todayDepartures: departuresRes.count ?? 0,
+      confirmed: confirmedRes.count ?? 0,
+      pending: pendingRes.count ?? 0,
+      cancelled: cancelledRes.count ?? 0,
+      activeStays: activeRes.count ?? 0,
+      totalBookings: totalRes.count ?? 0,
+    };
+  } catch (err) {
+    console.error("fetchBookingKPIStats error:", err);
+    return empty;
+  }
 }
 
 /**

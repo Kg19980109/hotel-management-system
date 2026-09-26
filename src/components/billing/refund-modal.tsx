@@ -72,7 +72,7 @@ export function RefundModal({
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-        <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-[var(--border)] rounded-lg text-xs space-y-1">
+        <div className="p-3 bg-slate-50 border border-[var(--border)] rounded-[var(--radius-md)] text-xs space-y-1">
           <div className="flex justify-between text-[var(--foreground-muted)]">
             <span>Payment Reference</span>
             <span className="font-semibold text-[var(--foreground)]">{payment.payment_reference}</span>
@@ -84,7 +84,7 @@ export function RefundModal({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
             Refund Amount ({payment.currency})
           </label>
           <input
@@ -94,13 +94,13 @@ export function RefundModal({
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+            className="stayhub-input-base h-10 text-sm"
             required
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
             Refund Reason <span className="text-rose-500">*</span>
           </label>
           <textarea
@@ -108,7 +108,7 @@ export function RefundModal({
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Reason for refund (e.g. guest overpayment, early checkout, service compensation)..."
-            className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)] resize-none"
+            className="stayhub-input-base resize-none text-sm"
             required
           />
         </div>

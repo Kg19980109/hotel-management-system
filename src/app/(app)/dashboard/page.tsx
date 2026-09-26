@@ -173,13 +173,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 relative -mt-4 -mx-6 px-6 pt-4">
-      {/* Hero Background */}
-      <div 
-        className="absolute top-0 left-0 w-full h-[320px] bg-cover bg-center z-0 opacity-40 dark:opacity-20 pointer-events-none"
-        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1542314831-c6a4d142104d?auto=format&fit=crop&q=80")' }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/50 to-background" />
-      </div>
+      {/* Hero Background — pure CSS gradient (removed remote Unsplash image
+          that blocked LCP on mobile and cost ~500KB per load) */}
+      <div className="absolute top-0 left-0 w-full h-[240px] z-0 pointer-events-none bg-gradient-to-b from-indigo-50/60 via-background/40 to-background" />
 
       <div className="relative z-10 space-y-6">
         {/* 1. Header with Property Context, Timezone Date & Quick Actions */}

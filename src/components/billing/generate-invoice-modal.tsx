@@ -62,7 +62,7 @@ function GenerateInvoiceForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 pt-2">
       <div>
-        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
           Billed To / Full Name <span className="text-rose-500">*</span>
         </label>
         <input
@@ -70,13 +70,13 @@ function GenerateInvoiceForm({
           value={billingName}
           onChange={(e) => setBillingName(e.target.value)}
           placeholder="Guest or Company Name"
-          className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+          className="stayhub-input-base h-10 text-sm"
           required
         />
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
           Billing Email
         </label>
         <input
@@ -84,12 +84,12 @@ function GenerateInvoiceForm({
           value={billingEmail}
           onChange={(e) => setBillingEmail(e.target.value)}
           placeholder="billing@example.com"
-          className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+          className="stayhub-input-base h-10 text-sm"
         />
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1">
+        <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
           Billing Address / Tax GSTIN (Optional)
         </label>
         <textarea
@@ -97,7 +97,7 @@ function GenerateInvoiceForm({
           value={billingAddress}
           onChange={(e) => setBillingAddress(e.target.value)}
           placeholder="Billing address, company GSTIN/VAT number..."
-          className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white dark:bg-slate-950 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)] resize-none"
+          className="stayhub-input-base resize-none text-sm"
         />
       </div>
 

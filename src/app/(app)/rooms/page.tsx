@@ -26,7 +26,6 @@ import {
   RoomCardGrid,
   RoomStatusModal,
 } from "@/components/rooms";
-import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/states";
 import { Button } from "@/components/ui/button";
 import { ConfirmModal } from "@/components/ui/modal";
@@ -38,6 +37,7 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Home,
 } from "lucide-react";
 
 export default function RoomsPage() {
@@ -45,14 +45,11 @@ export default function RoomsPage() {
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);
 
-  // Data states
   const [rooms, setRooms] = React.useState<Room[]>([]);
   const [totalCount, setTotalCount] = React.useState(0);
   const [stats, setStats] = React.useState<RoomStats | null>(null);
   const [floors, setFloors] = React.useState<Floor[]>([]);
   const [roomTypes, setRoomTypes] = React.useState<RoomType[]>([]);
-
-  // UI & Filter states
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [viewMode, setViewMode] = React.useState<"list" | "grid">("list");
@@ -66,8 +63,6 @@ export default function RoomsPage() {
     page: 1,
     pageSize: 24,
   });
-
-  // Modal states
   const [selectedRoomForStatus, setSelectedRoomForStatus] = React.useState<Room | null>(null);
   const [roomToDeactivate, setRoomToDeactivate] = React.useState<Room | null>(null);
   const [isDeactivating, setIsDeactivating] = React.useState(false);
@@ -76,14 +71,9 @@ export default function RoomsPage() {
   const currency = currentProperty?.currency || "INR";
 
   const loadData = React.useCallback(async () => {
-    if (!activePropertyId) {
-      setLoading(false);
-      return;
-    }
-
+    if (!activePropertyId) { setLoading(false); return; }
     setLoading(true);
     setError(null);
-
     try {
       const [roomsResult, statsResult, floorsResult, typesResult] = await Promise.all([
         fetchRooms(supabase, activePropertyId, filters),
@@ -91,14 +81,12 @@ export default function RoomsPage() {
         fetchFloors(supabase, activePropertyId),
         fetchRoomTypes(supabase, activePropertyId),
       ]);
-
       setRooms(roomsResult.rooms);
       setTotalCount(roomsResult.totalCount);
       setStats(statsResult);
       setFloors(floorsResult);
       setRoomTypes(typesResult);
     } catch (err) {
-      console.error("Error loading rooms:", err);
       setError("Failed to load room inventory data. Please try again.");
     } finally {
       setLoading(false);
@@ -107,39 +95,23 @@ export default function RoomsPage() {
 
   React.useEffect(() => {
     let isMounted = true;
-
     if (!authLoading) {
       void Promise.resolve().then(() => {
         if (!isMounted) return;
-        if (activePropertyId) {
-          loadData();
-        } else {
-          setLoading(false);
-        }
+        if (activePropertyId) loadData();
+        else setLoading(false);
       });
     }
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [authLoading, activePropertyId, loadData]);
 
-  // Handle deactivation
   const handleConfirmDeactivate = async () => {
     if (!roomToDeactivate || !activePropertyId) return;
     setIsDeactivating(true);
     try {
-      const res = await deactivateRoomAction(
-        activePropertyId,
-        roomToDeactivate.id,
-        roomToDeactivate.is_active // If currently active, deactivate; else reactivate
-      );
-      if (res.success) {
-        setRoomToDeactivate(null);
-        loadData();
-      } else {
-        alert(res.error || "Failed to update room activation state.");
-      }
+      const res = await deactivateRoomAction(activePropertyId, roomToDeactivate.id, roomToDeactivate.is_active);
+      if (res.success) { setRoomToDeactivate(null); loadData(); }
+      else alert(res.error || "Failed to update room activation state.");
     } catch (err) {
       console.error("Deactivate error:", err);
     } finally {
@@ -150,9 +122,7 @@ export default function RoomsPage() {
   const totalPages = Math.ceil(totalCount / (filters.pageSize || 24)) || 1;
   const currentPage = filters.page || 1;
 
-  if (authLoading) {
-    return <LoadingState message="Loading room management..." size="lg" />;
-  }
+  if (authLoading) return <LoadingState message="Loading room management..." size="lg" />;
 
   if (!currentProperty) {
     return (
@@ -160,89 +130,92 @@ export default function RoomsPage() {
         icon={<BedDouble className="h-12 w-12 text-[var(--primary)]" />}
         title="No Active Property Selected"
         description="Please select or configure an active hotel property to manage rooms."
-        action={{
-          label: "Complete Onboarding",
-          onClick: () => router.push("/onboarding"),
-        }}
+        action={{ label: "Complete Onboarding", onClick: () => router.push("/onboarding") }}
         className="stayhub-card p-10 max-w-lg mx-auto my-12"
       />
     );
   }
 
   return (
-    <div className="space-y-6 relative -mt-4 -mx-6 px-6 pt-4">
-      {/* 5-Star Resort Hero Ambient Background */}
-      <div 
-        className="absolute top-0 left-0 w-full h-[280px] bg-cover bg-center z-0 opacity-25 dark:opacity-15 pointer-events-none"
-        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80")' }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/60 to-background" />
-      </div>
+    <div className="space-y-6">
+      {/* ── HERO HEADER ── */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#07090f] via-[#0d1635] to-[#111030] px-7 pt-7 pb-6 shadow-xl">
+        {/* Decorative orbs */}
+        <div className="absolute -top-12 right-12 w-60 h-60 bg-violet-700/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-10 w-48 h-36 bg-indigo-600/15 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute top-2 right-1/3 w-80 h-16 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 space-y-6">
-        {/* 1. Page Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-2 border-b border-[var(--border)]">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[11px] font-bold text-amber-600 uppercase tracking-widest flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                <BedDouble className="w-3.5 h-3.5 text-amber-600" />
-                Hotel Suite & Room Inventory
-              </span>
-              <span className="text-slate-400">•</span>
-              <span className="text-xs text-slate-500 font-medium">
-                {totalCount} Configured Rooms
-              </span>
+            {/* Tag */}
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-violet-300/90 bg-violet-400/10 border border-violet-400/20 px-2.5 py-1 rounded-full mb-3">
+              <Home className="h-3 w-3" />
+              Hotel Suite & Room Inventory
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-slate-900 tracking-tight">
-              Rooms & Suite Inventory
+            <h1 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight leading-tight">
+              Rooms & Suites
+              <span className="block text-violet-300/80 text-xl font-semibold mt-0.5">Live Inventory Control</span>
             </h1>
 
-            <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-              Real-time room occupancy, housekeeping turnaround, live floor inventory, and tier pricing.
-            </p>
+            <div className="flex items-center gap-4 mt-4 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <div className="h-5 w-5 rounded-full bg-white/10 flex items-center justify-center">
+                  <BedDouble className="h-3 w-3 text-white/70" />
+                </div>
+                <span className="text-white/70 text-xs"><span className="font-bold text-white">{totalCount}</span> total rooms</span>
+              </div>
+              {stats && (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
+                    <span className="text-white/70 text-xs"><span className="font-bold text-violet-300">{stats.occupied ?? 0}</span> occupied</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    <span className="text-white/70 text-xs"><span className="font-bold text-emerald-300">{stats.available ?? 0}</span> available</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
+          {/* Header actions */}
           <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Link href="/rooms/calendar">
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
+              <button className="h-9 px-3.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/10 transition-all">
                 <Calendar className="h-3.5 w-3.5" />
-                <span>Calendar View</span>
-              </Button>
-            </Link>
-            <Link href="/rooms/floor-view">
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
-                <LayoutGrid className="h-3.5 w-3.5" />
-                <span>Floor View</span>
-              </Button>
+                <span>Calendar</span>
+              </button>
             </Link>
             <Link href="/rooms/types">
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
+              <button className="h-9 px-3.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/10 transition-all">
                 <BedDouble className="h-3.5 w-3.5" />
-                <span>Room Types ({roomTypes.length})</span>
-              </Button>
+                <span>Types ({roomTypes.length})</span>
+              </button>
             </Link>
             <Link href="/rooms/floors">
-              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
+              <button className="h-9 px-3.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/10 transition-all">
                 <Layers className="h-3.5 w-3.5" />
                 <span>Floors ({floors.length})</span>
-              </Button>
+              </button>
             </Link>
             <Link href="/rooms/new">
-              <Button size="sm" className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-500/20 font-semibold px-4 py-2 rounded-xl transition-all hover:scale-[1.02]">
+              <button className="h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-violet-950 bg-gradient-to-r from-violet-300 to-indigo-300 hover:from-violet-200 hover:to-indigo-200 shadow-md shadow-violet-400/30 transition-all">
                 <Plus className="h-4 w-4" />
-                <span>Add Room</span>
-              </Button>
+                Add Room
+              </button>
             </Link>
           </div>
         </div>
+      </div>
 
-        {/* 2. Room Statistics / KPI Grid */}
-        <RoomKpiGrid stats={stats} loading={loading && !stats} />
+      {/* ── KPI GRID ── */}
+      <RoomKpiGrid stats={stats} loading={loading && !stats} />
 
-        {/* 3. Search & Filter Bar (Glassmorphic) */}
-        <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-          <RoomFilters
+      {/* ── FILTER BAR ── */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4">
+        <RoomFilters
           filters={filters}
           onFilterChange={setFilters}
           floors={floors}
@@ -252,17 +225,12 @@ export default function RoomsPage() {
         />
       </div>
 
-      {/* 4. Error Display */}
+      {/* ── ERROR ── */}
       {error && (
-        <ErrorState
-          title="Error Loading Inventory"
-          description={error}
-          onRetry={loadData}
-          className="stayhub-card"
-        />
+        <ErrorState title="Error Loading Inventory" description={error} onRetry={loadData} className="stayhub-card" />
       )}
 
-      {/* 5. Room Content */}
+      {/* ── CONTENT ── */}
       {loading && rooms.length === 0 ? (
         <div className="stayhub-card p-12">
           <LoadingState message="Fetching room records..." />
@@ -279,27 +247,16 @@ export default function RoomsPage() {
             description={
               filters.search || filters.status !== "ALL"
                 ? "Try clearing your search terms or adjusting the status and floor filters."
-                : "Add physical rooms and assign them to room categories to begin tracking inventory and reservations."
+                : "Add physical rooms and assign them to room categories to begin tracking inventory."
             }
             action={
               filters.search || filters.status !== "ALL"
                 ? {
                     label: "Reset Filters",
                     onClick: () =>
-                      setFilters({
-                        search: "",
-                        status: "ALL",
-                        housekeepingStatus: "ALL",
-                        floorId: "ALL",
-                        roomTypeId: "ALL",
-                        isActive: "ALL",
-                        page: 1,
-                      }),
+                      setFilters({ search: "", status: "ALL", housekeepingStatus: "ALL", floorId: "ALL", roomTypeId: "ALL", isActive: "ALL", page: 1 }),
                   }
-                : {
-                    label: "Add First Room",
-                    onClick: () => router.push("/rooms/new"),
-                  }
+                : { label: "Add First Room", onClick: () => router.push("/rooms/new") }
             }
           />
         </div>
@@ -320,12 +277,19 @@ export default function RoomsPage() {
             />
           )}
 
-          {/* Pagination Controls */}
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-2 pt-2">
-              <span className="text-xs text-[var(--foreground-muted)]">
-                Showing {(currentPage - 1) * (filters.pageSize || 24) + 1} to{" "}
-                {Math.min(currentPage * (filters.pageSize || 24), totalCount)} of {totalCount} rooms
+            <div className="flex items-center justify-between px-1 pt-1">
+              <span className="text-xs text-slate-500">
+                Showing{" "}
+                <span className="font-semibold text-slate-700">
+                  {(currentPage - 1) * (filters.pageSize || 24) + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-semibold text-slate-700">
+                  {Math.min(currentPage * (filters.pageSize || 24), totalCount)}
+                </span>{" "}
+                of <span className="font-semibold text-slate-700">{totalCount}</span> rooms
               </span>
 
               <div className="flex items-center gap-1.5">
@@ -334,20 +298,20 @@ export default function RoomsPage() {
                   variant="outline"
                   disabled={currentPage <= 1}
                   onClick={() => setFilters({ ...filters, page: currentPage - 1 })}
-                  className="h-8 px-2.5 text-xs"
+                  className="h-8 px-2.5 text-xs rounded-xl"
                 >
                   <ChevronLeft className="h-3.5 w-3.5 mr-1" />
                   Previous
                 </Button>
-                <span className="text-xs font-semibold px-2 text-[var(--foreground)]">
-                  Page {currentPage} of {totalPages}
+                <span className="text-xs font-bold px-2 text-slate-700">
+                  {currentPage} / {totalPages}
                 </span>
                 <Button
                   size="sm"
                   variant="outline"
                   disabled={currentPage >= totalPages}
                   onClick={() => setFilters({ ...filters, page: currentPage + 1 })}
-                  className="h-8 px-2.5 text-xs"
+                  className="h-8 px-2.5 text-xs rounded-xl"
                 >
                   Next
                   <ChevronRight className="h-3.5 w-3.5 ml-1" />
@@ -357,9 +321,8 @@ export default function RoomsPage() {
           )}
         </div>
       )}
-      </div>
 
-      {/* Quick Status Modal */}
+      {/* Modals */}
       <RoomStatusModal
         open={Boolean(selectedRoomForStatus)}
         room={selectedRoomForStatus}
@@ -368,7 +331,6 @@ export default function RoomsPage() {
         onSuccess={loadData}
       />
 
-      {/* Confirm Deactivate Modal */}
       <ConfirmModal
         open={Boolean(roomToDeactivate)}
         onClose={() => setRoomToDeactivate(null)}
@@ -376,7 +338,7 @@ export default function RoomsPage() {
         title={roomToDeactivate?.is_active ? "Deactivate Room" : "Reactivate Room"}
         description={
           roomToDeactivate?.is_active
-            ? `Are you sure you want to deactivate Room ${roomToDeactivate?.room_number}? It will be hidden from front desk booking availability, but preserved for historical reporting.`
+            ? `Are you sure you want to deactivate Room ${roomToDeactivate?.room_number}? It will be hidden from booking availability.`
             : `Reactivate Room ${roomToDeactivate?.room_number} and return it to operational inventory?`
         }
         confirmLabel={roomToDeactivate?.is_active ? "Deactivate Room" : "Reactivate Room"}

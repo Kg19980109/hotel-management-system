@@ -233,6 +233,17 @@ export async function verifyStayAndCreateSessionAction(formData: {
 }
 
 /**
+ * Public Guest Action: Instant Seamless Unlock for In-Room QR Code (Demo & Frictionless Mode)
+ * Directly grants in-room guest session without requiring reservation confirmation number
+ */
+export async function unlockSeamlessRoomSessionAction(rawToken: string) {
+  return verifyStayAndCreateSessionAction({
+    rawToken,
+    confirmationNumber: "AUTO",
+  });
+}
+
+/**
  * Public Guest Action: Establish a Public Hotel Session from General QR
  */
 export async function establishPublicHotelSessionAction(rawToken: string) {

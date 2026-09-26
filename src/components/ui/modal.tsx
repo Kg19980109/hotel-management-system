@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
@@ -20,30 +18,23 @@ interface ModalProps {
 }
 
 const modalSizes = {
-  sm: "max-w-sm",
-  md: "max-w-lg",
-  lg: "max-w-2xl",
-  xl: "max-w-4xl",
+  sm:   "max-w-sm",
+  md:   "max-w-lg",
+  lg:   "max-w-2xl",
+  xl:   "max-w-4xl",
   full: "max-w-[95vw]",
 };
 
 const Modal = ({ open, onClose, title, description, children, size = "md", className, hideCloseButton }: ModalProps) => {
-  // Close on escape key
   React.useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) onClose();
-    };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape" && open) onClose(); };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  // Prevent body scroll
   React.useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (open) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
@@ -58,16 +49,16 @@ const Modal = ({ open, onClose, title, description, children, size = "md", class
     >
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/45 backdrop-blur-[3px]"
         onClick={onClose}
         aria-hidden="true"
       />
-      {/* Content */}
+      {/* Panel */}
       <div
         className={cn(
-          "relative w-full rounded-[var(--radius-xl)] bg-white shadow-[var(--shadow-xl)]",
+          "relative w-full bg-white shadow-[var(--shadow-xl)] animate-scale-in",
           "flex flex-col max-h-[90vh]",
-          "animate-in fade-in zoom-in-95 duration-200",
+          "rounded-[var(--radius-xl)]",
           modalSizes[size],
           className
         )}
@@ -76,21 +67,21 @@ const Modal = ({ open, onClose, title, description, children, size = "md", class
           <div className="flex items-start justify-between px-6 py-4 border-b border-[var(--border)] shrink-0">
             <div>
               {title && (
-                <h2 id="modal-title" className="text-[16px] font-semibold text-[var(--foreground)]">
+                <h2 id="modal-title" className="text-[15px] font-semibold text-[var(--foreground)] tracking-tight">
                   {title}
                 </h2>
               )}
               {description && (
-                <p className="text-[13px] text-[var(--foreground-muted)] mt-0.5">{description}</p>
+                <p className="text-[12.5px] text-[var(--foreground-muted)] mt-0.5 leading-relaxed">{description}</p>
               )}
             </div>
             {!hideCloseButton && (
               <button
                 onClick={onClose}
                 aria-label="Close modal"
-                className="ml-4 shrink-0 rounded-[var(--radius-sm)] p-1 text-[var(--foreground-muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] transition-colors"
+                className="ml-4 shrink-0 rounded-[var(--radius-sm)] p-1.5 text-[var(--foreground-muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] transition-colors"
               >
-                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </button>
@@ -126,9 +117,7 @@ const drawerWidths = {
 
 const Drawer = ({ open, onClose, title, description, children, side = "right", size = "md", footer }: DrawerProps) => {
   React.useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) onClose();
-    };
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape" && open) onClose(); };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
@@ -143,16 +132,14 @@ const Drawer = ({ open, onClose, title, description, children, side = "right", s
 
   return (
     <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true">
-      {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
         onClick={onClose}
         aria-hidden="true"
       />
-      {/* Drawer panel */}
       <div
         className={cn(
-          "relative bg-white shadow-[var(--shadow-xl)] flex flex-col h-full max-h-screen",
+          "relative bg-white shadow-[var(--shadow-xl)] flex flex-col h-full max-h-screen animate-slide-in-right",
           drawerWidths[size],
           side === "right" ? "ml-auto" : "mr-auto"
         )}
@@ -160,17 +147,17 @@ const Drawer = ({ open, onClose, title, description, children, side = "right", s
         {title && (
           <div className="flex items-start justify-between px-6 py-4 border-b border-[var(--border)] shrink-0">
             <div>
-              <h2 className="text-[16px] font-semibold text-[var(--foreground)]">{title}</h2>
+              <h2 className="text-[15px] font-semibold text-[var(--foreground)] tracking-tight">{title}</h2>
               {description && (
-                <p className="text-[13px] text-[var(--foreground-muted)] mt-0.5">{description}</p>
+                <p className="text-[12.5px] text-[var(--foreground-muted)] mt-0.5 leading-relaxed">{description}</p>
               )}
             </div>
             <button
               onClick={onClose}
               aria-label="Close drawer"
-              className="ml-4 shrink-0 rounded-[var(--radius-sm)] p-1 text-[var(--foreground-muted)] hover:bg-[var(--secondary)] transition-colors"
+              className="ml-4 shrink-0 rounded-[var(--radius-sm)] p-1.5 text-[var(--foreground-muted)] hover:bg-[var(--secondary)] transition-colors"
             >
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path d="M18 6 6 18M6 6l12 12" />
               </svg>
             </button>
@@ -213,8 +200,8 @@ const ConfirmationDialog = ({
   loading,
 }: ConfirmationDialogProps) => (
   <Modal open={open} onClose={onClose} title={title} description={description} size="sm">
-    <div className="flex gap-3 justify-end pt-2">
-      <Button variant="outline" size="sm" onClick={onClose} disabled={loading}>
+    <div className="flex gap-2.5 justify-end pt-2">
+      <Button variant="secondary" size="sm" onClick={onClose} disabled={loading}>
         {cancelLabel}
       </Button>
       <Button

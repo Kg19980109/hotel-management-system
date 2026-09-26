@@ -23,28 +23,23 @@ const EmptyState = ({ icon, title, description, action, className, size = "md" }
     {icon ? (
       <div className="mb-4 text-[var(--foreground-subtle)]">{icon}</div>
     ) : (
-      <div className="mb-4 h-14 w-14 rounded-full bg-[var(--secondary)] flex items-center justify-center text-[var(--foreground-subtle)]">
+      <div className="mb-4 h-14 w-14 rounded-2xl bg-[var(--secondary)] flex items-center justify-center text-[var(--foreground-subtle)]">
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 8v4m0 4h.01" />
         </svg>
       </div>
     )}
-    <h3
-      className={cn(
-        "font-semibold text-[var(--foreground)]",
-        size === "sm" ? "text-[14px]" : "text-[16px]"
-      )}
-    >
+    <h3 className={cn("font-semibold text-[var(--foreground)]", size === "sm" ? "text-[13.5px]" : "text-[15px]")}>
       {title}
     </h3>
     {description && (
-      <p className="text-[13px] text-[var(--foreground-muted)] mt-1.5 max-w-xs leading-relaxed">
+      <p className="text-[12.5px] text-[var(--foreground-muted)] mt-1.5 max-w-xs leading-relaxed">
         {description}
       </p>
     )}
     {action && (
-      <Button variant="primary" size="sm" className="mt-4" onClick={action.onClick}>
+      <Button variant="primary" size="sm" className="mt-5" onClick={action.onClick}>
         {action.label}
       </Button>
     )}
@@ -68,27 +63,23 @@ const LoadingState = ({ message = "Loading...", className, size = "md" }: Loadin
     role="status"
     aria-live="polite"
   >
+    {/* Spinner using brand indigo */}
     <div
       className={cn(
-        "animate-spin rounded-full border-2 border-[var(--border)] border-t-[var(--primary)]",
+        "rounded-full border-2 border-[var(--border)] border-t-[var(--primary)]",
+        "animate-spin",
         size === "sm" ? "h-6 w-6" : size === "lg" ? "h-10 w-10" : "h-8 w-8"
       )}
     />
     {message && (
-      <p className="text-[13px] text-[var(--foreground-muted)] mt-3">{message}</p>
+      <p className="text-[12.5px] text-[var(--foreground-muted)] mt-3">{message}</p>
     )}
   </div>
 );
 
 // --- Skeleton Loader ---
 const Skeleton = ({ className }: { className?: string }) => (
-  <div
-    className={cn(
-      "animate-pulse bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%]",
-      "rounded-[var(--radius-sm)]",
-      className
-    )}
-  />
+  <div className={cn("skeleton", className)} />
 );
 
 // --- Error State ---
@@ -106,24 +97,21 @@ const ErrorState = ({
   className,
 }: ErrorStateProps) => (
   <div
-    className={cn(
-      "flex flex-col items-center justify-center text-center py-14 px-6",
-      className
-    )}
+    className={cn("flex flex-col items-center justify-center text-center py-14 px-6", className)}
     role="alert"
   >
-    <div className="mb-4 h-14 w-14 rounded-full bg-red-50 flex items-center justify-center text-red-400">
-      <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <div className="mb-4 h-14 w-14 rounded-2xl bg-[var(--danger-light)] flex items-center justify-center text-[var(--danger)]">
+      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10" />
         <path d="M12 8v4m0 4h.01" />
       </svg>
     </div>
-    <h3 className="text-[16px] font-semibold text-[var(--foreground)]">{title}</h3>
-    <p className="text-[13px] text-[var(--foreground-muted)] mt-1.5 max-w-xs leading-relaxed">
+    <h3 className="text-[15px] font-semibold text-[var(--foreground)]">{title}</h3>
+    <p className="text-[12.5px] text-[var(--foreground-muted)] mt-1.5 max-w-xs leading-relaxed">
       {description}
     </p>
     {onRetry && (
-      <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}>
+      <Button variant="outline" size="sm" className="mt-5" onClick={onRetry}>
         Try Again
       </Button>
     )}

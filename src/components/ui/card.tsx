@@ -4,13 +4,15 @@ import { cn } from "@/lib/utils";
 // --- Card Root ---
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { hoverable?: boolean }
->(({ className, hoverable = false, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & {
+    hoverable?: boolean;
+    flat?: boolean;
+  }
+>(({ className, hoverable = false, flat = false, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "stayhub-card",
-      hoverable && "cursor-pointer hover:shadow-[var(--shadow)] transition-shadow",
+      flat ? "stayhub-card-flat" : hoverable ? "stayhub-card-hover" : "stayhub-card",
       className
     )}
     {...props}
@@ -25,7 +27,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col gap-1.5 px-5 pt-5 pb-0", className)}
+    className={cn("flex flex-col gap-1 px-5 pt-5 pb-0", className)}
     {...props}
   />
 ));
@@ -39,7 +41,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-[15px] font-semibold leading-tight text-[var(--card-foreground)] tracking-tight",
+      "text-[14.5px] font-semibold leading-tight text-[var(--card-foreground)] tracking-tight",
       className
     )}
     {...props}
@@ -54,7 +56,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-[13px] text-[var(--foreground-muted)] leading-relaxed", className)}
+    className={cn("text-[12.5px] text-[var(--foreground-muted)] leading-relaxed", className)}
     {...props}
   />
 ));
@@ -77,7 +79,7 @@ const CardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "flex items-center px-5 pt-0 pb-5 border-t border-[var(--border)] mt-2 pt-3",
+      "flex items-center px-5 pb-4 pt-3 border-t border-[var(--border)] mt-1",
       className
     )}
     {...props}

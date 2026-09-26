@@ -25,53 +25,59 @@ export function Topbar({
       data-sidebar-collapsed={sidebarCollapsed}
       className={cn(
         "fixed top-0 right-0 z-30 flex items-center justify-between h-[var(--topbar-height)]",
-        "bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs",
-        "px-4 sm:px-6 gap-3 sm:gap-4 transition-[left] duration-300 ease-in-out",
+        "backdrop-blur-md border-b",
+        "px-4 sm:px-5 gap-3 sm:gap-4 transition-[left] duration-300 ease-in-out",
         className
       )}
       style={{
         left: "var(--topbar-left-offset, 0px)",
+        background: "var(--topbar-bg)",
+        borderColor: "var(--topbar-border)",
+        boxShadow: "0 1px 0 var(--topbar-border)",
       }}
     >
-      {/* Left: Mobile Menu & Context */}
-      <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+      {/* Left: Mobile menu & property selector */}
+      <div className="flex items-center gap-2.5 shrink-0">
         <button
           type="button"
           onClick={onOpenMobileNav}
-          className="lg:hidden p-2 rounded-[var(--radius)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+          className="lg:hidden p-1.5 rounded-[var(--radius-md)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Property Selector for mobile / tablet */}
+        {/* Mobile / tablet property selector */}
         <div className="block lg:hidden">
           <PropertySelector variant="topbar" />
         </div>
       </div>
 
       {/* Center: Global Search */}
-      <div className="flex-1 max-w-lg mx-auto px-2">
+      <div className="flex-1 max-w-md mx-auto px-2">
         <GlobalSearch />
       </div>
 
-      {/* Right Actions */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        {/* Desktop Property Selector */}
+      {/* Right: actions */}
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Desktop property selector */}
         <div className="hidden lg:block">
           <PropertySelector variant="topbar" />
         </div>
 
-        {/* Operational Realtime Alerts & Sound Controller */}
+        {/* Divider */}
+        <div className="h-5 w-px bg-[var(--border)] hidden sm:block mx-0.5" />
+
+        {/* Operational Alerts & sound toggle */}
         <AlertSoundController />
 
         {/* Notifications */}
         <NotificationsDropdown />
 
-        {/* Vertical Divider */}
-        <div className="h-6 w-px bg-[var(--border)] hidden sm:block" />
+        {/* Divider */}
+        <div className="h-5 w-px bg-[var(--border)] hidden sm:block mx-0.5" />
 
-        {/* Profile Menu */}
+        {/* Profile */}
         <ProfileMenu />
       </div>
     </header>

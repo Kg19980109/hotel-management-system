@@ -25,7 +25,7 @@ const Input = React.forwardRef<
             "stayhub-input-base h-9",
             leftElement && "pl-9",
             rightElement && "pr-9",
-            error && "border-[var(--danger)] focus:ring-red-100",
+            error && "border-[var(--danger)] focus:ring-red-100 focus:border-[var(--danger)]",
             className
           )}
           {...props}
@@ -45,7 +45,7 @@ const Input = React.forwardRef<
       ref={ref}
       className={cn(
         "stayhub-input-base h-9",
-        error && "border-[var(--danger)] focus:ring-red-100",
+        error && "border-[var(--danger)] focus:ring-red-100 focus:border-[var(--danger)]",
         className
       )}
       {...props}
@@ -64,7 +64,7 @@ const Textarea = React.forwardRef<
     rows={4}
     className={cn(
       "stayhub-input-base resize-none py-2.5 min-h-[80px]",
-      error && "border-[var(--danger)]",
+      error && "border-[var(--danger)] focus:border-[var(--danger)]",
       className
     )}
     {...props}
@@ -79,7 +79,7 @@ const Label = React.forwardRef<
 >(({ className, required, children, ...props }, ref) => (
   <label
     ref={ref}
-    className={cn("block text-[13px] font-medium text-[var(--foreground)] mb-1.5", className)}
+    className={cn("block text-[12.5px] font-medium text-[var(--foreground)] mb-1.5 leading-none", className)}
     {...props}
   >
     {children}
@@ -88,7 +88,7 @@ const Label = React.forwardRef<
 ));
 Label.displayName = "Label";
 
-// --- Form Group (Label + Input) ---
+// --- Form Group (Label + Input + error/hint) ---
 const FormGroup = ({
   label,
   required,
@@ -108,10 +108,10 @@ const FormGroup = ({
     {label && <Label required={required}>{label}</Label>}
     {children}
     {hint && !error && (
-      <p className="text-[12px] text-[var(--foreground-muted)] mt-1">{hint}</p>
+      <p className="text-[11.5px] text-[var(--foreground-muted)] mt-1.5 leading-relaxed">{hint}</p>
     )}
     {error && (
-      <p className="text-[12px] text-[var(--danger)] mt-1">{error}</p>
+      <p className="text-[11.5px] text-[var(--danger)] mt-1.5 font-medium">{error}</p>
     )}
   </div>
 );
@@ -124,7 +124,7 @@ const SearchInput = React.forwardRef<
   return (
     <div className="relative flex items-center">
       <span className="absolute left-3 pointer-events-none text-[var(--foreground-subtle)]">
-        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.35-4.35" />
         </svg>
@@ -154,7 +154,7 @@ const Select = React.forwardRef<
     <select
       ref={ref}
       className={cn(
-        "stayhub-input-base h-9 appearance-none pr-8",
+        "stayhub-input-base h-9 appearance-none pr-8 cursor-pointer",
         error && "border-[var(--danger)]",
         className
       )}
@@ -163,7 +163,7 @@ const Select = React.forwardRef<
       {children}
     </select>
     <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--foreground-muted)]">
-      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <svg width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
         <polyline points="6 9 12 15 18 9" />
       </svg>
     </span>

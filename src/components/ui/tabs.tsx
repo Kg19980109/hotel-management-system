@@ -32,7 +32,7 @@ const Tabs = ({
     return (
       <div
         className={cn(
-          "flex items-center gap-1 bg-[var(--secondary)] p-1 rounded-[var(--radius-md)]",
+          "flex items-center gap-1 bg-[var(--secondary)] p-1 rounded-[var(--radius-lg)]",
           className
         )}
         role="tablist"
@@ -45,11 +45,11 @@ const Tabs = ({
             disabled={tab.disabled}
             onClick={() => !tab.disabled && onChange(tab.key)}
             className={cn(
-              "flex items-center gap-1.5 rounded-[var(--radius-sm)] font-medium transition-all",
-              size === "sm" ? "text-[12px] px-2.5 py-1" : "text-[13px] px-3 py-1.5",
+              "flex items-center gap-1.5 rounded-[var(--radius-md)] font-medium transition-all duration-150",
+              size === "sm" ? "text-[11.5px] px-2.5 py-1" : "text-[12.5px] px-3 py-1.5",
               activeKey === tab.key
                 ? "bg-white text-[var(--foreground)] shadow-[var(--shadow-xs)]"
-                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]",
+                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-white/50",
               tab.disabled && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -58,10 +58,10 @@ const Tabs = ({
             {tab.count !== undefined && (
               <span
                 className={cn(
-                  "rounded-full px-1.5 text-[11px] font-semibold",
+                  "rounded-full px-1.5 text-[10.5px] font-semibold leading-tight",
                   activeKey === tab.key
                     ? "bg-[var(--primary)] text-white"
-                    : "bg-slate-200 text-slate-600"
+                    : "bg-[var(--border)] text-[var(--foreground-muted)]"
                 )}
               >
                 {tab.count}
@@ -87,10 +87,10 @@ const Tabs = ({
           disabled={tab.disabled}
           onClick={() => !tab.disabled && onChange(tab.key)}
           className={cn(
-            "relative flex items-center gap-1.5 font-medium transition-colors -mb-px",
+            "relative flex items-center gap-1.5 font-medium transition-all duration-150 -mb-px",
             size === "sm"
-              ? "text-[12px] px-3 py-2"
-              : "text-[13px] px-4 py-2.5",
+              ? "text-[11.5px] px-3 py-2"
+              : "text-[12.5px] px-4 py-2.5",
             activeKey === tab.key
               ? "text-[var(--primary)] border-b-2 border-[var(--primary)]"
               : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] border-b-2 border-transparent",
@@ -102,10 +102,10 @@ const Tabs = ({
           {tab.count !== undefined && (
             <span
               className={cn(
-                "rounded-full px-1.5 text-[11px] font-semibold",
+                "rounded-full px-1.5 text-[10.5px] font-semibold leading-tight",
                 activeKey === tab.key
                   ? "bg-[var(--primary-light)] text-[var(--primary)]"
-                  : "bg-slate-100 text-slate-500"
+                  : "bg-[var(--secondary)] text-[var(--foreground-muted)]"
               )}
             >
               {tab.count}

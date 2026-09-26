@@ -36,14 +36,14 @@ function getInitials(name: string): string {
 
 function getAvatarColor(name: string): string {
   const colors = [
-    "bg-indigo-500",
-    "bg-violet-500",
-    "bg-pink-500",
-    "bg-emerald-500",
-    "bg-amber-500",
-    "bg-cyan-500",
-    "bg-rose-500",
-    "bg-teal-500",
+    "bg-[#5146E5]",   // brand indigo
+    "bg-[#6C5CE7]",   // brand violet
+    "bg-[#16A36A]",   // brand success green
+    "bg-[#E7A51A]",   // brand warning amber
+    "bg-[#3B82F6]",   // brand info blue
+    "bg-[#E05252]",   // brand danger red
+    "bg-[#D6A85A]",   // brand gold
+    "bg-teal-600",
   ];
   const index =
     name
@@ -51,6 +51,7 @@ function getAvatarColor(name: string): string {
       .reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
   return colors[index];
 }
+
 
 const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
   ({ className, size = "md", src, name, status, ...props }, ref) => {

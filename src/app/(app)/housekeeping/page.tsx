@@ -22,10 +22,15 @@ import {
   HousekeepingTask,
   StaffOption,
 } from "@/lib/housekeeping/types";
+import { getStaffGuestServiceRequests } from "@/lib/guest-services/queries";
+import { StaffGuestServiceRequest } from "@/lib/guest-services/types";
+import { GuestRequestsBoard } from "@/components/guest-requests/guest-requests-board";
 import {
   ClipboardCheck,
   Plus,
   RotateCcw,
+  Sparkles,
+  BellRing,
 } from "lucide-react";
 
 interface FloorOption {
@@ -60,10 +65,39 @@ export default function HousekeepingPage() {
   });
 
   const [tasks, setTasks] = React.useState<HousekeepingTask[]>([]);
+  const [guestRequests, setGuestRequests] = React.useState<StaffGuestServiceRequest[]>([]);
+  const [activeTab, setActiveTab] = React.useState<"tasks" | "guest_requests">("tasks");
   const [floors, setFloors] = React.useState<FloorOption[]>([]);
   const [rooms, setRooms] = React.useState<RoomOption[]>([]);
   const [staffList, setStaffList] = React.useState<StaffOption[]>([]);
   const [isNewTaskModalOpen, setIsNewTaskModalOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("tab") === "guest_requests" || params.get("tab") === "qr-requests") {
+        setActiveTab("guest_requests");
+      }
+    }
+  }, []);
+
+  const mappedStaff = React.useMemo(() => {
+    return staffList.map((s) => ({
+      id: s.userId,
+      full_name: s.fullName || s.email,
+      email: s.email,
+    }));
+  }, [staffList]);
+
+  const pendingGuestRequests = React.useMemo(() => {
+    return guestRequests.filter(
+      (r) =>
+        r.status === "SUBMITTED" ||
+        r.status === "ACKNOWLEDGED" ||
+        r.status === "ASSIGNED" ||
+        r.status === "IN_PROGRESS"
+    ).length;
+  }, [guestRequests]);
 
   const loadHousekeepingData = React.useCallback(async () => {
     if (!propertyId) {
@@ -76,12 +110,18 @@ export default function HousekeepingPage() {
     const supabase = createClient();
 
     try {
-      // 1. Fetch KPIs & Tasks
-      const [kpiRes, taskRes, staffRes] = await Promise.all([
+      // 1. Fetch KPIs, Tasks, Staff & QR Guest Service Requests
+      const [kpiRes, taskRes, staffRes, allGuestReqs] = await Promise.all([
         getHousekeepingKPIs(supabase, propertyId),
         getHousekeepingTasks(supabase, propertyId, { pageSize: 100 }),
         getPropertyStaff(supabase, propertyId),
+        getStaffGuestServiceRequests(propertyId),
       ]);
+
+      const hkGuestReqs = (allGuestReqs || []).filter(
+        (r) => r.category === "HOUSEKEEPING" || r.category === "LAUNDRY"
+      );
+      setGuestRequests(hkGuestReqs);
 
       // 2. Fetch Floors & Rooms for filters / creation
       const { data: floorsData } = await supabase
@@ -246,25 +286,92 @@ export default function HousekeepingPage() {
         }
       />
 
+      {/* Live Guest QR Request Notification Bar */}
+      {pendingGuestRequests > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
+              <BellRing className="w-5 h-5 animate-bounce" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <span>{pendingGuestRequests} Live Guest QR Request{pendingGuestRequests > 1 ? "s" : ""}</span>
+                <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">
+                  Action Required
+                </span>
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                In-room guests have requested housekeeping services (Towels, Cleaning, Toiletries, Linens).
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setActiveTab("guest_requests")}
+            className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs"
+          >
+            View Guest Requests ({pendingGuestRequests})
+          </Button>
+        </div>
+      )}
+
       {/* KPI Grid */}
       <HousekeepingKPIGrid stats={stats} loading={loading && tasks.length === 0} />
 
-      {/* Main Board */}
-      {loading && tasks.length === 0 ? (
-        <LoadingState message="Loading housekeeping board..." />
+      {/* Operational Navigation Tabs */}
+      <div className="flex border-b border-[var(--border)] gap-6 text-sm">
+        <button
+          onClick={() => setActiveTab("tasks")}
+          className={`pb-3 font-semibold transition border-b-2 flex items-center gap-2 ${
+            activeTab === "tasks"
+              ? "border-amber-500 text-amber-500"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          Room Cleaning Tasks ({tasks.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("guest_requests")}
+          className={`pb-3 font-semibold transition border-b-2 flex items-center gap-2 ${
+            activeTab === "guest_requests"
+              ? "border-amber-500 text-amber-500"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <BellRing className="w-4 h-4" />
+          Guest QR Requests ({guestRequests.length})
+          {pendingGuestRequests > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-white animate-pulse">
+              {pendingGuestRequests}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Main Board View */}
+      {loading && tasks.length === 0 && guestRequests.length === 0 ? (
+        <LoadingState message="Loading housekeeping operations..." />
       ) : error ? (
         <ErrorState
           title="Error Loading Housekeeping"
           description={error}
           onRetry={loadHousekeepingData}
         />
-      ) : (
+      ) : activeTab === "tasks" ? (
         <HousekeepingBoard
           tasks={tasks}
           floors={floors}
           rooms={rooms}
           staffList={staffList}
           propertyId={propertyId || ""}
+        />
+      ) : (
+        <GuestRequestsBoard
+          propertyId={propertyId || ""}
+          requests={guestRequests}
+          staffMembers={mappedStaff}
+          onRefresh={loadHousekeepingData}
         />
       )}
 

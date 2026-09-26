@@ -52,13 +52,28 @@ export function StaffGuestRequestDetailView({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link href="/guest-requests">
               <Button variant="ghost" size="sm" className="h-8 px-2 gap-1 text-muted-foreground">
                 <ArrowLeft className="w-4 h-4" />
-                <span>Back to All Requests</span>
+                <span>Back to Requests</span>
               </Button>
             </Link>
+            {request.category === "HOUSEKEEPING" || request.category === "LAUNDRY" ? (
+              <Link href="/housekeeping?tab=guest_requests">
+                <Button variant="outline" size="sm" className="h-8 px-2.5 gap-1 text-emerald-600 border-emerald-500/30">
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Housekeeping</span>
+                </Button>
+              </Link>
+            ) : request.category === "MAINTENANCE" ? (
+              <Link href="/maintenance?tab=guest_requests">
+                <Button variant="outline" size="sm" className="h-8 px-2.5 gap-1 text-blue-600 border-blue-500/30">
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Maintenance</span>
+                </Button>
+              </Link>
+            ) : null}
             <span className="text-xs font-mono text-muted-foreground">
               ID: {request.id}
             </span>

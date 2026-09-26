@@ -29,6 +29,7 @@ class OperationalAlertManager {
   private buzzerTimer: NodeJS.Timeout | null = null;
   private soundEnabled = false;
   private listeners: Set<AlertStateListener> = new Set();
+  private dismissedOrAckedIds: Set<string> = new Set();
   private isBrowser = typeof window !== "undefined";
 
   constructor() {
@@ -205,6 +206,11 @@ class OperationalAlertManager {
    * Deduplicates by alert.id (request_id / order_id).
    */
   public addOrUpdateAlert(alert: OperationalAlert): void {
+    // If user already acknowledged or dismissed this request in this session, skip re-adding
+    if (this.dismissedOrAckedIds.has(alert.id)) {
+      return;
+    }
+
     const existing = this.alerts.get(alert.id);
     if (existing) {
       // If status changed to ACKNOWLEDGED, COMPLETED, or CANCELLED, remove from unacknowledged alert queue
@@ -216,7 +222,7 @@ class OperationalAlertManager {
         alert.status === "CANCELLED" ||
         alert.status === "REJECTED"
       ) {
-        this.removeAlert(alert.id);
+        this.removeAlert(alert.id, true);
         return;
       }
       // Otherwise update fields
@@ -235,7 +241,10 @@ class OperationalAlertManager {
    * Removes an alert by request_id (e.g. When acknowledged or completed).
    * If no unacknowledged alerts remain, stops the buzzer immediately.
    */
-  public removeAlert(id: string): void {
+  public removeAlert(id: string, isDismissedOrAcked = true): void {
+    if (isDismissedOrAcked) {
+      this.dismissedOrAckedIds.add(id);
+    }
     if (this.alerts.has(id)) {
       this.alerts.delete(id);
       if (this.alerts.size === 0) {
@@ -250,6 +259,7 @@ class OperationalAlertManager {
    */
   public clearAll(): void {
     this.alerts.clear();
+    this.dismissedOrAckedIds.clear();
     this.stopBuzzer();
     this.notifyListeners();
   }

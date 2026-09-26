@@ -16,7 +16,10 @@ import {
 } from "@/lib/maintenance/queries";
 import { MaintenanceKPIGrid, MaintenanceBoard, NewWorkOrderModal } from "@/components/maintenance";
 import { MaintenanceKPIs, MaintenanceWorkOrder } from "@/lib/maintenance/types";
-import { Plus, RotateCcw } from "lucide-react";
+import { getStaffGuestServiceRequests } from "@/lib/guest-services/queries";
+import { StaffGuestServiceRequest } from "@/lib/guest-services/types";
+import { GuestRequestsBoard } from "@/components/guest-requests/guest-requests-board";
+import { Plus, RotateCcw, Wrench, BellRing, ClipboardList } from "lucide-react";
 
 export default function MaintenancePage() {
   const { currentProperty, loading: authLoading } = useAuth();
@@ -27,9 +30,38 @@ export default function MaintenancePage() {
   const [error, setError] = React.useState<string | null>(null);
   const [stats, setStats] = React.useState<MaintenanceKPIs | null>(null);
   const [workOrders, setWorkOrders] = React.useState<MaintenanceWorkOrder[]>([]);
+  const [guestRequests, setGuestRequests] = React.useState<StaffGuestServiceRequest[]>([]);
+  const [activeTab, setActiveTab] = React.useState<"orders" | "guest_requests">("orders");
   const [rooms, setRooms] = React.useState<RoomOption[]>([]);
   const [staff, setStaff] = React.useState<StaffOption[]>([]);
   const [isNewModalOpen, setIsNewModalOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("tab") === "guest_requests" || params.get("tab") === "qr-requests") {
+        setActiveTab("guest_requests");
+      }
+    }
+  }, []);
+
+  const mappedStaff = React.useMemo(() => {
+    return staff.map((s) => ({
+      id: s.id,
+      full_name: s.fullName || s.email,
+      email: s.email,
+    }));
+  }, [staff]);
+
+  const pendingGuestRequests = React.useMemo(() => {
+    return guestRequests.filter(
+      (r) =>
+        r.status === "SUBMITTED" ||
+        r.status === "ACKNOWLEDGED" ||
+        r.status === "ASSIGNED" ||
+        r.status === "IN_PROGRESS"
+    ).length;
+  }, [guestRequests]);
 
   const loadData = React.useCallback(async () => {
     if (!activePropertyId) {
@@ -40,7 +72,7 @@ export default function MaintenancePage() {
       setLoading(true);
       setError(null);
 
-      const [kpiData, ordersData, staffData, roomsRes] = await Promise.all([
+      const [kpiData, ordersData, staffData, roomsRes, guestReqs] = await Promise.all([
         getMaintenanceKPIs(supabase, activePropertyId),
         getMaintenanceWorkOrders(supabase, activePropertyId),
         getPropertyStaff(supabase, activePropertyId),
@@ -50,6 +82,7 @@ export default function MaintenancePage() {
           .eq("property_id", activePropertyId)
           .eq("is_active", true)
           .order("room_number", { ascending: true }),
+        getStaffGuestServiceRequests(activePropertyId, { category: "MAINTENANCE" }),
       ]);
 
       const formattedRooms: RoomOption[] = ((roomsRes.data || []) as unknown as Array<{
@@ -66,6 +99,7 @@ export default function MaintenancePage() {
       setWorkOrders(ordersData);
       setStaff(staffData);
       setRooms(formattedRooms);
+      setGuestRequests(guestReqs || []);
     } catch (err: unknown) {
       console.error("Failed to load maintenance data:", err);
       setError(err instanceof Error ? err.message : "Failed to load maintenance records");
@@ -205,17 +239,86 @@ export default function MaintenancePage() {
         }
       />
 
+      {/* Live Guest QR Repair Ticket Notification Bar */}
+      {pendingGuestRequests > 0 && (
+        <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold">
+              <Wrench className="w-5 h-5 animate-bounce" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <span>{pendingGuestRequests} Guest QR Repair Ticket{pendingGuestRequests > 1 ? "s" : ""}</span>
+                <span className="text-[10px] bg-blue-500 text-white font-black px-2 py-0.5 rounded-full uppercase">
+                  Action Required
+                </span>
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                In-room guests reported maintenance and engineering issues (AC, Plumbing, Electrical, Appliances).
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setActiveTab("guest_requests")}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+          >
+            View QR Repair Tickets ({pendingGuestRequests})
+          </Button>
+        </div>
+      )}
+
       {/* Real-Time KPIs Grid */}
       {stats && <MaintenanceKPIGrid stats={stats} />}
 
+      {/* Operational Navigation Tabs */}
+      <div className="flex border-b border-[var(--border)] gap-6 text-sm">
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`pb-3 font-semibold transition border-b-2 flex items-center gap-2 ${
+            activeTab === "orders"
+              ? "border-amber-500 text-amber-500"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ClipboardList className="w-4 h-4" />
+          Facilities Work Orders ({workOrders.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("guest_requests")}
+          className={`pb-3 font-semibold transition border-b-2 flex items-center gap-2 ${
+            activeTab === "guest_requests"
+              ? "border-amber-500 text-amber-500"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <BellRing className="w-4 h-4" />
+          Guest QR Repair Tickets ({guestRequests.length})
+          {pendingGuestRequests > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500 text-white animate-pulse">
+              {pendingGuestRequests}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Master Operations Board */}
-      <MaintenanceBoard
-        propertyId={activePropertyId}
-        workOrders={workOrders}
-        rooms={rooms}
-        staff={staff}
-        onRefresh={loadData}
-      />
+      {activeTab === "orders" ? (
+        <MaintenanceBoard
+          propertyId={activePropertyId}
+          workOrders={workOrders}
+          rooms={rooms}
+          staff={staff}
+          onRefresh={loadData}
+        />
+      ) : (
+        <GuestRequestsBoard
+          propertyId={activePropertyId || ""}
+          requests={guestRequests}
+          staffMembers={mappedStaff}
+          onRefresh={loadData}
+        />
+      )}
 
       {/* New Work Order Modal */}
       <NewWorkOrderModal

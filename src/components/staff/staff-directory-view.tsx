@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   XCircle,
   Briefcase,
+  KeyRound,
 } from "lucide-react";
 import { StaffMember, StaffDepartment } from "@/lib/staff/types";
 import { toggleStaffActiveAction } from "@/lib/staff/actions";
@@ -24,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { AddStaffModal } from "./add-staff-modal";
 import { EditStaffModal } from "./edit-staff-modal";
 import { RolePermissionMatrix } from "./role-permission-matrix";
+import { StaffCredentialsView } from "./staff-credentials-view";
 
 interface StaffDirectoryViewProps {
   propertyId: string;
@@ -39,7 +41,7 @@ export function StaffDirectoryView({
   departments,
   onRefresh,
 }: StaffDirectoryViewProps) {
-  const [activeTab, setActiveTab] = React.useState<"directory" | "roles" | "departments">("directory");
+  const [activeTab, setActiveTab] = React.useState<"directory" | "credentials" | "roles" | "departments">("directory");
   const [search, setSearch] = React.useState("");
   const [selectedDept, setSelectedDept] = React.useState("ALL");
   const [selectedStatus, setSelectedStatus] = React.useState("ALL");
@@ -146,6 +148,17 @@ export function StaffDirectoryView({
           >
             <Users className="w-4 h-4" />
             Staff Directory ({filteredStaff.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("credentials")}
+            className={`pb-3 font-semibold transition border-b-2 flex items-center gap-2 ${
+              activeTab === "credentials"
+                ? "border-amber-500 text-amber-500"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <KeyRound className="w-4 h-4" />
+            Portal Logins & Credentials
           </button>
           <button
             onClick={() => setActiveTab("roles")}
@@ -354,7 +367,16 @@ export function StaffDirectoryView({
         </div>
       )}
 
-      {/* 4. TAB 2: Roles & Permissions Matrix */}
+      {/* TAB 2: Staff Logins & Credentials */}
+      {activeTab === "credentials" && (
+        <StaffCredentialsView
+          propertyId={propertyId}
+          staffList={initialStaff}
+          onRefresh={onRefresh}
+        />
+      )}
+
+      {/* 4. TAB 3: Roles & Permissions Matrix */}
       {activeTab === "roles" && <RolePermissionMatrix />}
 
       {/* 5. TAB 3: Departments */}

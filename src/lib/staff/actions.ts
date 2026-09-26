@@ -84,6 +84,71 @@ export async function createStaffMemberAction(
       return { success: false, error: error.message };
     }
 
+    // Auto-provision Auth account if email provided
+    if (input.email?.trim()) {
+      try {
+        const { createAdminClient } = await import("@/lib/supabase/admin");
+        const adminSupabase = createAdminClient();
+        const staffEmail = input.email.trim();
+
+        // Check if user already exists
+        const { data: uList } = await adminSupabase.auth.admin.listUsers();
+        let targetUser = uList?.users?.find((u) => u.email?.toLowerCase() === staffEmail.toLowerCase()) || null;
+
+        if (!targetUser) {
+          const { data: newUser } = await adminSupabase.auth.admin.createUser({
+            email: staffEmail,
+            password: "StayHub@2026",
+            email_confirm: true,
+            user_metadata: {
+              full_name: `${input.first_name.trim()} ${input.last_name.trim()}`,
+              designation: input.designation?.trim() || "Staff",
+            },
+          });
+          targetUser = newUser?.user || null;
+        }
+
+        if (targetUser) {
+          // Ensure profile
+          const { data: prof } = await adminSupabase
+            .from("profiles")
+            .upsert(
+              {
+                auth_user_id: targetUser.id,
+                email: staffEmail,
+                full_name: `${input.first_name.trim()} ${input.last_name.trim()}`,
+                status: "active",
+              },
+              { onConflict: "email" }
+            )
+            .select()
+            .single();
+
+          if (prof) {
+            await adminSupabase
+              .from("staff_members")
+              .update({ profile_id: prof.id })
+              .eq("id", data.id);
+          }
+
+          // Link membership with role if provided
+          if (input.role_id) {
+            await adminSupabase.from("property_memberships").upsert(
+              {
+                property_id: propertyId,
+                user_id: targetUser.id,
+                role_id: input.role_id,
+                status: "active",
+              },
+              { onConflict: "property_id,user_id" }
+            );
+          }
+        }
+      } catch (authErr) {
+        console.warn("Could not auto-provision staff auth user:", authErr);
+      }
+    }
+
     revalidatePath("/staff");
     return { success: true, data };
   } catch (err) {
@@ -91,6 +156,45 @@ export async function createStaffMemberAction(
     return {
       success: false,
       error: err instanceof Error ? err.message : "Failed to create staff member",
+    };
+  }
+}
+
+export async function resetStaffPasswordAction(
+  propertyId: string,
+  staffEmail: string,
+  newPassword = "StayHub@2026"
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const auth = await verifyAuth(propertyId);
+    if (auth.error) {
+      return { success: false, error: auth.error };
+    }
+
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const adminSupabase = createAdminClient();
+
+    const { data: uList } = await adminSupabase.auth.admin.listUsers();
+    const user = uList?.users?.find((u) => u.email?.toLowerCase() === staffEmail.toLowerCase());
+
+    if (!user) {
+      // Create user with the password
+      await adminSupabase.auth.admin.createUser({
+        email: staffEmail,
+        password: newPassword,
+        email_confirm: true,
+      });
+    } else {
+      await adminSupabase.auth.admin.updateUserById(user.id, {
+        password: newPassword,
+      });
+    }
+
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to reset password",
     };
   }
 }

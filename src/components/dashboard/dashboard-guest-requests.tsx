@@ -80,6 +80,25 @@ const getPriorityConfig = (p: string) => {
   }
 };
 
+const getStatusConfig = (s: string) => {
+  switch (s) {
+    case "SUBMITTED":
+      return { label: "NEW", badge: "pending" as const };
+    case "ACKNOWLEDGED":
+      return { label: "ACKNOWLEDGED", badge: "warning" as const };
+    case "ASSIGNED":
+      return { label: "ASSIGNED", badge: "info" as const };
+    case "IN_PROGRESS":
+      return { label: "IN PROGRESS", badge: "info" as const };
+    case "CANCELLED":
+      return { label: "CANCELLED", badge: "danger" as const };
+    case "REJECTED":
+      return { label: "REJECTED", badge: "danger" as const };
+    default:
+      return { label: s, badge: "default" as const };
+  }
+};
+
 export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsProps) {
   const [requests, setRequests] = React.useState<StaffGuestServiceRequest[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -137,7 +156,7 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
   };
 
   const pendingRequests = React.useMemo(
-    () => requests.filter((r) => r.status === "SUBMITTED"),
+    () => requests.filter((r) => r.status !== "COMPLETED"),
     [requests]
   );
 
@@ -253,9 +272,9 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
             >
               <CheckCircle2 className="w-5 h-5" />
             </div>
-            <h4 className="text-[13.5px] font-semibold text-white/80">No Pending Guest Requests</h4>
+            <h4 className="text-[13.5px] font-semibold text-white/80">No Active Guest Requests</h4>
             <p className="text-[11.5px] text-white/35 max-w-xs mx-auto leading-relaxed">
-              All in-room requests from guest QR scans have been acknowledged and resolved.
+              All in-room requests from guest QR scans have been completed.
             </p>
           </div>
         ) : (
@@ -266,6 +285,7 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                 ? `${req.guest.first_name || ""} ${req.guest.last_name || ""}`.trim()
                 : "In-Room Guest";
               const priorityCfg = getPriorityConfig(req.priority);
+              const statusCfg = getStatusConfig(req.status);
 
               return (
                 <div
@@ -311,6 +331,9 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                         <Badge variant={priorityCfg.badge} showDot={false} size="sm">
                           {priorityCfg.label}
                         </Badge>
+                        <Badge variant={statusCfg.badge} showDot={false} size="sm">
+                          {statusCfg.label}
+                        </Badge>
                         <span
                           className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border"
                           style={{
@@ -329,6 +352,14 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                           <Users className="w-3.5 h-3.5" />
                           {guestName}
                         </span>
+                        {req.assigned_staff?.full_name && (
+                          <>
+                            <span>·</span>
+                            <span className="font-semibold" style={{ color: "rgba(255,255,255,0.70)" }}>
+                              Assigned: {req.assigned_staff.full_name}
+                            </span>
+                          </>
+                        )}
                         <span>·</span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />

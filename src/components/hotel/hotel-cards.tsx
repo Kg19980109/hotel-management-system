@@ -96,7 +96,7 @@ const KPIWidget = ({
           <div className="flex items-center gap-2">
             {icon && (
               <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mb-1 hidden sm:flex", colors.iconBg)}>
-                {React.cloneElement(icon as React.ReactElement, { className: "h-4 w-4" })}
+                {React.cloneElement(icon as React.ReactElement<any>, { className: "h-4 w-4" })}
               </div>
             )}
             <p className="text-[13px] font-bold text-slate-700/80 uppercase tracking-wide">{title}</p>
@@ -139,7 +139,7 @@ const KPIWidget = ({
         {/* Right side Icon for mobile or layout */}
         {icon && (
           <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 sm:hidden", colors.iconBg)}>
-            {React.cloneElement(icon as React.ReactElement, { className: "h-5 w-5" })}
+            {React.cloneElement(icon as React.ReactElement<any>, { className: "h-5 w-5" })}
           </div>
         )}
       </div>

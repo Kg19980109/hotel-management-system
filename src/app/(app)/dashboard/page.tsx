@@ -13,6 +13,7 @@ import {
   RecentActivity,
   RevenueOccupancyOverview,
   AIBuddyPreview,
+  DashboardGuestRequests,
 } from "@/components/dashboard";
 import { ErrorState, EmptyState } from "@/components/ui/states";
 import { Hotel } from "lucide-react";
@@ -184,8 +185,10 @@ export default function DashboardPage() {
 
       {/* 3. Main Operational Layout (2 cols left, 1 col right on Desktop) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (Span 2): Live Arrivals/Departures + Revenue & Occupancy Analytics */}
+        {/* Left Column (Span 2): Live In-Room Guest QR Requests + Arrivals/Departures + Revenue & Occupancy */}
         <div className="lg:col-span-2 space-y-6">
+          <DashboardGuestRequests propertyId={currentProperty.property_id} />
+
           <TodayArrivalsDepartures
             arrivals={arrivals}
             departures={departures}

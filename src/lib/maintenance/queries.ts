@@ -346,40 +346,99 @@ export async function getRoomMaintenanceHistory(
   return (data as unknown as MaintenanceWorkOrder[]) || [];
 }
 
+/**
+ * Assignable staff for a property (guest-request / work-order dispatch).
+ * FIX: old version joined `profiles!property_memberships_user_id_fkey`, but that
+ * FK points to auth.users(id) — not profiles — so PostgREST returned null
+ * profiles and the filter dropped EVERYONE, leaving the assign dropdown empty.
+ * Two-step lookup via profiles.auth_user_id + merge of the HR directory
+ * (staff_members) so admins can always assign someone. The
+ * staff_assign_guest_request RPC accepts profile ids, auth uids, or
+ * staff_members ids, so all returned ids are assignable.
+ */
 export async function getPropertyStaff(
   supabase: SupabaseClient,
   propertyId: string
 ): Promise<StaffOption[]> {
-  const { data, error } = await supabase
+  const { data: memberships, error: memberError } = await supabase
     .from("property_memberships")
-    .select(`
-      user_id,
-      roles:role_id (
-        code
-      ),
-      profile:profiles!property_memberships_user_id_fkey (
-        id,
-        full_name,
-        email
-      )
-    `)
-    .eq("property_id", propertyId);
+    .select("user_id, status, roles:role_id (code)")
+    .eq("property_id", propertyId)
+    .eq("status", "active");
 
-  if (error || !data) {
-    console.error("Error fetching property staff:", error);
-    return [];
+  if (memberError) {
+    console.error("Error fetching property staff:", memberError);
   }
 
-  return (data as unknown as Array<{
-    user_id: string;
-    roles?: { code: string } | null;
-    profile?: { id: string; full_name?: string | null; email?: string | null } | null;
-  }>)
-    .filter((m) => !!m.profile)
-    .map((m) => ({
-      id: m.profile!.id,
-      fullName: m.profile!.full_name || m.profile!.email || "Staff Member",
-      email: m.profile!.email || "",
-      role: m.roles?.code || "STAFF",
-    }));
+  const activeMemberships = (memberships || []).filter((m) => m.status === "active");
+  const userIds = [...new Set(activeMemberships.map((m) => m.user_id).filter(Boolean))];
+  const roleByUserId = new Map(
+    activeMemberships.map((m) => [
+      m.user_id,
+      (m.roles as unknown as { code?: string } | null)?.code || "STAFF",
+    ])
+  );
+
+  let profileRows: { id: string; auth_user_id: string; full_name?: string | null; email?: string | null }[] = [];
+  if (userIds.length > 0) {
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("id, auth_user_id, full_name, email")
+      .in("auth_user_id", userIds);
+
+    if (profileError) {
+      console.error("Error fetching staff profiles:", profileError);
+    } else {
+      profileRows = (profiles || []) as typeof profileRows;
+    }
+  }
+
+  const options: StaffOption[] = [];
+  const seen = new Set<string>();
+
+  for (const p of profileRows) {
+    if (seen.has(p.id)) continue;
+    seen.add(p.id);
+    options.push({
+      id: p.id,
+      fullName: p.full_name || p.email || "Staff Member",
+      email: p.email || "",
+      role: roleByUserId.get(p.auth_user_id) || "STAFF",
+    });
+  }
+
+  // Memberships without a profiles row (e.g. seed/test accounts) — still assignable by auth uid
+  for (const uid of userIds) {
+    if (profileRows.some((p) => p.auth_user_id === uid)) continue;
+    const key = `uid:${uid}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    options.push({
+      id: uid,
+      fullName: `Staff (${uid.slice(0, 8)})`,
+      email: "",
+      role: roleByUserId.get(uid) || "STAFF",
+    });
+  }
+
+  // HR directory staff (may not have logins yet) — RPC validates staff_members too
+  const { data: directory } = await supabase
+    .from("staff_members")
+    .select("id, first_name, last_name, display_name, email")
+    .eq("property_id", propertyId)
+    .eq("is_active", true)
+    .limit(100);
+
+  for (const s of (directory || []) as { id: string; first_name?: string | null; last_name?: string | null; display_name?: string | null; email?: string | null }[]) {
+    if (seen.has(s.id)) continue;
+    seen.add(s.id);
+    const name =
+      s.display_name ||
+      `${s.first_name || ""} ${s.last_name || ""}`.trim() ||
+      s.email ||
+      "Staff Member";
+    options.push({ id: s.id, fullName: name, email: s.email || "", role: "STAFF" });
+  }
+
+  return options.sort((a, b) => a.fullName.localeCompare(b.fullName));
 }

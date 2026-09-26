@@ -76,6 +76,66 @@ export default function GuestRequestDetailPage() {
     };
   }, [authLoading, activePropertyId, requestId, loadData]);
 
+  // Silent refresh (no spinner) for realtime updates — guest cancel, other staff actions
+  const refreshQuiet = React.useCallback(async () => {
+    if (!activePropertyId || !requestId) return;
+    try {
+      const supabase = createClient();
+      const [reqData, evData] = await Promise.all([
+        getStaffGuestServiceRequestDetail(activePropertyId, requestId),
+        getStaffGuestServiceRequestEvents(activePropertyId, requestId),
+      ]);
+      if (reqData) setRequest(reqData);
+      setEvents(evData);
+    } catch (err) {
+      console.error("Request detail background refresh failed:", err);
+    }
+  }, [activePropertyId, requestId]);
+
+  // Live updates: request row + timeline events (was: no subscription at all)
+  React.useEffect(() => {
+    if (!activePropertyId || !requestId) return;
+    const supabase = createClient();
+    let requestChannel: ReturnType<typeof supabase.channel> | null = null;
+    let eventsChannel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token);
+
+      requestChannel = supabase
+        .channel(`stayhub:staff-request:${requestId}`)
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "guest_service_requests", filter: `id=eq.${requestId}` },
+          () => void refreshQuiet()
+        )
+        .subscribe();
+
+      eventsChannel = supabase
+        .channel(`stayhub:staff-request-events:${requestId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "guest_service_request_events", filter: `request_id=eq.${requestId}` },
+          () => void refreshQuiet()
+        )
+        .subscribe();
+    });
+
+    const poll = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void refreshQuiet();
+    }, 15000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(poll);
+      if (requestChannel) void supabase.removeChannel(requestChannel);
+      if (eventsChannel) void supabase.removeChannel(eventsChannel);
+    };
+  }, [activePropertyId, requestId, refreshQuiet]);
+
   if (authLoading || (loading && !request)) {
     return (
       <div className="space-y-6">

@@ -125,32 +125,40 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
   React.useEffect(() => {
     if (!propertyId) return;
     const supabase = createClient();
-    const channelName = `stayhub:dashboard-guest-requests:${propertyId}:${Math.random().toString(36).slice(2, 7)}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "guest_service_requests",
-          filter: `property_id=eq.${propertyId}`,
-        },
-        (payload) => {
-          const rec = (payload.new || payload.old) as { property_id?: string };
-          if (rec?.property_id && rec.property_id !== propertyId) return;
-          void loadRequests();
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+
+    // Authenticate realtime socket so staff RLS passes (was missing → silent no-events)
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      if (session?.access_token) supabase.realtime.setAuth(session.access_token);
+      channel = supabase
+        .channel(`stayhub:dashboard-guest-requests:${propertyId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "guest_service_requests",
+            filter: `property_id=eq.${propertyId}`,
+          },
+          (payload) => {
+            const rec = (payload.new || payload.old) as { property_id?: string };
+            if (rec?.property_id && rec.property_id !== propertyId) return;
+            void loadRequests();
+          }
+        )
+        .subscribe();
+    });
 
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadRequests();
     }, 30000);
     return () => {
+      cancelled = true;
       clearInterval(interval);
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
   }, [propertyId, loadRequests]);
 

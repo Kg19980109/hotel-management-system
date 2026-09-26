@@ -66,39 +66,66 @@ export default function GuestRequestsPage() {
     };
   }, [authLoading, activePropertyId, loadData]);
 
-  // Real-time subscription to auto-update board on any request change
+  // Silent background refresh (no loading spinner → no board flicker).
+  // Used by realtime events + backup polling so admin always sees live data.
+  const refreshQuiet = React.useCallback(async () => {
+    if (!activePropertyId) return;
+    try {
+      const [reqData] = await Promise.all([
+        getStaffGuestServiceRequests(activePropertyId),
+      ]);
+      setRequests(reqData);
+    } catch (err) {
+      console.error("Guest requests background refresh failed:", err);
+    }
+  }, [activePropertyId]);
+
+  // Real-time subscription to auto-update board on any request change.
+  // Authenticated realtime + server-side property filter (was unfiltered +
+  // 3s full-spinner poll that flickered the board and hammered the DB).
   React.useEffect(() => {
     if (!activePropertyId) return;
 
     const supabase = createClient();
-    const channelName = `stayhub:guest-requests-board:${activePropertyId}:${Math.random().toString(36).slice(2, 7)}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "guest_service_requests",
-        },
-        (payload) => {
-          const rec = (payload.new || payload.old) as { property_id?: string };
-          if (rec?.property_id && rec.property_id !== activePropertyId) return;
-          void loadData();
-        }
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
 
-    // 3-second fallback heartbeat while viewing operational board
+    // Authenticate the realtime socket so RLS passes for staff
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (cancelled) return;
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+
+      channel = supabase
+        .channel(`stayhub:guest-requests-board:${activePropertyId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "guest_service_requests",
+            filter: `property_id=eq.${activePropertyId}`,
+          },
+          () => {
+            void refreshQuiet();
+          }
+        )
+        .subscribe();
+    });
+
+    // 15s visible-only backup poll (was 3s with spinner on every tick)
     const pollInterval = setInterval(() => {
-      void loadData();
-    }, 3000);
+      if (document.visibilityState !== "visible") return;
+      void refreshQuiet();
+    }, 15000);
 
     return () => {
+      cancelled = true;
       clearInterval(pollInterval);
-      void supabase.removeChannel(channel);
+      if (channel) void supabase.removeChannel(channel);
     };
-  }, [activePropertyId, loadData]);
+  }, [activePropertyId, refreshQuiet]);
 
   if (authLoading || (loading && !requests.length)) {
     return (

@@ -156,7 +156,16 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
   };
 
   const pendingRequests = React.useMemo(
-    () => requests.filter((r) => r.status !== "COMPLETED"),
+    () =>
+      requests.filter((r) => {
+        const status = (r.status || "").toUpperCase();
+        return (
+          status !== "COMPLETED" &&
+          status !== "CANCELLED" &&
+          status !== "CLOSED" &&
+          status !== "REJECTED"
+        );
+      }),
     [requests]
   );
 

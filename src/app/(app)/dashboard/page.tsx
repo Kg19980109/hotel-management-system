@@ -172,19 +172,29 @@ export default function DashboardPage() {
   const recentActivity = dashboardData?.recentActivity || [];
 
   return (
-    <div className="space-y-6">
-      {/* 1. Header with Property Context, Timezone Date & Quick Actions */}
-      <DashboardHeader
-        property={propertyInfo}
-        onRefresh={() => loadData(true)}
-        isRefreshing={refreshing}
-      />
+    <div className="space-y-6 relative -mt-4 -mx-6 px-6 pt-4">
+      {/* Hero Background */}
+      <div 
+        className="absolute top-0 left-0 w-full h-[320px] bg-cover bg-center z-0 opacity-40 dark:opacity-20 pointer-events-none"
+        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1542314831-c6a4d142104d?auto=format&fit=crop&q=80")' }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/50 to-background" />
+      </div>
 
-      {/* 2. 6 Primary KPI Cards */}
-      <DashboardKpiGrid metrics={metrics} loading={dataLoading && !dashboardData} />
+      <div className="relative z-10 space-y-6">
+        {/* 1. Header with Property Context, Timezone Date & Quick Actions */}
+        <DashboardHeader
+          property={propertyInfo}
+          onRefresh={() => loadData(true)}
+          isRefreshing={refreshing}
+        />
+
+        {/* 2. 6 Primary KPI Cards */}
+        <DashboardKpiGrid metrics={metrics} loading={dataLoading && !dashboardData} />
+      </div>
 
       {/* 3. Main Operational Layout (2 cols left, 1 col right on Desktop) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
         {/* Left Column (Span 2): Live In-Room Guest QR Requests + Arrivals/Departures + Revenue & Occupancy */}
         <div className="lg:col-span-2 space-y-6">
           <DashboardGuestRequests propertyId={currentProperty.property_id} />

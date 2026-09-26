@@ -107,7 +107,7 @@ export async function createRestaurantAction(
       name: input.name.trim(),
       code: input.code.trim().toUpperCase(),
       description: input.description?.trim() || null,
-      currency: input.currency || "USD",
+      currency: input.currency || "INR",
       timezone: input.timezone || "UTC",
     })
     .select("id")
@@ -370,7 +370,7 @@ export async function createMenuItemAction(
       sku: input.sku?.trim() || null,
       description: input.description?.trim() || null,
       price: input.price,
-      currency: input.currency || "USD",
+      currency: input.currency || "INR",
       is_available: input.is_available ?? true,
       display_order: input.display_order ?? 0,
     })

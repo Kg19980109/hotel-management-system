@@ -107,7 +107,7 @@ export async function calculateRoomTypeAvailability(
       maxAdults: Number(rt.max_adults || rt.max_occupancy) || 2,
       maxChildren: Number(rt.max_children) || 0,
       baseRate: Number(rt.base_price || rt.base_rate || 0),
-      currency: currency || "USD",
+      currency: currency || "INR",
       bedConfiguration: String(rt.bed_type || rt.bed_configuration || "Standard Bed"),
       roomSizeSqFt: sizeSqm > 0 ? Math.round(sizeSqm * 10.764) : undefined,
       amenities: Array.isArray(rt.amenities)

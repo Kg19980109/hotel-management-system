@@ -24,7 +24,7 @@ export function calculateBookingPricing(
   checkInDate: string,
   checkOutDate: string,
   roomsCount = 1,
-  currency = "USD",
+  currency = "INR",
   taxRatePercent = 18,
   discountAmount = 0
 ): PublicBookingPricing {

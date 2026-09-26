@@ -85,7 +85,7 @@ export default function PublicBookingCheckoutPage() {
               checkInDate,
               checkOutDate,
               roomsCount,
-              propRes.property?.currency || "USD"
+              propRes.property?.currency || "INR"
             );
             setPricing(calculatedPricing);
           }

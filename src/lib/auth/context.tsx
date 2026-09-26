@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             city: p.city,
             state: p.state,
             country: p.country,
-            currency: p.currency || "USD",
+            currency: p.currency || "INR",
             timezone: p.timezone || "Asia/Kolkata",
             role_code: "HOTEL_OWNER",
             role_name: "Hotel Owner",

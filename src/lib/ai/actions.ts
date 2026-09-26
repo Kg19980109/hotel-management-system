@@ -33,7 +33,7 @@ async function resolveAIContext(propertyId: string): Promise<{ error?: string; c
 
     const propertyName = propData?.name || "StayHub Hotel";
     const timezone = propData?.timezone || "UTC";
-    const currency = propData?.currency || "USD";
+    const currency = propData?.currency || "INR";
 
     // Resolve membership
     const { data: membership } = await supabase

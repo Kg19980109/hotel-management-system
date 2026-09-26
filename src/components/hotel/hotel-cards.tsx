@@ -21,12 +21,36 @@ interface KPIWidgetProps {
 }
 
 const colorMap = {
-  primary: { icon: "bg-[var(--primary-light)] text-[var(--primary)]" },
-  success: { icon: "bg-[var(--success-light)] text-[var(--success)]" },
-  warning: { icon: "bg-[var(--warning-light)] text-[var(--warning)]" },
-  danger: { icon: "bg-[var(--danger-light)] text-[var(--danger)]" },
-  info: { icon: "bg-[var(--info-light)] text-[var(--info)]" },
-  accent: { icon: "bg-[var(--accent-light)] text-[var(--accent)]" },
+  primary: { 
+    bg: "bg-gradient-to-br from-indigo-50/90 via-indigo-50/50 to-purple-100/90 border-indigo-100/50",
+    iconBg: "bg-indigo-100 text-indigo-600 shadow-sm",
+    text: "text-indigo-900"
+  },
+  success: { 
+    bg: "bg-gradient-to-br from-emerald-50/90 via-emerald-50/50 to-teal-100/90 border-emerald-100/50",
+    iconBg: "bg-emerald-100 text-emerald-600 shadow-sm",
+    text: "text-emerald-900"
+  },
+  warning: { 
+    bg: "bg-gradient-to-br from-orange-50/90 via-orange-50/50 to-amber-100/90 border-orange-100/50",
+    iconBg: "bg-orange-100 text-orange-600 shadow-sm",
+    text: "text-orange-900"
+  },
+  danger: { 
+    bg: "bg-gradient-to-br from-rose-50/90 via-rose-50/50 to-red-100/90 border-rose-100/50",
+    iconBg: "bg-rose-100 text-rose-600 shadow-sm",
+    text: "text-rose-900"
+  },
+  info: { 
+    bg: "bg-gradient-to-br from-blue-50/90 via-blue-50/50 to-cyan-100/90 border-blue-100/50",
+    iconBg: "bg-blue-100 text-blue-600 shadow-sm",
+    text: "text-blue-900"
+  },
+  accent: { 
+    bg: "bg-gradient-to-br from-fuchsia-50/90 via-fuchsia-50/50 to-purple-200/90 border-fuchsia-100/50",
+    iconBg: "bg-fuchsia-100 text-fuchsia-600 shadow-sm",
+    text: "text-fuchsia-900"
+  },
 };
 
 const KPIWidget = ({
@@ -40,13 +64,15 @@ const KPIWidget = ({
   className,
   loading,
 }: KPIWidgetProps) => {
+  const colors = colorMap[color];
+
   if (loading) {
     return (
-      <div className={cn("stayhub-card p-5", className)}>
+      <div className={cn("stayhub-card p-5 border border-white/40 shadow-xl shadow-slate-200/40 backdrop-blur-sm", colors.bg, className)}>
         <div className="animate-pulse space-y-3">
-          <div className="h-4 w-28 bg-slate-200 rounded" />
-          <div className="h-8 w-20 bg-slate-200 rounded" />
-          <div className="h-3 w-20 bg-slate-100 rounded" />
+          <div className="h-4 w-28 bg-white/50 rounded" />
+          <div className="h-8 w-20 bg-white/50 rounded" />
+          <div className="h-3 w-20 bg-white/40 rounded" />
         </div>
       </div>
     );
@@ -54,20 +80,34 @@ const KPIWidget = ({
 
   const isPositive = trendDirection === "up";
   const isNegative = trendDirection === "down";
-  const colors = colorMap[color];
 
   return (
-    <div className={cn("stayhub-card p-5 group", className)}>
-      <div className="flex items-start justify-between">
+    <div className={cn(
+      "stayhub-card p-5 relative overflow-hidden border border-white/60 shadow-xl shadow-slate-200/40 backdrop-blur-md group", 
+      colors.bg, 
+      className
+    )}>
+      {/* Decorative Wave/Mountain Background shape */}
+      <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-white/20 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/20 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="relative z-10 flex items-start justify-between">
         <div>
-          <p className="text-[13px] font-medium text-[var(--foreground-muted)]">{title}</p>
-          <p className="text-kpi mt-1.5 text-[var(--foreground)]">{value}</p>
+          <div className="flex items-center gap-2">
+            {icon && (
+              <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mb-1 hidden sm:flex", colors.iconBg)}>
+                {React.cloneElement(icon as React.ReactElement, { className: "h-4 w-4" })}
+              </div>
+            )}
+            <p className="text-[13px] font-bold text-slate-700/80 uppercase tracking-wide">{title}</p>
+          </div>
+          <p className={cn("text-3xl font-black mt-1 tracking-tight", colors.text)}>{value}</p>
           {trend !== undefined && (
-            <div className="flex items-center gap-1.5 mt-2">
+            <div className="flex items-center gap-1.5 mt-2.5">
               <div
                 className={cn(
-                  "flex items-center gap-0.5 text-[12px] font-semibold",
-                  isPositive ? "text-[var(--success)]" : isNegative ? "text-[var(--danger)]" : "text-[var(--foreground-muted)]"
+                  "flex items-center gap-0.5 text-[12px] font-bold px-1.5 py-0.5 rounded-md bg-white/50 shadow-sm",
+                  isPositive ? "text-emerald-600" : isNegative ? "text-rose-600" : "text-slate-600"
                 )}
               >
                 {isPositive && (
@@ -85,14 +125,21 @@ const KPIWidget = ({
                 {Math.abs(trend)}%
               </div>
               {trendLabel && (
-                <span className="text-[11px] text-[var(--foreground-subtle)]">{trendLabel}</span>
+                <span className="text-[11px] font-semibold text-slate-600/80">{trendLabel}</span>
               )}
             </div>
           )}
+          {trend === undefined && trendLabel && (
+            <div className="mt-2 text-[11.5px] font-semibold text-slate-600/80">
+              {trendLabel}
+            </div>
+          )}
         </div>
+        
+        {/* Right side Icon for mobile or layout */}
         {icon && (
-          <div className={cn("h-10 w-10 rounded-[var(--radius-md)] flex items-center justify-center shrink-0", colors.icon)}>
-            {icon}
+          <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 sm:hidden", colors.iconBg)}>
+            {React.cloneElement(icon as React.ReactElement, { className: "h-5 w-5" })}
           </div>
         )}
       </div>

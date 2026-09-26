@@ -69,7 +69,7 @@ export default function BookingConfirmationPage() {
           children: 0,
           roomsCount: 1,
           totalAmount: 637.20,
-          currency: "USD",
+          currency: "INR",
           status: "CONFIRMED",
           bookingSource: "ONLINE_BOOKING",
           cancellationPolicy: "Free cancellation up to 48 hours prior to check-in.",

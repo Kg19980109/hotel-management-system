@@ -70,47 +70,58 @@ export default async function GuestRequestsPage() {
   };
 
   return (
-    <div className="p-4 space-y-5">
+    <div className="p-4 space-y-6 pb-28 max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Link
           href="/guest/services"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition"
+          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-amber-300 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Services</span>
         </Link>
         <Link
           href="/guest/services"
-          className="text-xs text-amber-400 hover:underline font-semibold"
+          className="text-xs text-amber-400 hover:text-amber-300 font-bold px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 transition flex items-center gap-1"
         >
-          + New Request
+          <span>+ New Request</span>
         </Link>
       </div>
 
-      <div className="space-y-1">
-        <h2 className="text-xl font-black text-white">Your Service Requests</h2>
-        <p className="text-xs text-slate-400">
-          Track housekeeping, maintenance, and concierge assistance for your room.
-        </p>
+      {/* Hero Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#08111F] via-[#0E1B2E] to-[#08111F] border border-amber-500/20 p-5 shadow-xl">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            <span>Concierge Log</span>
+          </div>
+          <h2 className="text-xl font-black text-white tracking-tight">
+            Your Service Requests
+          </h2>
+          <p className="text-xs text-slate-300/80 leading-relaxed">
+            Track housekeeping, maintenance, and concierge assistance for your room.
+          </p>
+        </div>
       </div>
 
       {requests.length === 0 ? (
-        <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-4">
-          <div className="w-12 h-12 rounded-xl bg-slate-800 text-slate-500 mx-auto flex items-center justify-center">
-            <Sparkles className="w-6 h-6" />
+        <div className="p-8 rounded-3xl bg-gradient-to-b from-[#0E1B2E] to-[#08111F] border border-slate-800 text-center space-y-5 shadow-xl">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mx-auto flex items-center justify-center shadow-lg">
+            <Sparkles className="w-8 h-8" />
           </div>
-          <div className="space-y-1">
-            <h3 className="text-sm font-bold text-white">No Service Requests</h3>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto">
+          <div className="space-y-1.5">
+            <h3 className="text-base font-bold text-white">No Service Requests</h3>
+            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
               You have not submitted any service requests during this stay.
             </p>
           </div>
           <Link
             href="/guest/services"
-            className="inline-block px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition active:scale-[0.98]"
           >
-            Request a Service
+            <span>Request a Service</span>
           </Link>
         </div>
       ) : (
@@ -119,17 +130,17 @@ export default async function GuestRequestsPage() {
             <Link
               key={req.id}
               href={`/guest/requests/${req.id}`}
-              className="block p-4 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-800 transition active:scale-[0.99] group shadow-md"
+              className="block p-4 rounded-2xl bg-gradient-to-br from-[#0E1B2E] to-[#08111F] hover:from-[#132238] hover:to-[#0B1526] border border-slate-800 hover:border-amber-500/30 transition-all duration-200 active:scale-[0.99] group shadow-xl relative overflow-hidden"
             >
               <div className="flex items-start justify-between">
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                    <span className="text-[10px] uppercase font-bold text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
                       {req.category}
                     </span>
                     {getStatusBadge(req.status)}
                   </div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition">
+                  <h4 className="text-sm font-bold text-white group-hover:text-amber-300 transition">
                     {req.title}
                   </h4>
                   {req.description && (
@@ -138,12 +149,14 @@ export default async function GuestRequestsPage() {
                     </p>
                   )}
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-amber-400 transition shrink-0 ml-2" />
+                <div className="w-8 h-8 rounded-full bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-400 group-hover:bg-amber-500 group-hover:text-slate-950 group-hover:border-amber-500 transition shrink-0 ml-2">
+                  <ChevronRight className="w-4 h-4" />
+                </div>
               </div>
 
-              <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="mt-3.5 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
                 <span>Requested at {new Date(req.requested_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                <span className="text-amber-400 font-semibold group-hover:underline">
+                <span className="text-amber-400 font-bold group-hover:underline">
                   View Timeline →
                 </span>
               </div>

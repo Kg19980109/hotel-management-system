@@ -21,6 +21,7 @@ const testSuites = [
   { name: 'Phase 21: Notifications & Online Booking', file: 'scripts/test_notifications_booking.js' },
   { name: 'Phase 22: Production Hardening & Security Audit', file: 'scripts/test_production_hardening.js' },
   { name: 'Phase 23: QR Request Dispatch, Alerting & Buzzer', file: 'scripts/test_qr_dispatch_alerting.js' },
+  { name: 'Phase 7: Food Ordering & KDS E2E Sync', file: 'scripts/test_phase7_food_ordering_e2e.js' },
   { name: 'Dashboard Analytics & KPIs', file: 'scripts/test_dashboard.js' },
 ];
 

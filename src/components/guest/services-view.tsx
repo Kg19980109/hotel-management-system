@@ -224,18 +224,20 @@ export function ServicesView({ session }: ServicesViewProps) {
   };
 
   return (
-    <div className="p-4 space-y-5 pb-24">
+    <div className="p-4 space-y-6 pb-28 max-w-lg mx-auto">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border border-slate-800 p-5 shadow-xl">
-        <div className="relative z-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-bold uppercase tracking-wider">
-            <Sparkles className="w-3 h-3" />
-            Digital Guest Concierge
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#08111F] via-[#0E1B2E] to-[#08111F] border border-amber-500/20 p-5 shadow-xl">
+        <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            <span>Digital Guest Concierge</span>
           </div>
-          <h2 className="text-xl font-extrabold text-white tracking-tight">
-            Guest Services & Requests
+          <h2 className="text-xl font-black text-white tracking-tight">
+            Guest Services & Assistance
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-300/80 leading-relaxed">
             {isVerifiedStay
               ? `Select any service below to request immediate assistance for Room ${session?.room_number}.`
               : "Contactless digital service requests for verified hotel guests."}
@@ -243,14 +245,34 @@ export function ServicesView({ session }: ServicesViewProps) {
         </div>
       </div>
 
+      {/* Prominent Dining / Room Service Quick Card */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0E1B2E] to-[#08111F] border border-amber-500/30 p-4 shadow-lg flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+            <Utensils className="w-5 h-5" />
+          </div>
+          <div className="space-y-0.5">
+            <h4 className="text-xs font-bold text-white">Order Food & Room Service</h4>
+            <p className="text-[10px] text-slate-400">Fresh dishes delivered directly to your room</p>
+          </div>
+        </div>
+        <Link
+          href="/guest/dining"
+          className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow-md shrink-0 flex items-center gap-1"
+        >
+          <span>Browse Menus</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
       {/* Unverified Notice */}
       {!isVerifiedStay && (
-        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
             <p className="font-semibold text-amber-300">Room Verification Required</p>
-            <p className="text-slate-400 text-[11px]">
-              To submit service requests to hotel staff, please scan the QR code in your room to verify your reservation.
+            <p className="text-slate-400 text-[11px] leading-relaxed">
+              To submit service requests to hotel staff, please scan the QR code located in your room to verify your active stay.
             </p>
           </div>
         </div>
@@ -258,14 +280,14 @@ export function ServicesView({ session }: ServicesViewProps) {
 
       {/* Quick Link to My Requests */}
       {isVerifiedStay && (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-900 border border-slate-800 shadow-md">
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#0E1B2E] border border-slate-800 shadow-md">
           <div className="space-y-0.5">
             <h4 className="text-xs font-bold text-white">Your Submitted Requests</h4>
-            <p className="text-[10px] text-slate-400">Track staff assignment & completion</p>
+            <p className="text-[10px] text-slate-400">Track staff assignment & completion in real time</p>
           </div>
           <Link
             href="/guest/requests"
-            className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 transition shadow"
+            className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/20 font-bold text-xs flex items-center gap-1 transition shadow"
           >
             <span>View Requests</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -274,8 +296,8 @@ export function ServicesView({ session }: ServicesViewProps) {
       )}
 
       {/* Service Categories Grid */}
-      <div className="space-y-2.5">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+      <div className="space-y-3">
+        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">
           Select Service Category
         </h3>
 
@@ -286,14 +308,14 @@ export function ServicesView({ session }: ServicesViewProps) {
               <button
                 key={cat.id}
                 onClick={() => openCategoryModal(cat)}
-                className="p-4 rounded-2xl bg-slate-900 hover:bg-slate-850 border border-slate-800 text-left transition active:scale-[0.98] group flex flex-col justify-between h-32 shadow-md relative overflow-hidden"
+                className="p-4 rounded-2xl bg-[#0E1B2E] hover:bg-[#132238] border border-slate-800 hover:border-amber-500/30 text-left transition-all duration-200 active:scale-[0.98] group flex flex-col justify-between h-32 shadow-md relative overflow-hidden"
               >
-                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${cat.color} border flex items-center justify-center shrink-0`}>
+                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${cat.color} border flex items-center justify-center shrink-0 shadow-sm`}>
                   <Icon className="w-5 h-5" />
                 </div>
 
                 <div className="space-y-0.5">
-                  <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition">
+                  <h4 className="text-xs font-bold text-white group-hover:text-amber-300 transition">
                     {cat.name}
                   </h4>
                   <p className="text-[10px] text-slate-400 line-clamp-1">{cat.description}</p>
@@ -306,8 +328,8 @@ export function ServicesView({ session }: ServicesViewProps) {
 
       {/* Modal / Bottom Sheet for Request Submission */}
       {selectedCat && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-slate-900 border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-[#0E1B2E] border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">

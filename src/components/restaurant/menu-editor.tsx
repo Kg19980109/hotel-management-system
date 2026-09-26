@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// STAYHUB MENU & STATION ROUTING EDITOR (Phase 12 & 13)
+// STAYHUB PREMIUM MENU & CATEGORY MANAGEMENT (Phase 5)
 // ============================================================
 
 import * as React from "react";
@@ -15,6 +15,10 @@ import {
   Trash2,
   ChefHat,
   AlertTriangle,
+  Smartphone,
+  Sparkles,
+  LayoutGrid,
+  Table as TableIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +31,8 @@ import {
 } from "@/lib/restaurant/types";
 import {
   createCategoryAction,
+  updateCategoryAction,
+  deactivateCategoryAction,
   createMenuItemAction,
   updateMenuItemAction,
   toggleMenuItemAvailabilityAction,
@@ -47,6 +53,46 @@ interface MenuEditorProps {
   onRefresh?: () => void;
 }
 
+// Curated high-res culinary image catalog for luxury food cards
+const getFoodImageForDish = (dishName: string, categoryName: string): string => {
+  const text = `${dishName} ${categoryName}`.toLowerCase();
+  if (text.includes("burger")) {
+    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("pizza")) {
+    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("biryani") || text.includes("rice")) {
+    return "https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("paneer") || text.includes("tikka") || text.includes("curry") || text.includes("masala")) {
+    return "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("coffee") || text.includes("tea") || text.includes("latte") || text.includes("cappuccino")) {
+    return "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("drink") || text.includes("cocktail") || text.includes("beverage") || text.includes("juice") || text.includes("wine")) {
+    return "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("cake") || text.includes("dessert") || text.includes("sweet") || text.includes("chocolate") || text.includes("ice cream")) {
+    return "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("pasta") || text.includes("noodle") || text.includes("spaghetti")) {
+    return "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("salad") || text.includes("soup") || text.includes("starter")) {
+    return "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("steak") || text.includes("chicken") || text.includes("grill") || text.includes("meat") || text.includes("kebab")) {
+    return "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=700&q=80";
+  }
+  if (text.includes("fish") || text.includes("seafood") || text.includes("prawn")) {
+    return "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=700&q=80";
+  }
+  // Default luxury gourmet plated dish
+  return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=700&q=80";
+};
+
 export function MenuEditor({
   propertyId,
   restaurant,
@@ -58,6 +104,7 @@ export function MenuEditor({
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   // Stations & Routing
   const [stations, setStations] = useState<KitchenStation[]>([]);
@@ -65,8 +112,10 @@ export function MenuEditor({
 
   // Modals
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null);
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [isGuestPreviewOpen, setIsGuestPreviewOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form: Category
@@ -104,7 +153,7 @@ export function MenuEditor({
     loadKdsData();
   }, [loadKdsData]);
 
-  // Create lookup map for item -> primary station
+  // Lookup map for item -> primary station
   const stationByItemId = useMemo(() => {
     const map: Record<string, { id: string; name: string; code: string }> = {};
     routings.forEach((r) => {
@@ -140,8 +189,24 @@ export function MenuEditor({
     });
   }, [menuItems, selectedCategoryId, searchQuery]);
 
-  // Handlers
-  const handleCreateCategory = async (e: React.FormEvent) => {
+  // CATEGORY HANDLERS
+  const handleOpenAddCategory = () => {
+    setEditingCategory(null);
+    setCategoryName("");
+    setCategoryDesc("");
+    setCategoryOrder(categories.length);
+    setIsAddCategoryOpen(true);
+  };
+
+  const handleOpenEditCategory = (cat: MenuCategory) => {
+    setEditingCategory(cat);
+    setCategoryName(cat.name);
+    setCategoryDesc(cat.description || "");
+    setCategoryOrder(cat.display_order);
+    setIsAddCategoryOpen(true);
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryName.trim()) {
       toastError("Validation Error", "Category name is required.");
@@ -150,31 +215,79 @@ export function MenuEditor({
 
     setIsSubmitting(true);
     try {
-      const res = await createCategoryAction(propertyId, {
-        restaurant_id: restaurant.id,
-        name: categoryName.trim(),
-        description: categoryDesc.trim() || undefined,
-        display_order: categoryOrder,
-      });
+      if (editingCategory) {
+        const res = await updateCategoryAction(propertyId, editingCategory.id, {
+          name: categoryName.trim(),
+          description: categoryDesc.trim() || undefined,
+          display_order: categoryOrder,
+        });
 
-      if (!res.success) {
-        toastError("Error", res.error || "Failed to create category.");
-        return;
+        if (!res.success) {
+          toastError("Error", res.error || "Failed to update category.");
+          return;
+        }
+
+        success("Category Updated", `Category '${categoryName}' updated.`);
+      } else {
+        const res = await createCategoryAction(propertyId, {
+          restaurant_id: restaurant.id,
+          name: categoryName.trim(),
+          description: categoryDesc.trim() || undefined,
+          display_order: categoryOrder,
+        });
+
+        if (!res.success) {
+          toastError("Error", res.error || "Failed to create category.");
+          return;
+        }
+
+        success("Category Created", `Category '${categoryName}' added to menu.`);
       }
 
-      success("Category Created", `Category '${categoryName}' has been added.`);
       setIsAddCategoryOpen(false);
       setCategoryName("");
       setCategoryDesc("");
       setCategoryOrder(0);
+      setEditingCategory(null);
       onRefresh?.();
     } catch (err: unknown) {
-      toastError("Error", err instanceof Error ? err.message : "Failed to create category.");
+      toastError("Error", err instanceof Error ? err.message : "Failed to save category.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleDeactivateCategory = async (cat: MenuCategory) => {
+    const activeItemsInCat = menuItems.filter((m) => m.is_active && m.category_id === cat.id);
+    if (activeItemsInCat.length > 0) {
+      toastError(
+        "Cannot Remove Category",
+        `Category '${cat.name}' has ${activeItemsInCat.length} active menu item(s). Reassign or deactivate those items first.`
+      );
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to deactivate the category "${cat.name}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await deactivateCategoryAction(propertyId, cat.id);
+      if (!res.success) {
+        toastError("Error", res.error || "Failed to deactivate category.");
+        return;
+      }
+      success("Category Deactivated", `Category '${cat.name}' was removed.`);
+      if (selectedCategoryId === cat.id) {
+        setSelectedCategoryId("ALL");
+      }
+      onRefresh?.();
+    } catch (err: unknown) {
+      toastError("Error", err instanceof Error ? err.message : "Failed to deactivate category.");
+    }
+  };
+
+  // ITEM HANDLERS
   const handleOpenAddItem = () => {
     setEditingItem(null);
     setItemName("");
@@ -185,7 +298,7 @@ export function MenuEditor({
     setItemCategoryId(selectedCategoryId !== "ALL" ? selectedCategoryId : categories[0]?.id || "");
     setItemStationId(stations[0]?.id || "");
     setItemAvailable(true);
-    setItemDisplayOrder(0);
+    setItemDisplayOrder(menuItems.length);
     setIsAddItemOpen(true);
   };
 
@@ -286,6 +399,10 @@ export function MenuEditor({
         toastError("Error", res.error || "Failed to toggle availability.");
         return;
       }
+      success(
+        item.is_available ? "Marked as Sold Out" : "Marked as In Stock",
+        `"${item.name}" availability updated immediately for guest dining and POS.`
+      );
       onRefresh?.();
     } catch (err: unknown) {
       toastError("Error", err instanceof Error ? err.message : "Failed to update item.");
@@ -311,148 +428,339 @@ export function MenuEditor({
     }
   };
 
+  const currencySymbol = restaurant.currency === "USD" ? "$" : "₹";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* UNROUTED WARNING BANNER */}
       {unroutedCount > 0 && (
-        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
-          <div className="flex items-center gap-2">
+        <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs text-amber-800 dark:text-amber-300">
+          <div className="flex items-center gap-2.5">
             <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
             <span>
-              <strong>{unroutedCount} menu items</strong> have no assigned kitchen station. KDS will mark them as &quot;Unrouted&quot;.
+              <strong>{unroutedCount} active dish{unroutedCount > 1 ? "es" : ""}</strong> have no assigned kitchen station. KDS tickets will label them as &quot;Unrouted&quot;.
             </span>
           </div>
-          <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
-            Edit items to assign prep stations
+          <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
+            Edit dishes to route them to Hot Line, Pantry, Bar, or Grill
           </span>
         </div>
       )}
 
-      {/* Top Filter & Controls */}
-      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-card p-3 rounded-xl border border-border shadow-xs">
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-thin">
-          <button
-            type="button"
-            onClick={() => setSelectedCategoryId("ALL")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-              selectedCategoryId === "ALL"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            All Items ({menuItems.filter((m) => m.is_active).length})
-          </button>
-          {categories
-            .filter((c) => c.is_active)
-            .map((cat) => {
-              const count = menuItems.filter(
-                (m) => m.is_active && m.category_id === cat.id
-              ).length;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    selectedCategoryId === cat.id
-                      ? "bg-primary text-primary-foreground shadow-xs"
-                      : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  {cat.name} ({count})
-                </button>
-              );
-            })}
-        </div>
-
-        {/* Search & Action Buttons */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="relative w-44">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search menu..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 text-xs h-8"
-            />
+      {/* TOP CONTROLS & CATEGORY PILLS BAR */}
+      <div className="stayhub-card p-4 space-y-4">
+        <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+          {/* Category Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-thin">
+            <button
+              type="button"
+              onClick={() => setSelectedCategoryId("ALL")}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                selectedCategoryId === "ALL"
+                  ? "bg-[var(--primary)] text-white shadow-xs"
+                  : "bg-[var(--secondary)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
+              }`}
+            >
+              All Dishes ({menuItems.filter((m) => m.is_active).length})
+            </button>
+            {categories
+              .filter((c) => c.is_active)
+              .map((cat) => {
+                const count = menuItems.filter(
+                  (m) => m.is_active && m.category_id === cat.id
+                ).length;
+                return (
+                  <div key={cat.id} className="relative group inline-flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategoryId(cat.id)}
+                      className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
+                        selectedCategoryId === cat.id
+                          ? "bg-[var(--primary)] text-white shadow-xs"
+                          : "bg-[var(--secondary)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/80"
+                      }`}
+                    >
+                      {cat.name} ({count})
+                    </button>
+                    {/* Quick Edit Category on hover */}
+                    <div className="hidden group-hover:flex items-center ml-1 space-x-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditCategory(cat)}
+                        className="p-1 rounded text-slate-400 hover:text-[var(--primary)]"
+                        title="Edit Category"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeactivateCategory(cat)}
+                        className="p-1 rounded text-slate-400 hover:text-rose-500"
+                        title="Deactivate Category"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsAddCategoryOpen(true)}
-            className="text-xs h-8"
-          >
-            <Layers className="h-3.5 w-3.5 mr-1" />
-            + Category
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleOpenAddItem}
-            className="text-xs h-8"
-          >
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Add Menu Item
-          </Button>
+          {/* Action Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {/* Search Input */}
+            <div className="relative w-44">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search dishes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 text-xs h-8"
+              />
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center rounded-lg border border-[var(--border)] bg-[var(--secondary)] p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("cards")}
+                className={`p-1.5 rounded-md text-xs font-semibold transition ${
+                  viewMode === "cards"
+                    ? "bg-white text-slate-900 dark:bg-slate-800 dark:text-white shadow-xs"
+                    : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                }`}
+                title="Rich Culinary Cards View"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`p-1.5 rounded-md text-xs font-semibold transition ${
+                  viewMode === "table"
+                    ? "bg-white text-slate-900 dark:bg-slate-800 dark:text-white shadow-xs"
+                    : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                }`}
+                title="Dense Table View"
+              >
+                <TableIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {/* Live Customer Preview Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsGuestPreviewOpen(true)}
+              className="text-xs h-8 border-[var(--brand-gold)]/40 text-[var(--brand-gold)] hover:bg-[var(--brand-gold)]/10 font-bold"
+            >
+              <Smartphone className="h-3.5 w-3.5 mr-1" />
+              Guest Preview
+            </Button>
+
+            {/* Add Category */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenAddCategory}
+              className="text-xs h-8"
+            >
+              <Layers className="h-3.5 w-3.5 mr-1" />
+              + Category
+            </Button>
+
+            {/* Add Item */}
+            <Button
+              size="sm"
+              onClick={handleOpenAddItem}
+              className="text-xs h-8 font-semibold bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add Dish
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Menu Items Table / Grid */}
+      {/* EMPTY STATE */}
       {filteredItems.length === 0 ? (
-        <div className="py-16 text-center bg-card rounded-xl border border-dashed border-border flex flex-col items-center justify-center p-6">
-          <UtensilsCrossed className="h-10 w-10 text-muted-foreground/40 mb-3" />
-          <h4 className="text-sm font-semibold text-foreground">No menu items found</h4>
-          <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+        <div className="py-20 text-center stayhub-card border-dashed flex flex-col items-center justify-center p-8">
+          <UtensilsCrossed className="h-12 w-12 text-muted-foreground/30 mb-3" />
+          <h4 className="text-base font-bold text-[var(--foreground)]">No menu items found</h4>
+          <p className="text-xs text-[var(--foreground-muted)] mt-1.5 max-w-md">
             {categories.length === 0
-              ? "Start by adding a menu category first."
-              : "Add menu items with prices to build your restaurant catalog."}
+              ? "Start by adding a menu category first (e.g. Starters, Main Course, Desserts, Beverages)."
+              : "Add culinary dishes with server-validated prices, photos, and prep stations to launch your menu."}
           </p>
-          <Button
-            size="sm"
-            onClick={handleOpenAddItem}
-            className="mt-4 text-xs"
-          >
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            Add First Item
-          </Button>
+          <div className="flex items-center gap-2 mt-5">
+            {categories.length === 0 && (
+              <Button size="sm" variant="outline" onClick={handleOpenAddCategory} className="text-xs font-semibold">
+                <Layers className="h-3.5 w-3.5 mr-1" />
+                Add Category First
+              </Button>
+            )}
+            <Button size="sm" onClick={handleOpenAddItem} className="text-xs font-semibold">
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add First Dish
+            </Button>
+          </div>
+        </div>
+      ) : viewMode === "cards" ? (
+        /* ── RICH CULINARY CARDS VIEW ── */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredItems.map((item) => {
+            const station = stationByItemId[item.id];
+            const cat = categories.find((c) => c.id === item.category_id);
+            const foodImg = getFoodImageForDish(item.name, cat?.name || "");
+
+            return (
+              <div
+                key={item.id}
+                className="stayhub-card overflow-hidden flex flex-col justify-between group hover:border-[var(--primary)]/60 hover:shadow-lg transition-all duration-200"
+              >
+                {/* Food Image Banner */}
+                <div className="relative h-44 w-full overflow-hidden bg-slate-900">
+                  <img
+                    src={foodImg}
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                  {/* Category Pill Tag */}
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-white border border-white/20">
+                      {cat?.name || "Culinary"}
+                    </span>
+                  </div>
+
+                  {/* Stock Availability Badge */}
+                  <div className="absolute top-3 right-3">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAvailability(item)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold backdrop-blur-md transition-all shadow-sm ${
+                        item.is_available
+                          ? "bg-emerald-500/90 hover:bg-emerald-500 text-white"
+                          : "bg-rose-500/90 hover:bg-rose-500 text-white"
+                      }`}
+                      title="Click to toggle availability"
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full bg-white ${item.is_available ? "animate-pulse" : ""}`} />
+                      {item.is_available ? "AVAILABLE" : "SOLD OUT"}
+                    </button>
+                  </div>
+
+                  {/* Price overlay at bottom of image */}
+                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                    <span className="text-xl font-black text-white drop-shadow-md">
+                      {currencySymbol}{item.price.toFixed(2)}
+                    </span>
+                    {item.sku && (
+                      <span className="text-[10px] font-mono text-slate-300 bg-black/50 px-2 py-0.5 rounded border border-white/10">
+                        {item.sku}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Content details */}
+                <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h4 className="font-bold text-sm text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors line-clamp-1">
+                      {item.name}
+                    </h4>
+                    {item.short_name && (
+                      <p className="text-[11px] font-medium text-[var(--foreground-subtle)]">
+                        Short: {item.short_name}
+                      </p>
+                    )}
+                    <p className="text-xs text-[var(--foreground-muted)] line-clamp-2 mt-1 leading-relaxed">
+                      {item.description || "Authentic culinary preparation made fresh with premium seasonal ingredients."}
+                    </p>
+                  </div>
+
+                  {/* Station Routing Pill */}
+                  <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between text-xs">
+                    <div>
+                      {station ? (
+                        <span className="inline-flex items-center gap-1 font-bold text-[10.5px] uppercase bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded">
+                          <ChefHat className="h-3 w-3" />
+                          {station.name}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 font-semibold text-[10.5px] uppercase bg-amber-500/15 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">
+                          ⚠️ Unrouted
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenEditItem(item)}
+                        className="h-7 w-7 p-0 text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]"
+                        title="Edit Dish"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeactivateItem(item)}
+                        className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                        title="Deactivate Dish"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <div className="bg-card rounded-xl border border-border overflow-hidden shadow-xs">
+        /* ── DENSE TABLE VIEW ── */
+        <div className="stayhub-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-[var(--secondary)]/50 border-b border-[var(--border)] text-[var(--foreground-subtle)] font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="px-4 py-2.5">Item Name</th>
-                  <th className="px-4 py-2.5">Category</th>
-                  <th className="px-4 py-2.5">Kitchen Station</th>
-                  <th className="px-4 py-2.5">Price</th>
-                  <th className="px-4 py-2.5">SKU</th>
-                  <th className="px-4 py-2.5">Availability</th>
-                  <th className="px-4 py-2.5 text-right">Actions</th>
+                  <th className="px-4 py-3">Dish Name & Details</th>
+                  <th className="px-4 py-3">Category</th>
+                  <th className="px-4 py-3">Kitchen Station</th>
+                  <th className="px-4 py-3">Price</th>
+                  <th className="px-4 py-3">SKU</th>
+                  <th className="px-4 py-3">Availability</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-[var(--border)]">
                 {filteredItems.map((item) => {
                   const station = stationByItemId[item.id];
+                  const cat = categories.find((c) => c.id === item.category_id);
 
                   return (
-                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="font-semibold text-foreground">
+                    <tr key={item.id} className="hover:bg-[var(--secondary)]/30 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <div className="font-bold text-[var(--foreground)]">
                           {item.name}
                         </div>
                         {item.description && (
-                          <div className="text-[11px] text-muted-foreground line-clamp-1 max-w-md">
+                          <div className="text-[11px] text-[var(--foreground-muted)] line-clamp-1 max-w-md mt-0.5">
                             {item.description}
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {item.category_name || "—"}
+                      <td className="px-4 py-3.5 text-[var(--foreground-muted)] font-medium">
+                        {cat?.name || "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         {station ? (
                           <span className="inline-flex items-center gap-1 font-bold text-[10px] uppercase bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded">
                             <ChefHat className="h-3 w-3" />
@@ -464,20 +772,20 @@ export function MenuEditor({
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-bold text-foreground">
-                        ${item.price.toFixed(2)}
+                      <td className="px-4 py-3.5 font-bold text-[var(--foreground)]">
+                        {currencySymbol}{item.price.toFixed(2)}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-[11px]">
+                      <td className="px-4 py-3.5 text-[var(--foreground-muted)] font-mono text-[11px]">
                         {item.sku || "—"}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <button
                           type="button"
                           onClick={() => handleToggleAvailability(item)}
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
                             item.is_available
-                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                              : "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:brightness-95"
+                              : "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:brightness-95"
                           }`}
                         >
                           <span
@@ -485,27 +793,29 @@ export function MenuEditor({
                               item.is_available ? "bg-emerald-500" : "bg-rose-500"
                             }`}
                           />
-                          {item.is_available ? "In Stock" : "Out of Stock"}
+                          {item.is_available ? "AVAILABLE" : "UNAVAILABLE"}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="inline-flex items-center gap-2">
-                          <button
-                            type="button"
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleOpenEditItem(item)}
-                            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                            className="h-7 w-7 p-0 text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                             title="Edit Item"
                           >
                             <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleDeactivateItem(item)}
-                            className="p-1 rounded text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                            className="h-7 w-7 p-0 text-slate-400 hover:text-rose-600"
                             title="Deactivate Item"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -517,20 +827,20 @@ export function MenuEditor({
         </div>
       )}
 
-      {/* CREATE CATEGORY MODAL */}
+      {/* ── CREATE / EDIT CATEGORY MODAL ── */}
       <Modal
         open={isAddCategoryOpen}
         onClose={() => setIsAddCategoryOpen(false)}
-        title="Add Menu Category"
-        description="E.g. Starters, Main Course, Beverages, Desserts"
+        title={editingCategory ? "Edit Menu Category" : "Add Menu Category"}
+        description="E.g. Starters, Main Course, Tandoor, Desserts, Beverages"
       >
-        <form onSubmit={handleCreateCategory} className="space-y-3.5 text-xs">
+        <form onSubmit={handleSaveCategory} className="space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-foreground mb-1">
+            <label className="block font-bold text-foreground mb-1">
               Category Name <span className="text-rose-500">*</span>
             </label>
             <Input
-              placeholder="e.g. Starters, Biryani, Drinks"
+              placeholder="e.g. Starters, Main Course, Biryani, Cocktails"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
               className="text-xs h-8"
@@ -539,11 +849,11 @@ export function MenuEditor({
           </div>
 
           <div>
-            <label className="block font-semibold text-foreground mb-1">
+            <label className="block font-bold text-foreground mb-1">
               Description (Optional)
             </label>
             <Input
-              placeholder="Brief description..."
+              placeholder="Brief description of this culinary section..."
               value={categoryDesc}
               onChange={(e) => setCategoryDesc(e.target.value)}
               className="text-xs h-8"
@@ -551,8 +861,8 @@ export function MenuEditor({
           </div>
 
           <div>
-            <label className="block font-semibold text-foreground mb-1">
-              Display Order
+            <label className="block font-bold text-foreground mb-1">
+              Display Sequence Order
             </label>
             <Input
               type="number"
@@ -561,6 +871,9 @@ export function MenuEditor({
               onChange={(e) => setCategoryOrder(Number(e.target.value) || 0)}
               className="text-xs h-8"
             />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Controls the tab order in guest mobile dining and cashier terminals.
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-border">
@@ -573,29 +886,29 @@ export function MenuEditor({
               Cancel
             </Button>
             <Button type="submit" size="sm" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Category"}
+              {isSubmitting ? "Saving..." : editingCategory ? "Update Category" : "Create Category"}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* CREATE / EDIT MENU ITEM MODAL */}
+      {/* ── CREATE / EDIT MENU ITEM MODAL ── */}
       <Modal
         open={isAddItemOpen}
         onClose={() => setIsAddItemOpen(false)}
-        title={editingItem ? `Edit Menu Item` : `Add Menu Item`}
-        description={`Configure menu item for ${restaurant.name}`}
+        title={editingItem ? "Edit Menu Dish" : "Add Menu Dish"}
+        description={`Configure culinary item for ${restaurant.name}`}
       >
-        <form onSubmit={handleSaveItem} className="space-y-3.5 text-xs">
+        <form onSubmit={handleSaveItem} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-foreground mb-1">
+              <label className="block font-bold text-foreground mb-1">
                 Category <span className="text-rose-500">*</span>
               </label>
               <select
                 value={itemCategoryId}
                 onChange={(e) => setItemCategoryId(e.target.value)}
-                className="w-full text-xs h-8 rounded-md border border-input bg-background px-3 py-1 text-foreground"
+                className="w-full text-xs h-8 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground"
                 required
               >
                 <option value="">-- Choose Category --</option>
@@ -608,8 +921,8 @@ export function MenuEditor({
             </div>
 
             <div>
-              <label className="block font-semibold text-foreground mb-1">
-                Price ($) <span className="text-rose-500">*</span>
+              <label className="block font-bold text-foreground mb-1">
+                Price ({currencySymbol}) <span className="text-rose-500">*</span>
               </label>
               <Input
                 type="number"
@@ -625,7 +938,7 @@ export function MenuEditor({
           </div>
 
           <div>
-            <label className="block font-semibold text-foreground mb-1">
+            <label className="block font-bold text-foreground mb-1">
               Primary Kitchen Station (KDS Routing)
             </label>
             <select
@@ -640,14 +953,17 @@ export function MenuEditor({
                 </option>
               ))}
             </select>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Select which kitchen station prepares this dish (e.g. Hot Line, Pantry, Grill).
+            </p>
           </div>
 
           <div>
-            <label className="block font-semibold text-foreground mb-1">
-              Item Name <span className="text-rose-500">*</span>
+            <label className="block font-bold text-foreground mb-1">
+              Dish Name <span className="text-rose-500">*</span>
             </label>
             <Input
-              placeholder="e.g. Paneer Butter Masala"
+              placeholder="e.g. Paneer Butter Masala, Truffle Risotto"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               className="text-xs h-8"
@@ -657,11 +973,11 @@ export function MenuEditor({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-semibold text-foreground mb-1">
+              <label className="block font-bold text-foreground mb-1">
                 Short Name (Optional)
               </label>
               <Input
-                placeholder="e.g. Paneer BM"
+                placeholder="e.g. Paneer BM, Truffle Rst"
                 value={itemShortName}
                 onChange={(e) => setItemShortName(e.target.value)}
                 className="text-xs h-8"
@@ -669,7 +985,7 @@ export function MenuEditor({
             </div>
 
             <div>
-              <label className="block font-semibold text-foreground mb-1">
+              <label className="block font-bold text-foreground mb-1">
                 SKU / Code (Optional)
               </label>
               <Input
@@ -682,11 +998,11 @@ export function MenuEditor({
           </div>
 
           <div>
-            <label className="block font-semibold text-foreground mb-1">
+            <label className="block font-bold text-foreground mb-1">
               Description (Optional)
             </label>
             <Input
-              placeholder="e.g. Cottage cheese cubes simmered in creamy tomato gravy"
+              placeholder="e.g. Cottage cheese cubes simmered in velvety tomato & butter gravy"
               value={itemDesc}
               onChange={(e) => setItemDesc(e.target.value)}
               className="text-xs h-8"
@@ -699,10 +1015,10 @@ export function MenuEditor({
               id="item-available-check"
               checked={itemAvailable}
               onChange={(e) => setItemAvailable(e.target.checked)}
-              className="rounded border-input text-primary focus:ring-primary"
+              className="rounded border-input text-primary focus:ring-primary h-4 w-4"
             />
-            <label htmlFor="item-available-check" className="font-semibold text-foreground">
-              Currently Available in Stock
+            <label htmlFor="item-available-check" className="font-bold text-foreground cursor-pointer">
+              Currently Available in Stock (Published to Guest QR Portal & POS)
             </label>
           </div>
 
@@ -716,10 +1032,109 @@ export function MenuEditor({
               Cancel
             </Button>
             <Button type="submit" size="sm" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : editingItem ? "Update Item" : "Create Item"}
+              {isSubmitting ? "Saving..." : editingItem ? "Update Dish" : "Create Dish"}
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* ── LIVE CUSTOMER GUEST PREVIEW MODAL ── */}
+      <Modal
+        open={isGuestPreviewOpen}
+        onClose={() => setIsGuestPreviewOpen(false)}
+        title="Live Guest QR Dining Preview"
+        description={`Authoritative preview of what hotel guests see at ${restaurant.name}`}
+      >
+        <div className="max-w-md mx-auto bg-slate-950 text-white rounded-3xl p-4 border border-slate-800 shadow-2xl space-y-4">
+          {/* Guest App Simulated Header */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-bold text-amber-400">Live QR Dining Portal</span>
+            </div>
+            <span className="text-[10px] font-mono text-slate-400">Room 304</span>
+          </div>
+
+          {/* Restaurant Banner */}
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[9px] font-bold uppercase">
+                {restaurant.code}
+              </span>
+              <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Kitchen Active
+              </span>
+            </div>
+            <h3 className="text-base font-extrabold text-white">{restaurant.name}</h3>
+            <p className="text-[11px] text-slate-400 line-clamp-1">
+              {restaurant.description || "Fine dining & room service delivered to your door."}
+            </p>
+          </div>
+
+          {/* Category Pills Preview */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            {categories.filter((c) => c.is_active).map((c, i) => (
+              <span
+                key={c.id}
+                className={`px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${
+                  i === 0
+                    ? "bg-amber-500 text-slate-950 font-black"
+                    : "bg-slate-900 text-slate-300 border border-slate-800"
+                }`}
+              >
+                {c.name}
+              </span>
+            ))}
+          </div>
+
+          {/* Dishes Preview List */}
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            {menuItems.filter((m) => m.is_active).map((item) => (
+              <div
+                key={item.id}
+                className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
+                  item.is_available
+                    ? "bg-slate-900 border-slate-800"
+                    : "bg-slate-950 border-slate-850 opacity-50"
+                }`}
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white">{item.name}</span>
+                    {!item.is_available && (
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        Sold Out
+                      </span>
+                    )}
+                  </div>
+                  {item.description && (
+                    <p className="text-[10.5px] text-slate-400 line-clamp-1">{item.description}</p>
+                  )}
+                  <p className="text-xs font-extrabold text-amber-400">
+                    {currencySymbol}{item.price.toFixed(2)}
+                  </p>
+                </div>
+
+                {item.is_available ? (
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-[11px] shrink-0">
+                    + Add
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-slate-500 font-semibold shrink-0">
+                    Unavailable
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="pt-2 text-center">
+            <p className="text-[10px] text-slate-400">
+              Changes saved in admin appear in real-time on customer smartphones.
+            </p>
+          </div>
+        </div>
       </Modal>
     </div>
   );

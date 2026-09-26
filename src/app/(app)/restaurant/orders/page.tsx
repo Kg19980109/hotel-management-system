@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import {
   ShoppingBag,
@@ -9,9 +9,13 @@ import {
   Search,
   RefreshCw,
   Eye,
+  Sparkles,
+  ChevronRight,
+  Clock,
+  Calendar,
+  Filter,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingState, ErrorState } from "@/components/ui/states";
@@ -97,10 +101,24 @@ export default function RestaurantOrdersPage() {
     setFilterDate("");
   };
 
+  const openOrdersCount = useMemo(() => {
+    return orders.filter((o) => o.status === "OPEN" || o.status === "CONFIRMED" || o.status === "PREPARING" || o.status === "READY").length;
+  }, [orders]);
+
+  const completedOrdersCount = useMemo(() => {
+    return orders.filter((o) => o.status === "COMPLETED" || o.status === "SERVED").length;
+  }, [orders]);
+
+  const totalSalesSum = useMemo(() => {
+    return orders
+      .filter((o) => o.status !== "CANCELLED")
+      .reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  }, [orders]);
+
   if (authLoading || (loading && !orders.length)) {
     return (
       <div className="p-6">
-        <LoadingState message="Loading Orders Ledger..." />
+        <LoadingState message="Loading Orders Ledger & Audit Trail..." />
       </div>
     );
   }
@@ -114,17 +132,54 @@ export default function RestaurantOrdersPage() {
   }
 
   return (
-    <div className="p-6 space-y-5 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <PageHeader
-        title="Restaurant Orders Ledger"
-        description="Comprehensive log of all POS transactions, dining receipts, and operational statuses."
-        actions={
-          <div className="flex items-center gap-2">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      {/* ── LUXURY MIDNIGHT NAVY HERO ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial lighting */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.08) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.25)",
+                background: "rgba(214,168,90,0.08)",
+              }}
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>Dining Orders & Transactions Ledger</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-heading">
+              Restaurant Orders Ledger
+            </h1>
+            <p className="text-sm text-slate-300/80 mt-1 max-w-2xl leading-relaxed">
+              Comprehensive log of all POS transactions, guest room dining orders, itemized receipts, and kitchen fulfillment statuses.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
             <Link href="/restaurant/pos">
-              <Button size="sm" className="text-xs h-9">
-                <UtensilsCrossed className="h-3.5 w-3.5 mr-1.5" />
-                Open POS
+              <Button
+                size="sm"
+                className="text-xs h-9 font-bold bg-[var(--brand-gold)] hover:brightness-110 text-slate-950 shadow-md flex items-center gap-1.5"
+              >
+                <UtensilsCrossed className="h-3.5 w-3.5" />
+                POS Terminal
               </Button>
             </Link>
 
@@ -132,17 +187,56 @@ export default function RestaurantOrdersPage() {
               variant="outline"
               size="sm"
               onClick={loadData}
-              className="text-xs h-9"
+              className="text-xs h-9 border-white/20 text-slate-200 hover:text-white hover:bg-white/10 bg-slate-900/60"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               Refresh
             </Button>
           </div>
-        }
-      />
+        </div>
+
+        {/* Orders Ledger Metric Bar */}
+        <div className="relative z-10 mt-5 pt-4 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+            <ShoppingBag className="h-4 w-4 text-[var(--brand-gold)] shrink-0" />
+            <div>
+              <p className="text-[10.5px] uppercase tracking-wider text-slate-400 font-bold">Total Orders</p>
+              <p className="text-sm font-extrabold text-white">{totalCount}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+            <Clock className="h-4 w-4 text-amber-400 shrink-0" />
+            <div>
+              <p className="text-[10.5px] uppercase tracking-wider text-slate-400 font-bold">In-Progress</p>
+              <p className="text-sm font-extrabold text-amber-400">{openOrdersCount} active</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+            <UtensilsCrossed className="h-4 w-4 text-emerald-400 shrink-0" />
+            <div>
+              <p className="text-[10.5px] uppercase tracking-wider text-slate-400 font-bold">Fulfilled</p>
+              <p className="text-sm font-extrabold text-emerald-400">{completedOrdersCount}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+            <ShoppingBag className="h-4 w-4 text-indigo-400 shrink-0" />
+            <div>
+              <p className="text-[10.5px] uppercase tracking-wider text-slate-400 font-bold">Ledger Volume</p>
+              <p className="text-sm font-extrabold text-white">₹{totalSalesSum.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Filters Bar */}
-      <div className="bg-card p-3.5 rounded-xl border border-border shadow-xs space-y-3">
+      <div className="stayhub-card p-4 space-y-3">
+        <div className="flex items-center gap-2 text-xs font-bold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
+          <Filter className="h-3.5 w-3.5" />
+          <span>Filter Transactions</span>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
           {/* Search Order Number */}
           <div className="relative">
@@ -160,7 +254,7 @@ export default function RestaurantOrdersPage() {
           <select
             value={selectedRestaurantId}
             onChange={(e) => setSelectedRestaurantId(e.target.value)}
-            className="text-xs h-8 rounded-md border border-input bg-background px-3 py-1 text-foreground"
+            className="text-xs h-8 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground"
           >
             <option value="ALL">All Outlets</option>
             {restaurants.map((r) => (
@@ -174,7 +268,7 @@ export default function RestaurantOrdersPage() {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="text-xs h-8 rounded-md border border-input bg-background px-3 py-1 text-foreground"
+            className="text-xs h-8 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground"
           >
             <option value="ALL">All Statuses</option>
             <option value="OPEN">Open</option>
@@ -190,7 +284,7 @@ export default function RestaurantOrdersPage() {
           <select
             value={selectedOrderType}
             onChange={(e) => setSelectedOrderType(e.target.value)}
-            className="text-xs h-8 rounded-md border border-input bg-background px-3 py-1 text-foreground"
+            className="text-xs h-8 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground"
           >
             <option value="ALL">All Types</option>
             <option value="DINE_IN">Dine In</option>
@@ -212,7 +306,7 @@ export default function RestaurantOrdersPage() {
             variant="ghost"
             size="sm"
             onClick={clearFilters}
-            className="text-xs h-8 text-muted-foreground hover:text-foreground"
+            className="text-xs h-8 text-muted-foreground hover:text-foreground font-semibold"
           >
             Clear Filters
           </Button>
@@ -221,81 +315,86 @@ export default function RestaurantOrdersPage() {
 
       {/* Orders Table */}
       {orders.length === 0 ? (
-        <div className="py-16 text-center bg-card rounded-xl border border-dashed border-border flex flex-col items-center justify-center p-6">
-          <ShoppingBag className="h-10 w-10 text-muted-foreground/40 mb-3" />
-          <h4 className="text-sm font-semibold text-foreground">No orders match your criteria</h4>
-          <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-            Try adjusting your search filters or create a new order in the POS terminal.
+        <div className="py-20 text-center stayhub-card border-dashed flex flex-col items-center justify-center p-8">
+          <ShoppingBag className="h-12 w-12 text-muted-foreground/30 mb-3" />
+          <h4 className="text-base font-bold text-[var(--foreground)]">No orders match your criteria</h4>
+          <p className="text-xs text-[var(--foreground-muted)] mt-1.5 max-w-sm">
+            Try adjusting your search filters or launch the POS terminal to record a transaction.
           </p>
         </div>
       ) : (
-        <div className="bg-card rounded-xl border border-border overflow-hidden shadow-xs">
+        <div className="stayhub-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-[var(--secondary)]/50 border-b border-[var(--border)] text-[var(--foreground-subtle)] font-bold uppercase tracking-wider text-[10px]">
                 <tr>
-                  <th className="px-4 py-2.5">Order Number</th>
-                  <th className="px-4 py-2.5">Outlet</th>
-                  <th className="px-4 py-2.5">Type</th>
-                  <th className="px-4 py-2.5">Table</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Subtotal</th>
-                  <th className="px-4 py-2.5">Discount</th>
-                  <th className="px-4 py-2.5">Total</th>
-                  <th className="px-4 py-2.5">Created At</th>
-                  <th className="px-4 py-2.5">Server / Staff</th>
-                  <th className="px-4 py-2.5 text-right">Actions</th>
+                  <th className="px-4 py-3">Order Number</th>
+                  <th className="px-4 py-3">Outlet</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">Table / Room</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Subtotal</th>
+                  <th className="px-4 py-3">Discount</th>
+                  <th className="px-4 py-3">Total Amount</th>
+                  <th className="px-4 py-3">Timestamp</th>
+                  <th className="px-4 py-3">Created By</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-[var(--border)]">
                 {orders.map((ord) => (
                   <tr
                     key={ord.id}
-                    className="hover:bg-muted/30 transition-colors"
+                    className="hover:bg-[var(--secondary)]/30 transition-colors"
                   >
-                    <td className="px-4 py-3 font-mono font-bold text-foreground">
+                    <td className="px-4 py-3.5 font-mono font-bold text-[var(--foreground)]">
                       <Link
                         href={`/restaurant/orders/${ord.id}`}
-                        className="hover:text-primary hover:underline"
+                        className="text-[var(--primary)] hover:underline inline-flex items-center gap-1"
                       >
                         {ord.order_number}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3.5 text-[var(--foreground-muted)] font-medium">
                       {ord.restaurant_name || "—"}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <OrderTypeBadge type={ord.order_type} />
                     </td>
-                    <td className="px-4 py-3 font-medium text-foreground">
+                    <td className="px-4 py-3.5 font-semibold text-[var(--foreground)]">
                       {ord.table_number ? `Table ${ord.table_number}` : "—"}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <OrderStatusBadge status={ord.status} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      ${ord.subtotal.toFixed(2)}
+                    <td className="px-4 py-3.5 text-[var(--foreground-muted)]">
+                      ₹{ord.subtotal.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400">
-                      {ord.discount_amount > 0 ? `-$${ord.discount_amount.toFixed(2)}` : "$0.00"}
+                    <td className="px-4 py-3.5 text-emerald-600 dark:text-emerald-400 font-medium">
+                      {ord.discount_amount > 0 ? `-₹${ord.discount_amount.toFixed(2)}` : "₹0.00"}
                     </td>
-                    <td className="px-4 py-3 font-bold text-foreground">
-                      ${ord.total_amount.toFixed(2)}
+                    <td className="px-4 py-3.5 font-extrabold text-[var(--foreground)]">
+                      ₹{ord.total_amount.toFixed(2)}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(ord.created_at).toLocaleString([], {
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                    <td className="px-4 py-3.5 text-[var(--foreground-muted)]">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-slate-400" />
+                        <span>
+                          {new Date(ord.created_at).toLocaleString([], {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3.5 text-[var(--foreground-muted)] font-medium">
                       {ord.creator_name || "Staff"}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3.5 text-right">
                       <Link href={`/restaurant/orders/${ord.id}`}>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                        <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs font-semibold">
                           <Eye className="h-3.5 w-3.5 mr-1" />
                           View
                         </Button>
@@ -306,8 +405,8 @@ export default function RestaurantOrdersPage() {
               </tbody>
             </table>
           </div>
-          <div className="p-3 bg-muted/30 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-            <span>Showing {orders.length} of {totalCount} orders</span>
+          <div className="p-3.5 bg-[var(--secondary)]/30 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--foreground-muted)]">
+            <span>Showing {orders.length} of {totalCount} transactions</span>
           </div>
         </div>
       )}

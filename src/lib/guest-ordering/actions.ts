@@ -15,6 +15,9 @@ export interface CreateGuestFoodOrderInput {
     special_instructions?: string;
   }[];
   notes?: string;
+  idempotencyKey?: string;
+  orderType?: "ROOM_SERVICE" | "DINE_IN" | "TAKEAWAY" | "DELIVERY";
+  tableId?: string;
 }
 
 /**
@@ -46,6 +49,9 @@ export async function placeGuestFoodOrderAction(input: CreateGuestFoodOrderInput
     p_restaurant_id: input.restaurantId,
     p_items: input.items,
     p_notes: input.notes || null,
+    p_idempotency_key: input.idempotencyKey || null,
+    p_order_type: input.orderType || "ROOM_SERVICE",
+    p_table_id: input.tableId || null,
   });
 
   if (error || !data?.success) {

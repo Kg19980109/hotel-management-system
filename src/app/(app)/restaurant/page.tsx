@@ -12,9 +12,11 @@ import {
   ArrowRight,
   RefreshCw,
   Store,
+  Sparkles,
+  ChevronRight,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
-import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
@@ -143,7 +145,7 @@ export default function RestaurantPage() {
   if (authLoading || (loading && !restaurants.length)) {
     return (
       <div className="p-6">
-        <LoadingState message="Loading restaurant operations..." />
+        <LoadingState message="Loading restaurant operations console..." />
       </div>
     );
   }
@@ -156,23 +158,59 @@ export default function RestaurantPage() {
     );
   }
 
+  const selectedOutlet = restaurants.find((r) => r.id === selectedRestaurantId);
+
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <PageHeader
-        title="Restaurant Operations & POS"
-        description="Manage dining outlets, table assignments, menus, and POS cashier workflows."
-        actions={
-          <div className="flex items-center gap-2">
+      {/* ── LUXURY MIDNIGHT NAVY HERO ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial lighting */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.08) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.25)",
+                background: "rgba(214,168,90,0.08)",
+              }}
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>Dining Operations & POS Command</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-heading">
+              Restaurant & Dining Outlets
+            </h1>
+            <p className="text-sm text-slate-300/80 mt-1 max-w-2xl leading-relaxed">
+              Manage hotel dining outlets, floor occupancy, menu catalogs, guest room dining orders, and POS cashier terminals.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
             {restaurants.length > 0 && (
               <select
                 value={selectedRestaurantId}
                 onChange={(e) => setSelectedRestaurantId(e.target.value)}
-                className="text-xs h-9 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground shadow-xs"
+                className="text-xs h-9 rounded-lg border border-white/20 bg-slate-900/80 backdrop-blur-md px-3 py-1 font-semibold text-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[var(--brand-gold)]"
               >
                 <option value="ALL">All Outlets ({restaurants.length})</option>
                 {restaurants.map((r) => (
-                  <option key={r.id} value={r.id}>
+                  <option key={r.id} value={r.id} className="bg-slate-900 text-white">
                     {r.name} ({r.code})
                   </option>
                 ))}
@@ -183,7 +221,7 @@ export default function RestaurantPage() {
               variant="outline"
               size="sm"
               onClick={loadData}
-              className="text-xs h-9"
+              className="text-xs h-9 border-white/20 text-slate-200 hover:text-white hover:bg-white/10 bg-slate-900/60"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               Refresh
@@ -192,27 +230,47 @@ export default function RestaurantPage() {
             <Button
               size="sm"
               onClick={() => setIsAddOutletOpen(true)}
-              className="text-xs h-9"
+              className="text-xs h-9 font-semibold bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white shadow-md"
             >
               <Plus className="h-3.5 w-3.5 mr-1.5" />
               Add Outlet
             </Button>
+
+            <Link href="/restaurant/pos">
+              <Button
+                size="sm"
+                className="text-xs h-9 font-bold bg-[var(--brand-gold)] hover:brightness-110 text-slate-950 shadow-md flex items-center gap-1.5"
+              >
+                <UtensilsCrossed className="h-3.5 w-3.5" />
+                POS Terminal
+              </Button>
+            </Link>
           </div>
-        }
-      />
+        </div>
+
+        {/* Selected Outlet Quick Bar */}
+        {selectedOutlet && (
+          <div className="relative z-10 mt-5 pt-4 border-t border-white/10 flex flex-wrap items-center gap-4 text-xs text-slate-300">
+            <span className="font-semibold text-white">Active Outlet: {selectedOutlet.name}</span>
+            <span className="text-slate-400">• Code: <code className="font-mono text-[11px] text-[var(--brand-gold)]">{selectedOutlet.code}</code></span>
+            <span className="text-slate-400">• Currency: {selectedOutlet.currency || "INR"}</span>
+            <span className="text-slate-400">• Timezone: {selectedOutlet.timezone || "Asia/Kolkata"}</span>
+          </div>
+        )}
+      </div>
 
       {/* KPI Grid */}
-      <RestaurantKpiGrid kpis={kpis} />
+      <RestaurantKpiGrid kpis={kpis} currency={selectedOutlet?.currency === "USD" ? "$" : "₹"} />
 
       {/* No Outlets State */}
       {restaurants.length === 0 ? (
-        <div className="py-16 text-center bg-card rounded-xl border border-dashed border-border flex flex-col items-center justify-center p-8">
+        <div className="py-16 text-center stayhub-card border-dashed flex flex-col items-center justify-center p-8">
           <Store className="h-12 w-12 text-muted-foreground/40 mb-3" />
           <h3 className="text-base font-bold text-foreground">
             No Restaurant Outlets Configured
           </h3>
           <p className="text-xs text-muted-foreground mt-1 max-w-md">
-            Create your hotel&apos;s first restaurant outlet (e.g. Main Restaurant, Rooftop Bar, Cafe) to set up tables, menus, and POS cashiers.
+            Create your hotel&apos;s first restaurant outlet (e.g. Main Restaurant, Rooftop Bar, Poolside Lounge) to set up tables, menus, and POS cashiers.
           </p>
           <Button
             onClick={() => setIsAddOutletOpen(true)}
@@ -227,98 +285,103 @@ export default function RestaurantPage() {
           {/* Quick Navigation Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/restaurant/pos" className="group">
-              <Card className="p-4 border-border hover:border-primary/50 hover:shadow-md transition-all duration-150 flex flex-col justify-between h-full bg-card">
+              <div className="stayhub-card p-5 hover:border-[var(--primary)]/60 hover:shadow-lg transition-all duration-200 flex flex-col justify-between h-full group">
                 <div>
-                  <div className="p-2 w-fit rounded-lg bg-primary/10 text-primary mb-3">
+                  <div className="p-2.5 w-fit rounded-xl bg-[var(--primary-light)] text-[var(--primary)] mb-3 group-hover:scale-105 transition-transform">
                     <UtensilsCrossed className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                  <h4 className="font-bold text-sm text-[var(--foreground)] group-hover:text-[var(--primary)] transition-colors">
                     POS Cashier Terminal
                   </h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Fast order entry, table assignment, and instant cashier ticketing.
+                  <p className="text-xs text-[var(--foreground-muted)] mt-1.5 leading-relaxed">
+                    Fast order entry, table assignment, split billing, and instant kitchen ticketing.
                   </p>
                 </div>
-                <div className="mt-4 flex items-center text-xs font-semibold text-primary">
-                  <span>Open POS</span>
+                <div className="mt-4 flex items-center text-xs font-bold text-[var(--primary)] pt-3 border-t border-[var(--border)]">
+                  <span>Launch POS</span>
                   <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-1" />
                 </div>
-              </Card>
+              </div>
             </Link>
 
             <Link href="/restaurant/tables" className="group">
-              <Card className="p-4 border-border hover:border-primary/50 hover:shadow-md transition-all duration-150 flex flex-col justify-between h-full bg-card">
+              <div className="stayhub-card p-5 hover:border-indigo-500/60 hover:shadow-lg transition-all duration-200 flex flex-col justify-between h-full group">
                 <div>
-                  <div className="p-2 w-fit rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 mb-3">
+                  <div className="p-2.5 w-fit rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-3 group-hover:scale-105 transition-transform">
                     <Layers className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-sm text-foreground group-hover:text-indigo-600 transition-colors">
+                  <h4 className="font-bold text-sm text-[var(--foreground)] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                     Dining Tables Map
                   </h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Manage dining areas, table capacities, and live table occupancy.
+                  <p className="text-xs text-[var(--foreground-muted)] mt-1.5 leading-relaxed">
+                    Manage dining floor plans, table seating capacity, and real-time occupancy states.
                   </p>
                 </div>
-                <div className="mt-4 flex items-center text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                <div className="mt-4 flex items-center text-xs font-bold text-indigo-600 dark:text-indigo-400 pt-3 border-t border-[var(--border)]">
                   <span>Manage Tables</span>
                   <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-1" />
                 </div>
-              </Card>
+              </div>
             </Link>
 
             <Link href="/restaurant/menu" className="group">
-              <Card className="p-4 border-border hover:border-primary/50 hover:shadow-md transition-all duration-150 flex flex-col justify-between h-full bg-card">
+              <div className="stayhub-card p-5 hover:border-[var(--brand-gold)]/60 hover:shadow-lg transition-all duration-200 flex flex-col justify-between h-full group">
                 <div>
-                  <div className="p-2 w-fit rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 mb-3">
+                  <div className="p-2.5 w-fit rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-3 group-hover:scale-105 transition-transform">
                     <BookOpen className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-sm text-foreground group-hover:text-amber-600 transition-colors">
-                    Menu & Pricing
+                  <h4 className="font-bold text-sm text-[var(--foreground)] group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Menu & Item Pricing
                   </h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Configure categories, dishes, numeric pricing, and real-time stock availability.
+                  <p className="text-xs text-[var(--foreground-muted)] mt-1.5 leading-relaxed">
+                    Configure categories, dishes, numeric pricing, KDS kitchen station routing, and stock availability.
                   </p>
                 </div>
-                <div className="mt-4 flex items-center text-xs font-semibold text-amber-600 dark:text-amber-400">
-                  <span>Edit Menu</span>
+                <div className="mt-4 flex items-center text-xs font-bold text-amber-600 dark:text-amber-400 pt-3 border-t border-[var(--border)]">
+                  <span>Configure Menu</span>
                   <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-1" />
                 </div>
-              </Card>
+              </div>
             </Link>
 
             <Link href="/restaurant/orders" className="group">
-              <Card className="p-4 border-border hover:border-primary/50 hover:shadow-md transition-all duration-150 flex flex-col justify-between h-full bg-card">
+              <div className="stayhub-card p-5 hover:border-emerald-500/60 hover:shadow-lg transition-all duration-200 flex flex-col justify-between h-full group">
                 <div>
-                  <div className="p-2 w-fit rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 mb-3">
+                  <div className="p-2.5 w-fit rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-3 group-hover:scale-105 transition-transform">
                     <ShoppingBag className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-sm text-foreground group-hover:text-emerald-600 transition-colors">
+                  <h4 className="font-bold text-sm text-[var(--foreground)] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     Orders Ledger
                   </h4>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Track active and historical orders, audit events, and line item receipts.
+                  <p className="text-xs text-[var(--foreground-muted)] mt-1.5 leading-relaxed">
+                    Audit trail for POS receipts, room service requests, kitchen tickets, and payment folios.
                   </p>
                 </div>
-                <div className="mt-4 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <div className="mt-4 flex items-center text-xs font-bold text-emerald-600 dark:text-emerald-400 pt-3 border-t border-[var(--border)]">
                   <span>View All Orders</span>
                   <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-1" />
                 </div>
-              </Card>
+              </div>
             </Link>
           </div>
 
           {/* Recent Orders Section */}
-          <div className="bg-card rounded-xl border border-border overflow-hidden shadow-xs">
-            <div className="p-4 border-b border-border flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-foreground">Recent Orders</h3>
-                <p className="text-xs text-muted-foreground">
-                  Latest POS transactions across your dining outlets
-                </p>
+          <div className="stayhub-card overflow-hidden">
+            <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-[var(--primary-light)] text-[var(--primary)]">
+                  <ShoppingBag className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[var(--foreground)]">Recent Orders</h3>
+                  <p className="text-xs text-[var(--foreground-muted)]">
+                    Latest dining and room service transactions across your outlets
+                  </p>
+                </div>
               </div>
               <Link href="/restaurant/orders">
-                <Button variant="ghost" size="sm" className="text-xs h-8">
-                  View All Orders
+                <Button variant="ghost" size="sm" className="text-xs h-8 text-[var(--primary)] font-semibold hover:bg-[var(--primary-light)]">
+                  View Full Ledger
                   <ArrowRight className="h-3.5 w-3.5 ml-1" />
                 </Button>
               </Link>
@@ -331,57 +394,61 @@ export default function RestaurantPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[10px]">
+                  <thead className="bg-[var(--secondary)]/50 border-b border-[var(--border)] text-[var(--foreground-subtle)] font-bold uppercase tracking-wider text-[10px]">
                     <tr>
-                      <th className="px-4 py-2.5">Order Number</th>
-                      <th className="px-4 py-2.5">Outlet</th>
-                      <th className="px-4 py-2.5">Type</th>
-                      <th className="px-4 py-2.5">Table</th>
-                      <th className="px-4 py-2.5">Status</th>
-                      <th className="px-4 py-2.5">Total</th>
-                      <th className="px-4 py-2.5">Time</th>
-                      <th className="px-4 py-2.5 text-right">Action</th>
+                      <th className="px-4 py-3">Order Number</th>
+                      <th className="px-4 py-3">Outlet</th>
+                      <th className="px-4 py-3">Type</th>
+                      <th className="px-4 py-3">Table / Room</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Total Amount</th>
+                      <th className="px-4 py-3">Timestamp</th>
+                      <th className="px-4 py-3 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody className="divide-y divide-[var(--border)]">
                     {recentOrders.map((ord) => (
                       <tr
                         key={ord.id}
-                        className="hover:bg-muted/30 transition-colors"
+                        className="hover:bg-[var(--secondary)]/30 transition-colors"
                       >
-                        <td className="px-4 py-3 font-mono font-bold text-foreground">
+                        <td className="px-4 py-3.5 font-mono font-bold text-[var(--foreground)]">
                           <Link
                             href={`/restaurant/orders/${ord.id}`}
-                            className="hover:text-primary hover:underline"
+                            className="text-[var(--primary)] hover:underline inline-flex items-center gap-1"
                           >
                             {ord.order_number}
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">
+                        <td className="px-4 py-3.5 text-[var(--foreground-muted)] font-medium">
                           {ord.restaurant_name || "—"}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           <OrderTypeBadge type={ord.order_type} />
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">
+                        <td className="px-4 py-3.5 text-[var(--foreground-muted)] font-medium">
                           {ord.table_number ? `Table ${ord.table_number}` : "—"}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           <OrderStatusBadge status={ord.status} />
                         </td>
-                        <td className="px-4 py-3 font-bold text-foreground">
-                          ${ord.total_amount.toFixed(2)}
+                        <td className="px-4 py-3.5 font-bold text-[var(--foreground)]">
+                          ₹{ord.total_amount.toFixed(2)}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {new Date(ord.created_at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        <td className="px-4 py-3.5 text-[var(--foreground-muted)] flex items-center gap-1 mt-1">
+                          <Clock className="h-3 w-3 text-slate-400" />
+                          <span>
+                            {new Date(ord.created_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3.5 text-right">
                           <Link href={`/restaurant/orders/${ord.id}`}>
-                            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                            <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs font-semibold">
                               Details
+                              <ChevronRight className="h-3 w-3 ml-0.5" />
                             </Button>
                           </Link>
                         </td>

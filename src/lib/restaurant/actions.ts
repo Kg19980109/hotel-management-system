@@ -328,6 +328,95 @@ export async function createCategoryAction(
 }
 
 /**
+ * 6b. Update menu category
+ */
+export async function updateCategoryAction(
+  propertyId: string,
+  categoryId: string,
+  input: {
+    name?: string;
+    description?: string;
+    display_order?: number;
+    is_active?: boolean;
+  }
+): Promise<ActionResponse> {
+  const { auth, error: authError } = await authenticateRestaurantSession(
+    propertyId,
+    "RESTAURANT_MENU_MANAGE"
+  );
+  if (authError || !auth) return { success: false, error: authError };
+
+  if (input.name !== undefined && !input.name.trim()) {
+    return { success: false, error: "Category name cannot be empty." };
+  }
+
+  const supabase = await createClient();
+
+  const updateData: Record<string, unknown> = {};
+  if (input.name !== undefined) updateData.name = input.name.trim();
+  if (input.description !== undefined) updateData.description = input.description.trim() || null;
+  if (input.display_order !== undefined) updateData.display_order = input.display_order;
+  if (input.is_active !== undefined) updateData.is_active = input.is_active;
+
+  const { error } = await supabase
+    .from("menu_categories")
+    .update(updateData)
+    .eq("id", categoryId);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/restaurant/menu");
+  revalidatePath("/restaurant/pos");
+  return { success: true };
+}
+
+/**
+ * 6c. Deactivate menu category (Soft delete)
+ */
+export async function deactivateCategoryAction(
+  propertyId: string,
+  categoryId: string
+): Promise<ActionResponse> {
+  const { auth, error: authError } = await authenticateRestaurantSession(
+    propertyId,
+    "RESTAURANT_MENU_MANAGE"
+  );
+  if (authError || !auth) return { success: false, error: authError };
+
+  const supabase = await createClient();
+
+  // Check if active items exist under this category
+  const { data: activeItems } = await supabase
+    .from("menu_items")
+    .select("id")
+    .eq("category_id", categoryId)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (activeItems && activeItems.length > 0) {
+    return {
+      success: false,
+      error: "Cannot deactivate category with active menu items. Reassign or deactivate items first.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("menu_categories")
+    .update({ is_active: false })
+    .eq("id", categoryId);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/restaurant/menu");
+  revalidatePath("/restaurant/pos");
+  return { success: true };
+}
+
+/**
  * 7. Create menu item
  */
 export async function createMenuItemAction(

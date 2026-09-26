@@ -41,21 +41,21 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
         <Link
           href="/dashboard"
           className={cn(
-            "flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-[var(--radius)]",
+            "flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-xl group",
             collapsed ? "justify-center" : ""
           )}
           aria-label="StayHub Home"
         >
-          <div className="h-8 w-8 rounded-[var(--radius)] bg-[var(--primary)] flex items-center justify-center shrink-0 shadow-sm">
-            <Hotel className="h-4.5 w-4.5 text-white" />
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
+            <Hotel className="h-5 w-5 text-slate-950 font-bold" />
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-white font-bold text-[16px] tracking-tight leading-none">
-                StayHub
+              <span className="text-white font-serif font-black text-lg tracking-tight leading-none flex items-center gap-1">
+                StayHub <span className="text-amber-400 text-xs">★</span>
               </span>
-              <span className="text-[10px] text-[var(--sidebar-text)] opacity-70 tracking-widest uppercase font-semibold mt-0.5">
-                Hospitality OS
+              <span className="text-[9.5px] text-amber-400/80 tracking-widest uppercase font-bold mt-1">
+                Luxury Hospitality OS
               </span>
             </div>
           )}
@@ -64,13 +64,13 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
 
       {/* Navigation Groups */}
       <nav
-        className="flex-1 overflow-y-auto py-3 space-y-4 px-3 sidebar-nav scrollbar-thin"
+        className="flex-1 overflow-y-auto py-4 space-y-5 px-3 sidebar-nav scrollbar-thin"
         aria-label="Sidebar sections"
       >
         {navigationConfig.map((group) => (
-          <div key={group.label} className="space-y-0.5">
+          <div key={group.label} className="space-y-1">
             {!collapsed && (
-              <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-[var(--sidebar-text)] px-3 mb-1.5 opacity-50">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.12em] text-slate-400/70 px-3 mb-1">
                 {group.label}
               </p>
             )}
@@ -83,24 +83,24 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-[var(--radius)] text-[13px] font-medium",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium",
                     "transition-all duration-150 relative group",
                     collapsed ? "justify-center px-0 h-10 w-10 mx-auto" : "",
                     active
-                      ? "bg-[var(--sidebar-item-active-bg)] text-white shadow-xs font-semibold"
-                      : "text-[var(--sidebar-text)] hover:bg-[var(--sidebar-item-hover)] hover:text-white"
+                      ? "bg-gradient-to-r from-indigo-500/20 via-purple-500/15 to-transparent text-white border border-indigo-500/30 shadow-xs font-bold"
+                      : "text-slate-400 hover:bg-slate-800/60 hover:text-white"
                   )}
                   aria-current={active ? "page" : undefined}
                 >
                   {/* Left active border indicator */}
                   {active && !collapsed && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-[var(--primary)] rounded-r-full" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-5 bg-gradient-to-b from-amber-400 to-indigo-500 rounded-r-full shadow-sm shadow-amber-400/50" />
                   )}
 
                   <Icon
                     className={cn(
-                      "shrink-0 transition-transform duration-150",
-                      active ? "text-white" : "text-[var(--sidebar-text)] group-hover:text-white"
+                      "shrink-0 transition-transform duration-150 group-hover:scale-110",
+                      active ? "text-amber-400" : "text-slate-400 group-hover:text-white"
                     )}
                     style={{ width: 18, height: 18 }}
                   />
@@ -110,7 +110,7 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
                   )}
 
                   {!collapsed && item.badge != null && item.badge > 0 && (
-                    <span className="bg-[var(--primary)] text-white text-[10px] font-bold rounded-full h-4.5 min-w-[18px] px-1.5 flex items-center justify-center">
+                    <span className="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-[10px] font-extrabold rounded-full h-4.5 min-w-[18px] px-1.5 flex items-center justify-center shadow-xs">
                       {item.badge}
                     </span>
                   )}

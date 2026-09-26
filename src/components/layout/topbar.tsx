@@ -25,8 +25,8 @@ export function Topbar({
       data-sidebar-collapsed={sidebarCollapsed}
       className={cn(
         "fixed top-0 right-0 z-30 flex items-center justify-between h-[var(--topbar-height)]",
-        "bg-[var(--topbar-bg)] border-b border-[var(--topbar-border)]",
-        "px-4 sm:px-6 gap-3 sm:gap-4 transition-[left] duration-300 ease-in-out backdrop-blur-xs",
+        "bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs",
+        "px-4 sm:px-6 gap-3 sm:gap-4 transition-[left] duration-300 ease-in-out",
         className
       )}
       style={{

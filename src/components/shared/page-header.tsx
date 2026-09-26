@@ -117,11 +117,11 @@ export function PageHeader({
       )}
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-page-heading text-[var(--foreground)] leading-tight truncate">
+          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-900 leading-tight tracking-tight truncate">
             {title}
           </h1>
           {description && (
-            <p className="text-[14px] text-[var(--foreground-muted)] mt-1 leading-relaxed">
+            <p className="text-[13.5px] text-slate-500 mt-1 leading-relaxed">
               {description}
             </p>
           )}

@@ -170,54 +170,79 @@ export default function RoomsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* 1. Page Header */}
-      <PageHeader
-        title="Room Inventory"
-        description="Configure room inventory, operational status, housekeeping state, and categories."
-        breadcrumbs={[{ label: "Operations", href: "/rooms" }, { label: "Rooms" }]}
-        actions={
-          <div className="flex items-center gap-2 flex-wrap">
+    <div className="space-y-6 relative -mt-4 -mx-6 px-6 pt-4">
+      {/* 5-Star Resort Hero Ambient Background */}
+      <div 
+        className="absolute top-0 left-0 w-full h-[280px] bg-cover bg-center z-0 opacity-25 dark:opacity-15 pointer-events-none"
+        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80")' }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-background/0 via-background/60 to-background" />
+      </div>
+
+      <div className="relative z-10 space-y-6">
+        {/* 1. Page Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-2 border-b border-[var(--border)]">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[11px] font-bold text-amber-600 uppercase tracking-widest flex items-center gap-1.5 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                <BedDouble className="w-3.5 h-3.5 text-amber-600" />
+                Hotel Suite & Room Inventory
+              </span>
+              <span className="text-slate-400">•</span>
+              <span className="text-xs text-slate-500 font-medium">
+                {totalCount} Configured Rooms
+              </span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-serif font-bold text-slate-900 tracking-tight">
+              Rooms & Suite Inventory
+            </h1>
+
+            <p className="text-sm text-slate-600 mt-1 max-w-2xl">
+              Real-time room occupancy, housekeeping turnaround, live floor inventory, and tier pricing.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Link href="/rooms/calendar">
-              <Button variant="outline" size="sm" className="hidden sm:inline-flex">
-                <Calendar className="h-4 w-4 mr-1.5" />
-                Calendar View
+              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>Calendar View</span>
               </Button>
             </Link>
             <Link href="/rooms/floor-view">
-              <Button variant="outline" size="sm" className="hidden sm:inline-flex">
-                <LayoutGrid className="h-4 w-4 mr-1.5" />
-                Floor View
+              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span>Floor View</span>
               </Button>
             </Link>
             <Link href="/rooms/types">
-              <Button variant="outline" size="sm">
-                <BedDouble className="h-4 w-4 mr-1.5" />
-                Room Types ({roomTypes.length})
+              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
+                <BedDouble className="h-3.5 w-3.5" />
+                <span>Room Types ({roomTypes.length})</span>
               </Button>
             </Link>
             <Link href="/rooms/floors">
-              <Button variant="outline" size="sm">
-                <Layers className="h-4 w-4 mr-1.5" />
-                Floors ({floors.length})
+              <Button variant="outline" size="sm" className="bg-white/80 backdrop-blur-sm border-slate-300 hover:bg-white text-xs gap-1.5 shadow-xs">
+                <Layers className="h-3.5 w-3.5" />
+                <span>Floors ({floors.length})</span>
               </Button>
             </Link>
             <Link href="/rooms/new">
-              <Button variant="primary" size="sm" className="shadow-sm">
-                <Plus className="h-4 w-4 mr-1.5" />
-                Add Room
+              <Button size="sm" className="gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md shadow-indigo-500/20 font-semibold px-4 py-2 rounded-xl transition-all hover:scale-[1.02]">
+                <Plus className="h-4 w-4" />
+                <span>Add Room</span>
               </Button>
             </Link>
           </div>
-        }
-      />
+        </div>
 
-      {/* 2. Room Statistics / KPI Grid */}
-      <RoomKpiGrid stats={stats} loading={loading && !stats} />
+        {/* 2. Room Statistics / KPI Grid */}
+        <RoomKpiGrid stats={stats} loading={loading && !stats} />
 
-      {/* 3. Search & Filter Bar */}
-      <div className="stayhub-card p-4">
-        <RoomFilters
+        {/* 3. Search & Filter Bar (Glassmorphic) */}
+        <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+          <RoomFilters
           filters={filters}
           onFilterChange={setFilters}
           floors={floors}
@@ -332,6 +357,7 @@ export default function RoomsPage() {
           )}
         </div>
       )}
+      </div>
 
       {/* Quick Status Modal */}
       <RoomStatusModal

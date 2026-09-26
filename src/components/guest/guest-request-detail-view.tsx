@@ -16,7 +16,7 @@ import {
   Wrench
 } from "lucide-react";
 import { GuestServiceRequestDetail, ServiceRequestStatus } from "@/lib/guest-services/types";
-import { cancelGuestServiceRequestAction } from "@/lib/guest-services/actions";
+import { cancelGuestServiceRequestAction, getGuestRequestLiveStatusAction } from "@/lib/guest-services/actions";
 import { createClient } from "@/lib/supabase/client";
 
 interface GuestRequestDetailViewProps {
@@ -29,8 +29,14 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
   const [guestNotes, setGuestNotes] = React.useState<string | null | undefined>(request.guest_visible_notes);
   const [isCancelling, setIsCancelling] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+  const currentStatusRef = React.useRef(currentStatus);
+  React.useEffect(() => {
+    currentStatusRef.current = currentStatus;
+  }, [currentStatus]);
 
-  // Real-time listener for live status updates without browser refresh
+  // Real-time listener for live status updates without browser refresh.
+  // NOTE: anon realtime is RLS-blocked for guests, so this is best-effort only.
+  // The secure 10s RPC poll below is the guaranteed path.
   React.useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -62,6 +68,32 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
     return () => {
       void supabase.removeChannel(channel);
     };
+  }, [request.id, router]);
+
+  // Guaranteed live path: secure server-action poll (validates httpOnly
+  // session cookie + RPC). Updates stepper the moment staff changes status.
+  React.useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const poll = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const res = await getGuestRequestLiveStatusAction(request.id);
+        if (res.success) {
+          if (res.status && res.status !== currentStatusRef.current) {
+            setCurrentStatus(res.status as ServiceRequestStatus);
+            router.refresh(); // pull fresh timeline events
+          }
+          if (res.guest_visible_notes !== undefined) setGuestNotes(res.guest_visible_notes);
+        }
+      } catch {
+        // offline — next tick retries
+      }
+    };
+    timer = setInterval(() => void poll(), 10000);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [request.id, router]);
 
   const isCancellable =

@@ -12,6 +12,7 @@ import {
 import { cookies } from "next/headers";
 import { getActiveGuestSession } from "@/lib/guest-portal/actions";
 import { getGuestServiceRequests } from "@/lib/guest-services/queries";
+import { GuestLiveRefresher } from "@/components/guest/guest-live-refresher";
 import { ServiceRequestStatus } from "@/lib/guest-services/types";
 
 export const metadata = {
@@ -71,6 +72,8 @@ export default async function GuestRequestsPage() {
 
   return (
     <div className="p-4 space-y-6 pb-28 max-w-lg mx-auto">
+      {/* Live staff-status updates (secure RPC refresh; anon realtime is RLS-blocked) */}
+      <GuestLiveRefresher />
       {/* Header */}
       <div className="flex items-center justify-between">
         <Link

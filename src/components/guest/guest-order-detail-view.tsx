@@ -87,10 +87,11 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
     window.addEventListener("online", handleReconnectSync);
     document.addEventListener("visibilitychange", handleReconnectSync);
 
-    // Heartbeat sync fallback every 15s while order is active
+    // Heartbeat sync fallback every 15s while order is active (visible tab only)
     let heartbeatTimer: NodeJS.Timeout | null = null;
     if (order.status !== "COMPLETED" && order.status !== "SERVED" && order.status !== "CANCELLED") {
       heartbeatTimer = setInterval(() => {
+        if (document.visibilityState !== "visible") return;
         router.refresh();
       }, 15000);
     }

@@ -149,8 +149,42 @@ export async function cancelGuestServiceRequestAction(
   revalidatePath("/guest/requests");
   revalidatePath(`/guest/requests/${requestId}`);
   revalidatePath("/guest-requests");
-
+  revalidatePath(`/guest-requests/${requestId}`);
   return { success: true };
+}
+
+// ------------------------------------------------------------
+// GUEST LIVE POLLING (secure — reads httpOnly session cookie server-side)
+// Direct realtime on guest_service_requests is RLS-blocked for anon guests,
+// so the guest UI polls this action. Returns only guest-safe fields.
+// ------------------------------------------------------------
+export async function getGuestRequestLiveStatusAction(requestId: string) {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(GUEST_SESSION_COOKIE_NAME);
+  if (!sessionCookie?.value) return { success: false as const, error: "No guest session." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_guest_service_request_detail", {
+    p_session_token_hash: hashToken(sessionCookie.value),
+    p_request_id: requestId,
+  });
+
+  if (error || !data?.success || !data.request) {
+    return { success: false as const, error: error?.message || data?.error || "Not found." };
+  }
+
+  const r = data.request as {
+    status: string;
+    guest_visible_notes?: string | null;
+    events?: { id?: string; to_status?: string; created_at?: string }[];
+  };
+  return {
+    success: true as const,
+    status: r.status,
+    guest_visible_notes: r.guest_visible_notes ?? null,
+    eventCount: r.events?.length ?? 0,
+    lastEvent: r.events?.[r.events.length - 1]?.to_status ?? null,
+  };
 }
 
 // ------------------------------------------------------------

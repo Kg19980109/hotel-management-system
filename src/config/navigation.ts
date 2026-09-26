@@ -139,7 +139,7 @@ export const navigationConfig: NavGroup[] = [
         label: "QR Services",
         href: "/qr-services",
         icon: QrCode,
-        matchPaths: ["/qr-services/rooms", "/qr-services/tables", "/qr-services/requests"],
+        matchPaths: ["/qr-services/rooms", "/qr-services/tables", "/qr-services/requests", "/qr-services/dining"],
         permission: "qr_services.view",
       },
       {

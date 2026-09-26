@@ -4,6 +4,7 @@ import { Utensils, ChevronRight, Clock, CheckCircle, ChefHat, ArrowLeft, Package
 import { cookies } from "next/headers";
 import { getActiveGuestSession } from "@/lib/guest-portal/actions";
 import { getGuestFoodOrders } from "@/lib/guest-ordering/queries";
+import { GuestLiveRefresher } from "@/components/guest/guest-live-refresher";
 
 export const metadata = {
   title: "StayHub — Your Food Orders",
@@ -63,6 +64,8 @@ export default async function GuestOrdersPage() {
 
   return (
     <div className="p-4 space-y-6 pb-28 max-w-lg mx-auto">
+      {/* Live kitchen-status updates (secure RPC refresh; anon realtime is RLS-blocked) */}
+      <GuestLiveRefresher />
       {/* Top Header & Breadcrumb */}
       <div className="flex items-center justify-between">
         <Link

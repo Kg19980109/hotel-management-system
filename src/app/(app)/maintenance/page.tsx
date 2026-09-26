@@ -91,6 +91,45 @@ export default function MaintenancePage() {
     };
   }, [authLoading, activePropertyId, loadData]);
 
+  // Real-time updates & background sync for maintenance work orders
+  React.useEffect(() => {
+    if (!activePropertyId) return;
+
+    const supabase = createClient();
+    const channelName = `stayhub:maintenance:${activePropertyId}:${Math.random().toString(36).slice(2, 7)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "maintenance_work_orders" },
+        (payload) => {
+          const rec = (payload.new || payload.old) as { property_id?: string };
+          if (rec?.property_id && rec.property_id !== activePropertyId) return;
+          void loadData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "guest_service_requests" },
+        (payload) => {
+          const rec = (payload.new || payload.old) as { property_id?: string; category?: string };
+          if (rec?.property_id && rec.property_id !== activePropertyId) return;
+          if (rec?.category && rec.category !== "MAINTENANCE" && rec.category !== "TECHNICAL") return;
+          void loadData();
+        }
+      )
+      .subscribe();
+
+    const poll = setInterval(() => {
+      void loadData();
+    }, 4000);
+
+    return () => {
+      clearInterval(poll);
+      void supabase.removeChannel(channel);
+    };
+  }, [activePropertyId, loadData]);
+
   if (authLoading || (loading && !stats)) {
     return <LoadingState message="Loading maintenance dashboard..." />;
   }

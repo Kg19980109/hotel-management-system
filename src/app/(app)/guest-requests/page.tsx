@@ -71,23 +71,31 @@ export default function GuestRequestsPage() {
     if (!activePropertyId) return;
 
     const supabase = createClient();
+    const channelName = `stayhub:guest-requests-board:${activePropertyId}:${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel(`stayhub:guest-requests-board:${activePropertyId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "guest_service_requests",
-          filter: `property_id=eq.${activePropertyId}`,
         },
-        () => {
+        (payload) => {
+          const rec = (payload.new || payload.old) as { property_id?: string };
+          if (rec?.property_id && rec.property_id !== activePropertyId) return;
           void loadData();
         }
       )
       .subscribe();
 
+    // 3-second fallback heartbeat while viewing operational board
+    const pollInterval = setInterval(() => {
+      void loadData();
+    }, 3000);
+
     return () => {
+      clearInterval(pollInterval);
       void supabase.removeChannel(channel);
     };
   }, [activePropertyId, loadData]);

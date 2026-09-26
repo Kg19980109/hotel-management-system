@@ -167,28 +167,43 @@ export function OperationalAlertProvider({
 
     const supabase = createClient();
 
+    // Ensure Realtime WebSocket connection is authenticated with user's JWT
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+    });
+
     // Initial sync
     void syncOpenRequests(propertyId, currentRole);
 
+    // High-frequency 3.5s polling heartbeat backup to ensure ZERO missed requests
+    const heartbeatInterval = setInterval(() => {
+      void syncOpenRequests(propertyId, currentRole);
+    }, 3500);
+
     // Channel dedicated to this property's operational events
-    const channelName = `stayhub:operational-alerts:${propertyId}`;
+    const channelName = `stayhub:operational-alerts:${propertyId}:${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase.channel(channelName, {
       config: {
         broadcast: { ack: true },
       },
     });
 
-    // 1. Listen for changes on guest_service_requests
+    // 1. Listen for changes on guest_service_requests (filter verified in JS for robust delivery)
     channel.on(
       "postgres_changes",
       {
         event: "*",
         schema: "public",
         table: "guest_service_requests",
-        filter: `property_id=eq.${propertyId}`,
       },
       async (payload) => {
         const { eventType, new: newRec } = payload;
+
+        if (newRec?.property_id && newRec.property_id !== propertyId) {
+          return;
+        }
 
         if (eventType === "INSERT") {
           // New request arrived
@@ -270,10 +285,12 @@ export function OperationalAlertProvider({
         event: "INSERT",
         schema: "public",
         table: "restaurant_orders",
-        filter: `property_id=eq.${propertyId}`,
       },
       async (payload) => {
         const order = payload.new;
+        if (order?.property_id && order.property_id !== propertyId) {
+          return;
+        }
         if (order.status === "CONFIRMED" && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
           let roomNumber = "—";
           let guestName = "Guest";
@@ -327,6 +344,7 @@ export function OperationalAlertProvider({
     });
 
     return () => {
+      clearInterval(heartbeatInterval);
       void supabase.removeChannel(channel);
       operationalAlertManager.clearAll();
       setInternalStatus("DISCONNECTED");

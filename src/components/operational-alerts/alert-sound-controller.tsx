@@ -8,6 +8,7 @@
 import * as React from "react";
 import { Volume2, VolumeX, Bell, RefreshCw } from "lucide-react";
 import { useOperationalAlerts } from "./operational-alert-provider";
+import { operationalAlertManager } from "@/lib/alerts/operational-alert-manager";
 
 export function AlertSoundController() {
   const {
@@ -67,6 +68,18 @@ export function AlertSoundController() {
         ) : (
           <VolumeX className="w-4 h-4 text-muted-foreground" />
         )}
+      </button>
+
+      {/* 4. Test Emergency Buzzer Button */}
+      <button
+        onClick={() => {
+          void unlockAudio();
+          operationalAlertManager.playTestSound();
+        }}
+        title="Test Emergency Siren Buzzer"
+        className="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition"
+      >
+        <span>Test Siren</span>
       </button>
     </div>
   );

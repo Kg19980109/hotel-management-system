@@ -158,6 +158,44 @@ export default function HousekeepingPage() {
     };
   }, [authLoading, propertyId, loadHousekeepingData]);
 
+  // Real-time updates & background sync for housekeeping tasks
+  React.useEffect(() => {
+    if (!propertyId) return;
+
+    const supabase = createClient();
+    const channelName = `stayhub:housekeeping:${propertyId}:${Math.random().toString(36).slice(2, 7)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "housekeeping_tasks" },
+        (payload) => {
+          const rec = (payload.new || payload.old) as { property_id?: string };
+          if (rec?.property_id && rec.property_id !== propertyId) return;
+          void loadHousekeepingData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "guest_service_requests" },
+        (payload) => {
+          const rec = (payload.new || payload.old) as { property_id?: string; category?: string };
+          if (rec?.property_id && rec.property_id !== propertyId) return;
+          void loadHousekeepingData();
+        }
+      )
+      .subscribe();
+
+    const poll = setInterval(() => {
+      void loadHousekeepingData();
+    }, 4000);
+
+    return () => {
+      clearInterval(poll);
+      void supabase.removeChannel(channel);
+    };
+  }, [propertyId, loadHousekeepingData]);
+
   if (authLoading) {
     return <LoadingState message="Loading housekeeping operations console..." />;
   }

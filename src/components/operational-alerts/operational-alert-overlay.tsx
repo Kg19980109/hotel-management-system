@@ -215,6 +215,20 @@ export function OperationalAlertOverlay() {
           </div>
         </div>
 
+        {/* Emergency Audio Activation Banner */}
+        {(!audioUnlocked || !soundEnabled) && (
+          <button
+            onClick={() => {
+              void unlockAudio();
+              if (!soundEnabled) setSoundEnabled(true);
+            }}
+            className="w-full px-4 py-2.5 bg-rose-500/20 hover:bg-rose-500/30 border-b border-rose-500/30 text-rose-300 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition animate-pulse"
+          >
+            <Volume2 className="w-4 h-4 animate-bounce" />
+            <span>⚠️ BROWSER AUDIO MUTED — CLICK HERE TO ACTIVATE LOUD EMERGENCY BUZZER</span>
+          </button>
+        )}
+
         {/* Multi-Request Queue Pagination */}
         {alerts.length > 1 && (
           <div className="px-6 py-2 bg-black/30 border-b border-white/5 flex items-center justify-between text-xs">

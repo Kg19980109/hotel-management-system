@@ -95,36 +95,42 @@ class OperationalAlertManager {
   }
 
   /**
-   * Synthesizes pure harmonic hotel alert tones using Web Audio API oscillators.
-   * Completely self-contained, zero external asset downloads, zero network latency.
+   * Synthesizes loud, unmistakable emergency buzzer and alert tones using
+   * multi-harmonic dual oscillators (sawtooth + square) with high gain.
    */
   public playTone(priority: AlertPriority = "NORMAL"): void {
     if (!this.soundEnabled || !this.isBrowser) return;
 
     try {
       const ctx = this.getAudioContext();
-      if (!ctx || ctx.state !== "running") return;
+      if (!ctx) return;
+      if (ctx.state === "suspended") {
+        void ctx.resume();
+      }
+      if (ctx.state !== "running") return;
 
       const now = ctx.currentTime;
 
       if (priority === "URGENT") {
-        // Urgent 3-tone repeating high alarm: 880Hz -> 1174Hz -> 880Hz
-        this.playChimeSequence(ctx, [
-          { freq: 880, start: now, duration: 0.15, vol: 0.4 },
-          { freq: 1174.66, start: now + 0.18, duration: 0.2, vol: 0.5 },
-          { freq: 880, start: now + 0.42, duration: 0.25, vol: 0.4 },
+        // High-urgency piercing siren buzzer: 4 rapid alternating bursts
+        this.playEmergencyBuzzerPulses(ctx, [
+          { freq1: 950, freq2: 1350, start: now, duration: 0.16, vol: 0.95 },
+          { freq1: 1350, freq2: 950, start: now + 0.20, duration: 0.16, vol: 0.95 },
+          { freq1: 950, freq2: 1350, start: now + 0.40, duration: 0.16, vol: 0.95 },
+          { freq1: 1400, freq2: 1000, start: now + 0.60, duration: 0.30, vol: 1.0 },
         ]);
       } else if (priority === "HIGH") {
-        // High alert: 2-tone warning chime: 880Hz -> 659Hz
-        this.playChimeSequence(ctx, [
-          { freq: 880, start: now, duration: 0.2, vol: 0.35 },
-          { freq: 659.25, start: now + 0.25, duration: 0.35, vol: 0.35 },
+        // High alert: 3 loud industrial buzzer bursts
+        this.playEmergencyBuzzerPulses(ctx, [
+          { freq1: 880, freq2: 1180, start: now, duration: 0.18, vol: 0.9 },
+          { freq1: 880, freq2: 1180, start: now + 0.24, duration: 0.18, vol: 0.9 },
+          { freq1: 880, freq2: 1250, start: now + 0.48, duration: 0.28, vol: 0.95 },
         ]);
       } else {
-        // Normal / Low: Soft attention chime (D5 -> A5): 587Hz -> 880Hz
-        this.playChimeSequence(ctx, [
-          { freq: 587.33, start: now, duration: 0.22, vol: 0.25 },
-          { freq: 880, start: now + 0.25, duration: 0.4, vol: 0.25 },
+        // Normal / Standard: 2 solid emergency buzzer pulses (commands immediate attention)
+        this.playEmergencyBuzzerPulses(ctx, [
+          { freq1: 820, freq2: 1100, start: now, duration: 0.22, vol: 0.85 },
+          { freq1: 820, freq2: 1100, start: now + 0.30, duration: 0.32, vol: 0.9 },
         ]);
       }
     } catch (err) {
@@ -132,33 +138,47 @@ class OperationalAlertManager {
     }
   }
 
-  private playChimeSequence(
+  /**
+   * Plays dual-oscillator piercing acoustic pulses (sawtooth + square) that cut through ambient noise.
+   */
+  private playEmergencyBuzzerPulses(
     ctx: AudioContext,
-    notes: Array<{ freq: number; start: number; duration: number; vol: number }>
+    pulses: Array<{ freq1: number; freq2: number; start: number; duration: number; vol: number }>
   ): void {
-    for (const note of notes) {
-      const osc = ctx.createOscillator();
+    for (const pulse of pulses) {
+      // Primary cutting tone (sawtooth)
+      const osc1 = ctx.createOscillator();
+      osc1.type = "sawtooth";
+      osc1.frequency.setValueAtTime(pulse.freq1, pulse.start);
+
+      // Discordant overtone (square) for alarm annunciator timbre
+      const osc2 = ctx.createOscillator();
+      osc2.type = "square";
+      osc2.frequency.setValueAtTime(pulse.freq2, pulse.start);
+
       const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.001, pulse.start);
+      // Punchy attack
+      gain.gain.linearRampToValueAtTime(pulse.vol, pulse.start + 0.015);
+      // Sustained plateau for volume presence
+      gain.gain.setValueAtTime(pulse.vol, pulse.start + pulse.duration - 0.03);
+      // Clean cutoff
+      gain.gain.linearRampToValueAtTime(0.001, pulse.start + pulse.duration);
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(note.freq, note.start);
-
-      // Smooth attack and natural exponential decay
-      gain.gain.setValueAtTime(0.0001, note.start);
-      gain.gain.linearRampToValueAtTime(note.vol, note.start + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.0001, note.start + note.duration);
-
-      osc.connect(gain);
+      osc1.connect(gain);
+      osc2.connect(gain);
       gain.connect(ctx.destination);
 
-      osc.start(note.start);
-      osc.stop(note.start + note.duration);
+      osc1.start(pulse.start);
+      osc1.stop(pulse.start + pulse.duration);
+      osc2.start(pulse.start);
+      osc2.stop(pulse.start + pulse.duration);
     }
   }
 
   public playTestSound(): void {
     void this.unlockAudio().then(() => {
-      this.playTone("HIGH");
+      this.playTone("URGENT");
     });
   }
 
@@ -253,9 +273,9 @@ class OperationalAlertManager {
     }
 
     const priority = this.getHighestPriority();
-    let intervalMs = 7000; // Normal repeat: 7s
-    if (priority === "URGENT") intervalMs = 3500; // Urgent repeat: 3.5s
-    else if (priority === "HIGH") intervalMs = 5000; // High repeat: 5s
+    let intervalMs = 3200; // Normal repeat: 3.2s
+    if (priority === "URGENT") intervalMs = 1800; // Urgent repeat: 1.8s
+    else if (priority === "HIGH") intervalMs = 2400; // High repeat: 2.4s
 
     this.buzzerTimer = setTimeout(() => {
       if (this.isBuzzing && this.alerts.size > 0) {

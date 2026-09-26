@@ -52,7 +52,8 @@ export function isRequestRelevantForRole(
   roleCode: string | null | undefined,
   category: string
 ): boolean {
-  if (!roleCode) return false;
+  // If role is not yet loaded or not specified, deliver alert to prevent missing operational events
+  if (!roleCode) return true;
 
   const normalizedRole = roleCode.toUpperCase();
   const normalizedCategory = category.toUpperCase();

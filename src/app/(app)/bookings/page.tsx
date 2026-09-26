@@ -120,37 +120,96 @@ export default function BookingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <PageHeader
-        title="Bookings"
-        description="Manage reservations, availability, and upcoming stays."
-        breadcrumbs={[
-          { label: "Operations", href: "/bookings" },
-          { label: "Bookings" },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
+      {/* ── LUXURY BOOKINGS HERO ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial glows */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.08) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            {/* Tag */}
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.30)",
+                background: "rgba(214,168,90,0.10)",
+              }}
+            >
+              <Calendar className="h-3 w-3" />
+              Reservation Command Center
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+              Bookings & Stays
+              <span className="block text-white/50 text-base font-normal mt-0.5">
+                Front Desk Reservations, Tape Chart & Guest Commitments
+              </span>
+            </h1>
+
+            <div className="flex items-center gap-4 mt-4 flex-wrap text-xs text-white/70">
+              <div>
+                <span className="font-bold text-white">{totalCount}</span> total bookings recorded
+              </div>
+              <span className="text-white/20">·</span>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--success)" }} />
+                <span><span className="font-bold text-white">{stats.confirmed}</span> confirmed</span>
+              </div>
+              <span className="text-white/20">·</span>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--warning)" }} />
+                <span><span className="font-bold text-white">{stats.pending}</span> pending</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Link href="/bookings/calendar">
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 gap-1.5"
+              >
                 <Calendar className="h-4 w-4" />
                 Tape Chart
               </Button>
             </Link>
             <Link href="/bookings/new">
-              <Button variant="primary" size="sm" className="gap-1.5">
+              <Button
+                variant="primary"
+                size="sm"
+                className="h-9 gap-1.5 shadow-md"
+              >
                 <Plus className="h-4 w-4" />
                 New Booking
               </Button>
             </Link>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {/* KPI Section */}
       <BookingKPIGrid stats={stats} loading={loading && reservations.length === 0} />
 
-      {/* Filters */}
-      <BookingFilters filters={filters} onFilterChange={handleFilterChange} />
+      {/* Filters in stayhub-card */}
+      <div className="stayhub-card p-4">
+        <BookingFilters filters={filters} onFilterChange={handleFilterChange} />
+      </div>
 
       {/* Content Area */}
       {loading && reservations.length === 0 ? (

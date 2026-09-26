@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { BookingKPIStats } from "@/lib/bookings/types";
+import type { BookingKPIStats } from "@/lib/bookings/types";
+import { KPIWidget } from "@/components/hotel/hotel-cards";
 import {
   LogIn,
   LogOut,
@@ -17,84 +18,71 @@ interface BookingKPIGridProps {
 }
 
 export function BookingKPIGrid({ stats, loading }: BookingKPIGridProps) {
-  const cards = [
-    {
-      label: "Today's Expected Arrivals",
-      value: stats.todayArrivals,
-      icon: LogIn,
-      color: "text-blue-600 bg-blue-50 border-blue-100",
-      description: "Scheduled to check in today",
-    },
-    {
-      label: "Today's Expected Departures",
-      value: stats.todayDepartures,
-      icon: LogOut,
-      color: "text-amber-600 bg-amber-50 border-amber-100",
-      description: "Scheduled to check out today",
-    },
-    {
-      label: "Confirmed Reservations",
-      value: stats.confirmed,
-      icon: CheckCircle2,
-      color: "text-emerald-600 bg-emerald-50 border-emerald-100",
-      description: "Active confirmed commitments",
-    },
-    {
-      label: "Pending Inquiries",
-      value: stats.pending,
-      icon: Clock,
-      color: "text-indigo-600 bg-indigo-50 border-indigo-100",
-      description: "Awaiting confirmation",
-    },
-    {
-      label: "Active In-House Stays",
-      value: stats.activeStays,
-      icon: BedDouble,
-      color: "text-violet-600 bg-violet-50 border-violet-100",
-      description: "Reserved for tonight",
-    },
-    {
-      label: "Cancelled Bookings",
-      value: stats.cancelled,
-      icon: XCircle,
-      color: "text-rose-600 bg-rose-50 border-rose-100",
-      description: "Released inventory",
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <KPIWidget key={idx} title="Loading..." value="---" loading={true} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-      {cards.map((card, idx) => {
-        const Icon = card.icon;
-        return (
-          <div
-            key={idx}
-            className="p-3.5 rounded-[var(--radius-lg)] border border-[var(--border)] bg-white shadow-xs flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11px] font-medium text-[var(--foreground-muted)] line-clamp-1">
-                {card.label}
-              </span>
-              <div className={`p-1.5 rounded-[var(--radius-md)] border ${card.color} shrink-0`}>
-                <Icon className="h-3.5 w-3.5" />
-              </div>
-            </div>
+      {/* 1. Today's Arrivals */}
+      <KPIWidget
+        title="Today's Arrivals"
+        value={stats.todayArrivals.toString()}
+        icon={<LogIn className="h-4 w-4" />}
+        trendLabel="Scheduled check-ins"
+        color="info"
+      />
 
-            <div>
-              {loading ? (
-                <div className="h-7 w-12 bg-slate-100 animate-pulse rounded-[var(--radius-sm)] mb-1" />
-              ) : (
-                <div className="text-2xl font-bold tracking-tight text-[var(--foreground)]">
-                  {card.value}
-                </div>
-              )}
-              <span className="text-[11px] text-[var(--foreground-subtle)] line-clamp-1">
-                {card.description}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+      {/* 2. Today's Departures */}
+      <KPIWidget
+        title="Today's Departures"
+        value={stats.todayDepartures.toString()}
+        icon={<LogOut className="h-4 w-4" />}
+        trendLabel="Scheduled check-outs"
+        color="warning"
+      />
+
+      {/* 3. Confirmed Reservations */}
+      <KPIWidget
+        title="Confirmed"
+        value={stats.confirmed.toString()}
+        icon={<CheckCircle2 className="h-4 w-4" />}
+        trendLabel="Active commitments"
+        color="success"
+      />
+
+      {/* 4. Pending Inquiries */}
+      <KPIWidget
+        title="Pending Inquiries"
+        value={stats.pending.toString()}
+        icon={<Clock className="h-4 w-4" />}
+        trendLabel="Awaiting confirmation"
+        color="accent"
+      />
+
+      {/* 5. Active In-House Stays */}
+      <KPIWidget
+        title="In-House Stays"
+        value={stats.activeStays.toString()}
+        icon={<BedDouble className="h-4 w-4" />}
+        trendLabel="Occupied tonight"
+        color="primary"
+      />
+
+      {/* 6. Cancelled Bookings */}
+      <KPIWidget
+        title="Cancelled"
+        value={stats.cancelled.toString()}
+        icon={<XCircle className="h-4 w-4" />}
+        trendLabel="Released inventory"
+        color="danger"
+      />
     </div>
   );
 }

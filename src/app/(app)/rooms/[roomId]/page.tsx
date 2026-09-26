@@ -175,40 +175,103 @@ export default function RoomDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <PageHeader
-        title={`Room ${room.room_number}`}
-        description={room.room_name ? `${room.room_name} • ${room.room_type?.name}` : room.room_type?.name}
-        breadcrumbs={[
-          { label: "Operations", href: "/rooms" },
-          { label: "Rooms", href: "/rooms" },
-          { label: `Room ${room.room_number}` },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <Link href="/rooms">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-1.5" />
-                Back
-              </Button>
-            </Link>
+      {/* ── LUXURY ROOM DOSSIER HERO ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 py-7 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial blobs */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.20) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.10) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            {/* Breadcrumb Context Tag */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <Link
+                href="/rooms"
+                className="text-white/50 hover:text-white text-xs font-medium flex items-center gap-1 transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Rooms Inventory
+              </Link>
+              <span className="text-white/30 text-xs">/</span>
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-0.5 rounded-full border"
+                style={{
+                  color: "var(--brand-gold)",
+                  borderColor: "rgba(214,168,90,0.30)",
+                  background: "rgba(214,168,90,0.10)",
+                }}
+              >
+                {room.room_type?.name || "Standard Room"}
+              </span>
+              <OperationalStatusBadge status={room.status} />
+              <HousekeepingStatusBadge status={room.housekeeping_status} />
+            </div>
+
+            {/* Room Hero Title */}
+            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-none">
+              Room {room.room_number}
+            </h1>
+            {room.room_name && (
+              <p className="text-[var(--brand-gold)] font-medium text-sm mt-1">
+                {room.room_name}
+              </p>
+            )}
+
+            {/* Sub-meta */}
+            <div className="flex items-center gap-4 mt-3 text-xs text-white/60 flex-wrap">
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 text-white/40" />
+                {room.floor?.name || "Unassigned Floor"}
+              </span>
+              <span className="text-white/20">·</span>
+              <span className="flex items-center gap-1">
+                <Users className="h-3.5 w-3.5 text-white/40" />
+                Max {capacity} Guests
+              </span>
+              <span className="text-white/20">·</span>
+              <span className="font-semibold text-white">
+                {formatCurrency(rate, currency)}
+                <span className="text-white/50 font-normal ml-0.5">/night</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Action Toolbar */}
+          <div className="flex items-center gap-2 shrink-0">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setStatusModalOpen(true)}
+              className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9"
             >
-              <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+              <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" />
               Adjust Status
             </Button>
             <Link href={`/rooms/${room.id}/edit`}>
-              <Button variant="primary" size="sm">
-                <Edit className="h-4 w-4 mr-1.5" />
+              <Button
+                variant="primary"
+                size="sm"
+                className="h-9 gap-1.5 shadow-md"
+              >
+                <Edit className="h-3.5 w-3.5 mr-1.5" />
                 Edit Room
               </Button>
             </Link>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {/* Main Info Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -219,7 +282,7 @@ export default function RoomDetailPage() {
             <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] mb-4">
               <div>
                 <span className="text-xs font-semibold text-[var(--foreground-muted)] uppercase tracking-wider">
-                  Room Category
+                  Room Category Specifications
                 </span>
                 <h3 className="text-xl font-bold text-[var(--foreground)] mt-0.5">
                   {room.room_type?.name || "Standard Room"}
@@ -227,7 +290,7 @@ export default function RoomDetailPage() {
               </div>
               <div className="text-right">
                 <span className="text-xs text-[var(--foreground-muted)] block">Base Rack Rate</span>
-                <span className="text-2xl font-black text-[var(--foreground)]">
+                <span className="text-2xl font-bold text-[var(--foreground)]">
                   {formatCurrency(rate, currency)}
                 </span>
                 <span className="text-xs text-[var(--foreground-subtle)] font-normal"> / night</span>

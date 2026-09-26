@@ -7,62 +7,98 @@ import { Button } from "@/components/ui/button";
 
 export function AIBuddyPreview() {
   return (
-    <div className="rounded-[var(--radius-xl)] bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-5 text-white shadow-lg border border-indigo-900/40 relative overflow-hidden">
-      {/* Background ambient glow */}
-      <div className="absolute -top-12 -right-12 h-36 w-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+    <div
+      className="rounded-[var(--radius-xl)] p-5 text-white relative overflow-hidden border"
+      style={{
+        background: "linear-gradient(155deg, #0D1433 0%, #111A3C 50%, #0F1630 100%)",
+        borderColor: "rgba(81,70,229,0.20)",
+        boxShadow: "0 4px 20px rgba(81,70,229,0.10)",
+      }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="absolute -top-12 -right-12 h-40 w-40 rounded-full pointer-events-none"
+        style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+      />
 
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3 relative z-10">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="h-8 w-8 rounded-[var(--radius-md)] flex items-center justify-center border"
+            style={{
+              background: "rgba(81,70,229,0.20)",
+              borderColor: "rgba(81,70,229,0.30)",
+              color: "#A5B4FC",
+            }}
+          >
             <Sparkles className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white tracking-wide flex items-center gap-1.5">
+            <h3 className="text-[13.5px] font-bold text-white tracking-tight flex items-center gap-1.5">
               AI Business Buddy
-              <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 border border-indigo-500/30">
+              <span
+                className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border"
+                style={{
+                  background: "rgba(81,70,229,0.22)",
+                  borderColor: "rgba(81,70,229,0.30)",
+                  color: "#A5B4FC",
+                }}
+              >
                 Preview
               </span>
             </h3>
           </div>
         </div>
-
-        <span className="text-[11px] text-slate-400 font-mono">
-          Phase 18 Integration
+        <span className="text-[10px] font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
+          Phase 18
         </span>
       </div>
 
-      <p className="text-[12.5px] text-slate-300 leading-relaxed font-normal mb-4">
-        AI-driven occupancy forecasting, dynamic rate recommendations, and operational bottleneck alerts will automatically unlock as live booking and front-desk activity accumulate.
+      <p className="text-[11.5px] leading-relaxed mb-4 relative z-10" style={{ color: "rgba(255,255,255,0.45)" }}>
+        AI-driven occupancy forecasting, dynamic rate recommendations, and operational bottleneck alerts
+        will automatically unlock as live booking and front-desk activity accumulates.
       </p>
 
-      {/* Feature capabilities preview chips */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-[11px] text-slate-300">
-          <LineChart className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
-          <span className="truncate">Demand Forecasting</span>
-        </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-[11px] text-slate-300">
-          <Zap className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-          <span className="truncate">Dynamic Pricing</span>
-        </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-[11px] text-slate-300">
-          <Bot className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-          <span className="truncate">Staffing Optimization</span>
-        </div>
+      {/* Feature chips */}
+      <div className="grid grid-cols-3 gap-1.5 mb-4 relative z-10">
+        {[
+          { icon: LineChart, label: "Demand Forecasting", color: "#A5B4FC" },
+          { icon: Zap, label: "Dynamic Pricing", color: "var(--brand-gold)" },
+          { icon: Bot, label: "Staffing Optimization", color: "var(--success)" },
+        ].map(({ icon: Icon, label, color }) => (
+          <div
+            key={label}
+            className="flex items-center gap-1.5 px-2 py-1.5 rounded-[var(--radius-sm)] text-[10.5px] border"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              borderColor: "rgba(255,255,255,0.08)",
+              color: "rgba(255,255,255,0.45)",
+            }}
+          >
+            <Icon className="h-3.5 w-3.5 shrink-0" style={{ color }} />
+            <span className="truncate">{label}</span>
+          </div>
+        ))}
       </div>
 
-      <div className="flex items-center justify-between pt-2 border-t border-white/10">
-        <span className="text-[11px] text-slate-400">
-          No live AI queries executed in Phase 5
+      {/* Footer */}
+      <div
+        className="flex items-center justify-between pt-3 relative z-10 border-t"
+        style={{ borderColor: "rgba(255,255,255,0.08)" }}
+      >
+        <span className="text-[10.5px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+          No live AI queries executed
         </span>
         <Link href="/ai">
           <Button
             size="sm"
             variant="ghost"
-            className="text-xs text-indigo-300 hover:text-white hover:bg-white/10 h-7 px-2.5 font-medium"
+            className="text-[11px] gap-1 h-7 px-2.5 font-semibold"
+            style={{ color: "#A5B4FC" }}
           >
             Explore AI Vision
-            <ArrowRight className="h-3 w-3 ml-1" />
+            <ArrowRight className="h-3 w-3" />
           </Button>
         </Link>
       </div>

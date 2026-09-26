@@ -172,54 +172,118 @@ export default function FrontDeskPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <PageHeader
-        title="Front Desk Reception"
-        description="Guest check-in, check-out, room assignments, and live occupancy ledger."
-        breadcrumbs={[
-          { label: "Operations", href: "/front-desk" },
-          { label: "Front Desk" },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
+      {/* ── LUXURY RECEPTION HERO ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Decorative ambient radial glows */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.08) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            {/* Tag */}
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.30)",
+                background: "rgba(214,168,90,0.10)",
+              }}
+            >
+              <LogIn className="h-3 w-3" />
+              Front Desk Reception
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+              Reception & Occupancy Ledger
+              <span className="block text-white/50 text-base font-normal mt-0.5">
+                Arrivals, Departures, Room Allocation & In-House Stays
+              </span>
+            </h1>
+
+            <div className="flex items-center gap-4 mt-4 flex-wrap text-xs text-white/70">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--info)" }} />
+                <span><span className="font-bold text-white">{arrivals.length}</span> expected arrivals</span>
+              </div>
+              <span className="text-white/20">·</span>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--warning)" }} />
+                <span><span className="font-bold text-white">{departures.length}</span> departures</span>
+              </div>
+              <span className="text-white/20">·</span>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--success)" }} />
+                <span><span className="font-bold text-white">{inHouseStays.length}</span> parties in-house</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Link href="/bookings/calendar">
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 gap-1.5"
+              >
                 <Calendar className="h-4 w-4" />
                 Tape Chart
               </Button>
             </Link>
             <Link href="/bookings/new?source=WALK_IN">
-              <Button variant="primary" size="sm" className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Button
+                variant="primary"
+                size="sm"
+                className="h-9 gap-1.5 shadow-md"
+              >
                 <UserPlus className="h-4 w-4" />
                 Walk-In Guest
               </Button>
             </Link>
-            <Button variant="outline" size="sm" onClick={loadData} title="Refresh Live Console">
-              <RotateCcw className="h-3.5 w-3.5" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadData}
+              title="Refresh Live Console"
+              className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 px-2.5"
+            >
+              <RotateCcw className="h-4 w-4" />
             </Button>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {/* KPI Section */}
       <FrontDeskKPIGrid stats={stats} loading={loading && arrivals.length === 0} />
 
-      {/* Search & Navigation Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+      {/* Search & Navigation Bar in stayhub-card */}
+      <div className="stayhub-card p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 border border-[var(--border)] rounded-[var(--radius-lg)] self-start">
+        <div className="flex items-center gap-1.5 p-1 bg-[var(--secondary)] rounded-[var(--radius-lg)] self-start overflow-x-auto max-w-full">
           <button
             type="button"
             onClick={() => setActiveTab("arrivals")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
               activeTab === "arrivals"
                 ? "bg-white text-[var(--foreground)] shadow-xs"
                 : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
             }`}
           >
-            <LogIn className="h-3.5 w-3.5 text-indigo-500" />
+            <LogIn className="h-3.5 w-3.5 text-[var(--info)]" />
             <span>Expected Arrivals</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--info-light)] text-[var(--info-foreground)] font-bold">
               {arrivals.length}
             </span>
           </button>
@@ -227,15 +291,15 @@ export default function FrontDeskPage() {
           <button
             type="button"
             onClick={() => setActiveTab("departures")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
               activeTab === "departures"
                 ? "bg-white text-[var(--foreground)] shadow-xs"
                 : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
             }`}
           >
-            <LogOut className="h-3.5 w-3.5 text-amber-500" />
-            <span>Today&apos;s Departures</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-50 text-amber-800 font-bold border border-amber-200">
+            <LogOut className="h-3.5 w-3.5 text-[var(--warning)]" />
+            <span>Departures</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--warning-light)] text-[var(--warning-foreground)] font-bold">
               {departures.length}
             </span>
           </button>
@@ -243,15 +307,15 @@ export default function FrontDeskPage() {
           <button
             type="button"
             onClick={() => setActiveTab("in_house")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
               activeTab === "in_house"
                 ? "bg-white text-[var(--foreground)] shadow-xs"
                 : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
             }`}
           >
-            <Users className="h-3.5 w-3.5 text-emerald-500" />
+            <Users className="h-3.5 w-3.5 text-[var(--success)]" />
             <span>In-House Guests</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--success-light)] text-[var(--success-foreground)] font-bold">
               {inHouseStays.length}
             </span>
           </button>
@@ -259,16 +323,16 @@ export default function FrontDeskPage() {
           <button
             type="button"
             onClick={() => setActiveTab("rooms")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
               activeTab === "rooms"
                 ? "bg-white text-[var(--foreground)] shadow-xs"
                 : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
             }`}
           >
-            <BedDouble className="h-3.5 w-3.5 text-purple-500" />
+            <BedDouble className="h-3.5 w-3.5 text-[var(--purple)]" />
             <span>Room Status</span>
             {roomAttentionList.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-50 text-rose-700 font-bold border border-rose-200">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--danger-light)] text-[var(--danger-foreground)] font-bold">
                 {roomAttentionList.length}
               </span>
             )}
@@ -281,7 +345,7 @@ export default function FrontDeskPage() {
             placeholder="Search guest, room, or code..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            leftElement={<Search className="h-3.5 w-3.5 text-slate-400" />}
+            leftElement={<Search className="h-3.5 w-3.5 text-[var(--foreground-muted)]" />}
             className="h-8 text-xs bg-white"
           />
         </div>

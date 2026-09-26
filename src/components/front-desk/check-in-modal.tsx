@@ -8,7 +8,7 @@ import { checkInStayAction } from "@/lib/front-desk/actions";
 import { getAvailableRooms } from "@/lib/bookings/queries";
 import { createClient } from "@/lib/supabase/client";
 import type { ArrivalRecord } from "@/lib/front-desk/types";
-import { AlertCircle, CheckCircle2, UserCheck, AlertTriangle } from "lucide-react";
+import { AlertCircle, CheckCircle2, UserCheck, AlertTriangle, BedDouble, Calendar } from "lucide-react";
 
 interface CheckInModalProps {
   open: boolean;
@@ -133,49 +133,75 @@ export function CheckInModal({
     }
   };
 
+  const initials = arrival.guestName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "G";
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={`Check In Guest: ${arrival.guestName}`}
+      title="Front Desk Check-In"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-        {/* Booking Summary Card */}
-        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-[var(--radius-md)] text-xs grid grid-cols-2 gap-y-2 gap-x-4">
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Confirmation</span>
-            <span className="font-mono font-bold text-slate-800">{arrival.confirmationNumber}</span>
+        {/* Guest Identity & Booking Summary Card */}
+        <div className="p-4 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-elevated)] space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-full bg-[var(--primary-light)] text-[var(--primary)] text-xs font-bold flex items-center justify-center shrink-0 border border-[var(--primary)]/20">
+                {initials}
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-[var(--foreground)]">{arrival.guestName}</h4>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="font-mono text-[10.5px] font-bold text-[var(--primary)] bg-[var(--primary-subtle)] px-1.5 py-0.2 rounded border border-[var(--primary)]/20">
+                    {arrival.confirmationNumber}
+                  </span>
+                  <span className="text-[11px] text-[var(--foreground-muted)] capitalize">
+                    via {arrival.bookingSource.toLowerCase()}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Room Category</span>
-            <span className="font-medium text-slate-800">{arrival.roomTypeName} ({arrival.roomTypeCode})</span>
-          </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Stay Window</span>
-            <span className="text-slate-800">{arrival.checkInDate} → {arrival.checkOutDate} ({arrival.nights}n)</span>
-          </div>
-          <div>
-            <span className="text-slate-500 block text-[10px] uppercase font-semibold">Booking Source</span>
-            <span className="text-slate-800 capitalize">{arrival.bookingSource.toLowerCase()}</span>
+
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--border)] text-xs">
+            <div>
+              <span className="text-[10.5px] text-[var(--foreground-muted)] block font-medium">Category</span>
+              <span className="font-semibold text-[var(--foreground)] flex items-center gap-1 mt-0.5">
+                <BedDouble className="h-3.5 w-3.5 text-[var(--primary)]" />
+                {arrival.roomTypeName} ({arrival.roomTypeCode})
+              </span>
+            </div>
+            <div>
+              <span className="text-[10.5px] text-[var(--foreground-muted)] block font-medium">Stay Window</span>
+              <span className="font-semibold text-[var(--foreground)] flex items-center gap-1 mt-0.5">
+                <Calendar className="h-3.5 w-3.5 text-[var(--foreground-subtle)]" />
+                {arrival.checkInDate} → {arrival.checkOutDate} ({arrival.nights}n)
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Early Check-In Notice */}
         {isEarly && (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-[var(--radius-md)] text-amber-900 text-xs flex items-start gap-2.5">
-            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="p-3 bg-[var(--warning-light)] border border-[var(--warning)]/30 rounded-[var(--radius-md)] text-[var(--warning-foreground)] text-xs flex items-start gap-2.5">
+            <AlertTriangle className="h-4 w-4 text-[var(--warning)] shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <div className="font-semibold text-amber-950">Early Arrival Override</div>
-              <p className="text-[11px] text-amber-800">
+              <div className="font-bold">Early Arrival Override</div>
+              <p className="text-[11px]">
                 Scheduled check-in date is <strong>{arrival.checkInDate}</strong>. Confirming check-in today initiates occupancy immediately.
               </p>
-              <label className="flex items-center gap-2 pt-1 font-medium cursor-pointer">
+              <label className="flex items-center gap-2 pt-1 font-semibold cursor-pointer">
                 <input
                   type="checkbox"
                   checked={authorizeEarly}
                   onChange={(e) => setAuthorizeEarly(e.target.checked)}
-                  className="rounded border-amber-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                  className="rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
                 <span>Authorize Early Check-In</span>
               </label>
@@ -185,16 +211,16 @@ export function CheckInModal({
 
         {/* Error Alert */}
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-[var(--radius-md)] text-rose-700 text-xs flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+          <div className="p-3 bg-[var(--danger-light)] border border-[var(--danger)]/30 rounded-[var(--radius-md)] text-[var(--danger-foreground)] text-xs flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 text-[var(--danger)]" />
             <div>{error}</div>
           </div>
         )}
 
         {/* Physical Room Selection */}
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] mb-1">
-            Physical Room Assignment <span className="text-rose-500">*</span>
+          <label className="block text-xs font-bold text-[var(--foreground)] mb-1">
+            Physical Room Assignment <span className="text-[var(--danger)]">*</span>
           </label>
           <Select
             value={roomId}
@@ -219,7 +245,7 @@ export function CheckInModal({
         {/* Guest Counts */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-[var(--foreground)] mb-1">Adults</label>
+            <label className="block text-xs font-bold text-[var(--foreground)] mb-1">Adults</label>
             <Input
               type="number"
               min={1}
@@ -229,7 +255,7 @@ export function CheckInModal({
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-[var(--foreground)] mb-1">Children</label>
+            <label className="block text-xs font-bold text-[var(--foreground)] mb-1">Children</label>
             <Input
               type="number"
               min={0}
@@ -241,7 +267,7 @@ export function CheckInModal({
 
         {/* Check-In Notes */}
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] mb-1">
+          <label className="block text-xs font-bold text-[var(--foreground)] mb-1">
             Front Desk Notes / Key Card ID (Optional)
           </label>
           <Textarea
@@ -253,8 +279,8 @@ export function CheckInModal({
         </div>
 
         {/* Invariant Info Notice */}
-        <div className="text-[11px] text-[var(--foreground-subtle)] p-2.5 bg-slate-50 border border-slate-200 rounded-[var(--radius-sm)] flex items-center gap-2">
-          <UserCheck className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+        <div className="text-[11px] text-[var(--foreground-muted)] p-2.5 bg-[var(--surface-elevated)] border border-[var(--border)] rounded-[var(--radius-sm)] flex items-center gap-2">
+          <UserCheck className="h-3.5 w-3.5 text-[var(--primary)] shrink-0" />
           <span>Completing check-in will immediately set the room status to <strong>OCCUPIED</strong> and record official arrival.</span>
         </div>
 
@@ -268,7 +294,7 @@ export function CheckInModal({
             variant="primary"
             size="sm"
             disabled={submitting || loadingRooms || (isEarly && !authorizeEarly)}
-            className="gap-1.5"
+            className="gap-1.5 shadow-md"
           >
             <CheckCircle2 className="h-4 w-4" />
             {submitting ? "Processing..." : "Complete Check-In"}

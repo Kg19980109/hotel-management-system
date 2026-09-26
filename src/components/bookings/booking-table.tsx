@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BookingTableProps {
   reservations: Reservation[];
@@ -44,11 +45,11 @@ export function BookingTable({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-white overflow-hidden shadow-xs">
+      <div className="stayhub-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--foreground-muted)] font-semibold">
+              <tr className="border-b border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--foreground-muted)] uppercase tracking-wider text-[10.5px] font-semibold">
                 <th className="py-3 px-4">Confirmation</th>
                 <th className="py-3 px-4">Primary Guest</th>
                 <th className="py-3 px-4">Stay Dates</th>
@@ -66,19 +67,21 @@ export function BookingTable({
                   ? `${res.primary_guest.first_name} ${res.primary_guest.last_name}`.trim()
                   : "Guest";
 
+                const initials = (res.primary_guest?.first_name?.[0] || "") + (res.primary_guest?.last_name?.[0] || "") || "G";
+
                 const firstRoom = res.rooms?.[0];
                 const roomCount = res.rooms?.length || 1;
 
                 return (
                   <tr
                     key={res.id}
-                    className="hover:bg-[var(--surface-elevated)] transition-colors group"
+                    className="hover:bg-[var(--surface-hover)] transition-colors group"
                   >
                     {/* Confirmation */}
-                    <td className="py-3 px-4 font-mono font-semibold text-[var(--primary)] whitespace-nowrap">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <Link
                         href={`/bookings/${res.id}`}
-                        className="hover:underline flex items-center gap-1.5"
+                        className="inline-flex items-center px-2 py-0.5 rounded-[var(--radius-sm)] font-mono text-[11px] font-bold text-[var(--primary)] bg-[var(--primary-subtle)] hover:underline border border-[var(--primary)]/20"
                       >
                         {res.confirmation_number}
                       </Link>
@@ -86,12 +89,19 @@ export function BookingTable({
 
                     {/* Guest */}
                     <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="font-medium text-[var(--foreground)]">{guestName}</div>
-                      {res.primary_guest?.phone && (
-                        <div className="text-[11px] text-[var(--foreground-subtle)]">
-                          {res.primary_guest.phone}
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-full bg-[var(--primary-light)] text-[var(--primary)] text-[10.5px] font-bold flex items-center justify-center shrink-0 border border-[var(--primary)]/20">
+                          {initials.toUpperCase()}
                         </div>
-                      )}
+                        <div>
+                          <div className="font-semibold text-[var(--foreground)]">{guestName}</div>
+                          {res.primary_guest?.phone && (
+                            <div className="text-[11px] text-[var(--foreground-muted)]">
+                              {res.primary_guest.phone}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
 
                     {/* Dates */}
@@ -110,16 +120,16 @@ export function BookingTable({
                         <div>
                           <div className="font-medium text-[var(--foreground)] flex items-center gap-1.5">
                             {firstRoom.room_number ? (
-                              <span className="font-bold text-slate-800">
+                              <span className="font-bold text-[var(--foreground)]">
                                 Room {firstRoom.room_number}
                               </span>
                             ) : (
-                              <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-amber-200">
+                              <span className="text-[var(--warning-foreground)] bg-[var(--warning-light)] px-1.5 py-0.5 rounded text-[10px] font-semibold border border-[var(--warning)]/30">
                                 Unassigned
                               </span>
                             )}
                             {roomCount > 1 && (
-                              <span className="text-[10px] text-slate-500 font-normal">
+                              <span className="text-[10px] text-[var(--foreground-muted)] font-normal">
                                 +{roomCount - 1} more
                               </span>
                             )}
@@ -159,7 +169,7 @@ export function BookingTable({
                           if (activeStays.length === 0) {
                             if (res.status === "CONFIRMED") {
                               return (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-[var(--secondary)] text-[var(--foreground-muted)] border border-[var(--border)]">
                                   Not In-House
                                 </span>
                               );
@@ -169,19 +179,19 @@ export function BookingTable({
                           const hasCheckedIn = activeStays.some((s) => s?.status === "CHECKED_IN");
                           const allCheckedOut = activeStays.every((s) => s?.status === "CHECKED_OUT");
                           if (hasCheckedIn) {
-                            return <StayStatusBadge status="CHECKED_IN" className="text-[10px] px-1.5 py-0.5" />;
+                            return <StayStatusBadge status="CHECKED_IN" className="text-[9.5px] px-1.5 py-0.5" />;
                           }
                           if (allCheckedOut) {
-                            return <StayStatusBadge status="CHECKED_OUT" className="text-[10px] px-1.5 py-0.5" />;
+                            return <StayStatusBadge status="CHECKED_OUT" className="text-[9.5px] px-1.5 py-0.5" />;
                           }
-                          return <StayStatusBadge status={activeStays[0]!.status} className="text-[10px] px-1.5 py-0.5" />;
+                          return <StayStatusBadge status={activeStays[0]!.status} className="text-[9.5px] px-1.5 py-0.5" />;
                         })()}
                       </div>
                     </td>
 
                     {/* Amount */}
                     <td className="py-3 px-4 text-right font-medium whitespace-nowrap">
-                      <div className="text-[var(--foreground)] font-semibold">
+                      <div className="text-[var(--foreground)] font-bold">
                         {formatCurrency(res.total_amount, currency)}
                       </div>
                     </td>
@@ -190,64 +200,59 @@ export function BookingTable({
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1">
                         <Link href={`/bookings/${res.id}`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
+                          <button
+                            type="button"
+                            className="h-7 w-7 flex items-center justify-center text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] rounded-[var(--radius-md)] transition-colors"
                             title="View Booking Details"
                             aria-label="View Booking Details"
                           >
-                            <Eye className="h-3.5 w-3.5 text-slate-600" />
-                          </Button>
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
                         </Link>
 
                         <Link href={`/bookings/${res.id}/edit`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
+                          <button
+                            type="button"
+                            className="h-7 w-7 flex items-center justify-center text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] rounded-[var(--radius-md)] transition-colors"
                             title="Edit Reservation"
                             aria-label="Edit Reservation"
                           >
-                            <Edit2 className="h-3.5 w-3.5 text-slate-600" />
-                          </Button>
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
                         </Link>
 
                         {firstRoom && firstRoom.room_id === null && res.status !== "CANCELLED" && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-amber-700 hover:text-amber-800 hover:bg-amber-50"
+                          <button
+                            type="button"
+                            className="h-7 w-7 flex items-center justify-center text-[var(--warning-foreground)] hover:bg-[var(--warning-light)] rounded-[var(--radius-md)] transition-colors"
                             onClick={() => onAssignRoomClick(res, firstRoom)}
                             title="Assign Physical Room"
                             aria-label="Assign Physical Room"
                           >
                             <BedDouble className="h-3.5 w-3.5" />
-                          </Button>
+                          </button>
                         )}
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0"
+                        <button
+                          type="button"
+                          className="h-7 w-7 flex items-center justify-center text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] rounded-[var(--radius-md)] transition-colors"
                           onClick={() => onStatusClick(res)}
                           title="Update Status"
                           aria-label="Update Status"
                         >
-                          <RefreshCw className="h-3.5 w-3.5 text-slate-600" />
-                        </Button>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </button>
 
                         {res.status !== "CANCELLED" && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                          <button
+                            type="button"
+                            className="h-7 w-7 flex items-center justify-center text-[var(--danger)] hover:bg-[var(--danger-light)] rounded-[var(--radius-md)] transition-colors"
                             onClick={() => onCancelClick(res)}
                             title="Cancel Booking"
                             aria-label="Cancel Booking"
                           >
                             <XCircle className="h-3.5 w-3.5" />
-                          </Button>
+                          </button>
                         )}
                       </div>
                     </td>

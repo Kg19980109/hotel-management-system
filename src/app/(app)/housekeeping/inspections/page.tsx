@@ -79,20 +79,49 @@ export default function HousekeepingInspectionsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Room Inspection Queue"
-        description="Inspect cleaned rooms to certify readiness for upcoming guest arrivals."
-        breadcrumbs={[
-          { label: "Operations", href: "/housekeeping" },
-          { label: "Housekeeping", href: "/housekeeping" },
-          { label: "Inspections" },
-        ]}
-        actions={
+      {/* ── LUXURY HERO HEADER ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.25)",
+                background: "rgba(214,168,90,0.08)",
+              }}
+            >
+              <ClipboardCheck className="h-3 w-3" />
+              <span>Room Quality & Audit</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-heading">
+              Room Inspection Queue
+            </h1>
+            <p className="text-sm text-slate-300/80 mt-1 max-w-xl">
+              Inspect cleaned rooms to certify readiness for upcoming guest arrivals.
+            </p>
+          </div>
+
           <div className="flex items-center gap-2">
             <Link href="/housekeeping">
-              <Button variant="outline" size="sm" className="gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 bg-white/10 hover:bg-white/15 text-white border-white/15 h-9"
+              >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Board
+                <span>Back to Board</span>
               </Button>
             </Link>
             <Button
@@ -100,12 +129,13 @@ export default function HousekeepingInspectionsPage() {
               size="sm"
               onClick={loadData}
               title="Refresh Queue"
+              className="bg-white/10 hover:bg-white/15 text-white border-white/15 h-9 w-9 p-0"
             >
               <RotateCcw className="h-3.5 w-3.5" />
             </Button>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {loading && pendingTasks.length === 0 ? (
         <LoadingState message="Fetching rooms awaiting inspection..." />
@@ -120,9 +150,9 @@ export default function HousekeepingInspectionsPage() {
           {/* Pending Inspections Queue */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2 font-heading">
                 <Clock className="h-4 w-4 text-amber-500" />
-                Awaiting Inspection ({pendingTasks.length})
+                <span>Awaiting Inspection ({pendingTasks.length})</span>
               </h3>
               <span className="text-xs text-[var(--foreground-muted)]">
                 Passed rooms immediately become Available
@@ -130,25 +160,25 @@ export default function HousekeepingInspectionsPage() {
             </div>
 
             {pendingTasks.length === 0 ? (
-              <Card className="p-8 text-center bg-white border border-[var(--border)]">
+              <div className="stayhub-card p-10 text-center">
                 <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
-                <h4 className="text-sm font-semibold text-[var(--foreground)]">
+                <h4 className="text-sm font-bold text-[var(--foreground)] font-heading">
                   Inspection Queue Clear
                 </h4>
                 <p className="text-xs text-[var(--foreground-muted)] mt-1">
-                  All cleaned rooms have been inspected and released.
+                  All cleaned rooms have been inspected and certified clean.
                 </p>
-              </Card>
+              </div>
             ) : (
               <div className="space-y-3">
                 {pendingTasks.map((task) => (
-                  <Card
+                  <div
                     key={task.id}
-                    className="p-4 bg-white border border-[var(--border)] shadow-xs hover:border-amber-300 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    className="stayhub-card p-4 hover:border-amber-400/50 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-base font-bold font-mono text-[var(--foreground)]">
+                        <span className="text-base font-extrabold font-mono text-[var(--foreground)]">
                           Room {task.room?.room_number}
                         </span>
                         <span className="text-xs text-[var(--foreground-muted)]">
@@ -164,7 +194,7 @@ export default function HousekeepingInspectionsPage() {
                       </p>
 
                       {task.notes && (
-                        <p className="text-xs text-amber-800 italic bg-amber-50 p-1.5 rounded mt-2 border border-amber-200/60">
+                        <p className="text-xs text-amber-700 dark:text-amber-300 italic bg-amber-500/10 p-2 rounded-xl mt-2 border border-amber-500/20">
                           &quot;{task.notes}&quot;
                         </p>
                       )}
@@ -173,12 +203,12 @@ export default function HousekeepingInspectionsPage() {
                     <Button
                       variant="primary"
                       onClick={() => setSelectedTask(task)}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shrink-0"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 h-9"
                     >
                       <ClipboardCheck className="h-4 w-4 mr-1.5" />
                       Inspect Room
                     </Button>
-                  </Card>
+                  </div>
                 ))}
               </div>
             )}
@@ -186,12 +216,12 @@ export default function HousekeepingInspectionsPage() {
 
           {/* Recent Inspection Activity Log */}
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2">
-              <ClipboardCheck className="h-4 w-4 text-indigo-500" />
-              Recent Inspection Log
+            <h3 className="text-sm font-bold text-[var(--foreground)] flex items-center gap-2 font-heading">
+              <ClipboardCheck className="h-4 w-4 text-[var(--primary)]" />
+              <span>Recent Inspection Log</span>
             </h3>
 
-            <Card className="p-4 bg-white border border-[var(--border)] shadow-xs divide-y divide-[var(--border)] max-h-[600px] overflow-y-auto">
+            <div className="stayhub-card p-4 divide-y divide-[var(--border)] max-h-[600px] overflow-y-auto">
               {recentInspections.length === 0 ? (
                 <p className="text-xs text-[var(--foreground-subtle)] italic text-center py-4">
                   No inspection records recorded yet.
@@ -206,8 +236,8 @@ export default function HousekeepingInspectionsPage() {
                       <span
                         className={`inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-[10px] ${
                           insp.result === "PASSED"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                            : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                         }`}
                       >
                         {insp.result === "PASSED" ? (
@@ -225,14 +255,14 @@ export default function HousekeepingInspectionsPage() {
                     </div>
 
                     {insp.notes && (
-                      <p className="text-[11px] text-[var(--foreground-muted)] italic bg-slate-50 p-1.5 rounded">
+                      <p className="text-[11px] text-[var(--foreground-muted)] italic bg-[var(--background-subtle)] p-2 rounded-lg">
                         {insp.notes}
                       </p>
                     )}
                   </div>
                 ))
               )}
-            </Card>
+            </div>
           </div>
         </div>
       )}

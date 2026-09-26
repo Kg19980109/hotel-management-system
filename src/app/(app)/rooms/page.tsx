@@ -139,41 +139,74 @@ export default function RoomsPage() {
   return (
     <div className="space-y-6">
       {/* ── HERO HEADER ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#07090f] via-[#0d1635] to-[#111030] px-7 pt-7 pb-6 shadow-xl">
-        {/* Decorative orbs */}
-        <div className="absolute -top-12 right-12 w-60 h-60 bg-violet-700/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-10 w-48 h-36 bg-indigo-600/15 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute top-2 right-1/3 w-80 h-16 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Decorative ambient radial gradients */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.08) 0%, transparent 70%)" }}
+        />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
             {/* Tag */}
-            <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-violet-300/90 bg-violet-400/10 border border-violet-400/20 px-2.5 py-1 rounded-full mb-3">
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.30)",
+                background: "rgba(214,168,90,0.10)",
+              }}
+            >
               <Home className="h-3 w-3" />
-              Hotel Suite & Room Inventory
+              Room & Suite Inventory
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight leading-tight">
-              Rooms & Suites
-              <span className="block text-violet-300/80 text-xl font-semibold mt-0.5">Live Inventory Control</span>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
+              Physical Rooms & Suites
+              <span className="block text-white/50 text-base font-normal mt-0.5">
+                Live Status, Category Allocations & Housekeeping
+              </span>
             </h1>
 
             <div className="flex items-center gap-4 mt-4 flex-wrap">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 text-xs text-white/70">
                 <div className="h-5 w-5 rounded-full bg-white/10 flex items-center justify-center">
                   <BedDouble className="h-3 w-3 text-white/70" />
                 </div>
-                <span className="text-white/70 text-xs"><span className="font-bold text-white">{totalCount}</span> total rooms</span>
+                <span><span className="font-bold text-white">{totalCount}</span> total rooms</span>
               </div>
               {stats && (
                 <>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
-                    <span className="text-white/70 text-xs"><span className="font-bold text-violet-300">{stats.occupied ?? 0}</span> occupied</span>
+                  <div className="flex items-center gap-1.5 text-xs text-white/70">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: "var(--purple)" }}
+                    />
+                    <span><span className="font-bold text-white">{stats.occupied ?? 0}</span> occupied</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                    <span className="text-white/70 text-xs"><span className="font-bold text-emerald-300">{stats.available ?? 0}</span> available</span>
+                  <div className="flex items-center gap-1.5 text-xs text-white/70">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: "var(--success)" }}
+                    />
+                    <span><span className="font-bold text-white">{stats.available ?? 0}</span> available</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-white/70">
+                    <span
+                      className="h-2 w-2 rounded-full"
+                      style={{ backgroundColor: "var(--warning)" }}
+                    />
+                    <span><span className="font-bold text-white">{stats.dirty ?? 0}</span> cleaning</span>
                   </div>
                 </>
               )}
@@ -183,28 +216,44 @@ export default function RoomsPage() {
           {/* Header actions */}
           <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Link href="/rooms/calendar">
-              <button className="h-9 px-3.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/10 transition-all">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>Calendar</span>
-              </button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10 border border-white/10 h-9"
+              >
+                <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                Calendar
+              </Button>
             </Link>
             <Link href="/rooms/types">
-              <button className="h-9 px-3.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/10 transition-all">
-                <BedDouble className="h-3.5 w-3.5" />
-                <span>Types ({roomTypes.length})</span>
-              </button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10 border border-white/10 h-9"
+              >
+                <BedDouble className="h-3.5 w-3.5 mr-1.5" />
+                Types ({roomTypes.length})
+              </Button>
             </Link>
             <Link href="/rooms/floors">
-              <button className="h-9 px-3.5 rounded-xl flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/10 transition-all">
-                <Layers className="h-3.5 w-3.5" />
-                <span>Floors ({floors.length})</span>
-              </button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10 border border-white/10 h-9"
+              >
+                <Layers className="h-3.5 w-3.5 mr-1.5" />
+                Floors ({floors.length})
+              </Button>
             </Link>
             <Link href="/rooms/new">
-              <button className="h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-violet-950 bg-gradient-to-r from-violet-300 to-indigo-300 hover:from-violet-200 hover:to-indigo-200 shadow-md shadow-violet-400/30 transition-all">
+              <Button
+                variant="primary"
+                size="sm"
+                className="h-9 gap-1.5 shadow-md"
+              >
                 <Plus className="h-4 w-4" />
                 Add Room
-              </button>
+              </Button>
             </Link>
           </div>
         </div>
@@ -214,7 +263,7 @@ export default function RoomsPage() {
       <RoomKpiGrid stats={stats} loading={loading && !stats} />
 
       {/* ── FILTER BAR ── */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4">
+      <div className="stayhub-card p-4">
         <RoomFilters
           filters={filters}
           onFilterChange={setFilters}

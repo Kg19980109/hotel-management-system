@@ -208,52 +208,105 @@ export default function MaintenancePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Maintenance Operations & Work Orders"
-        description="Track facilities repair tickets, equipment servicing, technician dispatches, and room readiness."
-        breadcrumbs={[
-          { label: "Operations", href: "/maintenance" },
-          { label: "Maintenance" },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadData}
-              disabled={loading}
+      {/* ── LUXURY HERO HEADER ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.08) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.25)",
+                background: "rgba(214,168,90,0.08)",
+              }}
             >
-              <RotateCcw className="h-4 w-4 mr-1.5" />
-              Refresh
-            </Button>
-            <Link href="/maintenance/new">
-              <Button
-                variant="primary"
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-1.5" />
-                New Work Order
-              </Button>
-            </Link>
+              <Wrench className="h-3 w-3" />
+              <span>Facilities & Engineering Control</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-heading">
+              Maintenance & Work Orders
+            </h1>
+            <p className="text-sm text-slate-300/80 mt-1 max-w-xl">
+              Track facilities repair tickets, equipment servicing, technician dispatches, and room readiness.
+            </p>
           </div>
-        }
-      />
+
+          <div className="flex flex-wrap items-center gap-3">
+            {stats && (
+              <div className="hidden sm:flex items-center gap-4 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-xs text-slate-300">
+                <div className="text-center">
+                  <span className="block font-bold text-white font-mono text-sm">{stats.open}</span>
+                  <span className="text-[10px] text-blue-400 uppercase tracking-wider font-semibold">Open</span>
+                </div>
+                <div className="h-6 w-px bg-white/10" />
+                <div className="text-center">
+                  <span className="block font-bold text-white font-mono text-sm">{stats.inProgress}</span>
+                  <span className="text-[10px] text-purple-400 uppercase tracking-wider font-semibold">Active</span>
+                </div>
+                <div className="h-6 w-px bg-white/10" />
+                <div className="text-center">
+                  <span className="block font-bold text-white font-mono text-sm">{stats.urgent}</span>
+                  <span className="text-[10px] text-rose-400 uppercase tracking-wider font-semibold">Urgent</span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              <Link href="/maintenance/new">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="gap-1.5 h-9 font-semibold shadow-md shadow-indigo-900/40"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>New Work Order</span>
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadData}
+                disabled={loading}
+                title="Refresh Console"
+                className="bg-white/10 hover:bg-white/15 text-white border-white/15 h-9 w-9 p-0"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Live Guest QR Repair Ticket Notification Bar */}
       {pendingGuestRequests > 0 && (
-        <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold">
+        <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md shadow-blue-500/5 backdrop-blur-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold shrink-0">
               <Wrench className="w-5 h-5 animate-bounce" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+              <h4 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
                 <span>{pendingGuestRequests} Guest QR Repair Ticket{pendingGuestRequests > 1 ? "s" : ""}</span>
                 <span className="text-[10px] bg-blue-500 text-white font-black px-2 py-0.5 rounded-full uppercase">
                   Action Required
                 </span>
               </h4>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-[var(--foreground-muted)]">
                 In-room guests reported maintenance and engineering issues (AC, Plumbing, Electrical, Appliances).
               </p>
             </div>
@@ -261,7 +314,7 @@ export default function MaintenancePage() {
           <Button
             size="sm"
             onClick={() => setActiveTab("guest_requests")}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 h-9"
           >
             View QR Repair Tickets ({pendingGuestRequests})
           </Button>
@@ -272,33 +325,43 @@ export default function MaintenancePage() {
       {stats && <MaintenanceKPIGrid stats={stats} />}
 
       {/* Operational Navigation Tabs */}
-      <div className="flex border-b border-[var(--border)] gap-6 text-sm">
+      <div className="stayhub-card p-1.5 flex items-center gap-2 max-w-fit">
         <button
           onClick={() => setActiveTab("orders")}
-          className={`pb-3 font-semibold transition border-b-2 flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
             activeTab === "orders"
-              ? "border-amber-500 text-amber-500"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              ? "bg-[var(--primary)] text-white shadow-sm"
+              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
           }`}
         >
           <ClipboardList className="w-4 h-4" />
-          Facilities Work Orders ({workOrders.length})
+          <span>Work Orders</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+            activeTab === "orders" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          }`}>
+            {workOrders.length}
+          </span>
         </button>
+
         <button
           onClick={() => setActiveTab("guest_requests")}
-          className={`pb-3 font-semibold transition border-b-2 flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
             activeTab === "guest_requests"
-              ? "border-amber-500 text-amber-500"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              ? "bg-blue-600 text-white shadow-sm"
+              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
           }`}
         >
           <BellRing className="w-4 h-4" />
-          Guest QR Repair Tickets ({guestRequests.length})
-          {pendingGuestRequests > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-500 text-white animate-pulse">
-              {pendingGuestRequests}
-            </span>
-          )}
+          <span>Guest QR Tickets</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+            activeTab === "guest_requests"
+              ? "bg-white/20 text-white font-bold"
+              : pendingGuestRequests > 0
+              ? "bg-blue-500 text-white font-bold animate-pulse"
+              : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          }`}>
+            {guestRequests.length}
+          </span>
         </button>
       </div>
 

@@ -5,7 +5,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { checkOutStayAction } from "@/lib/front-desk/actions";
 import type { DepartureRecord, InHouseRecord } from "@/lib/front-desk/types";
-import { LogOut, AlertCircle, Sparkles } from "lucide-react";
+import { LogOut, AlertCircle, Sparkles, BedDouble, Calendar, ArrowRight } from "lucide-react";
 
 interface CheckOutModalProps {
   open: boolean;
@@ -80,42 +80,54 @@ export function CheckOutModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={`Check Out: Room ${stay.roomNumber}`}
-      size="sm"
+      title={`Front Desk Departure: Room ${stay.roomNumber}`}
+      size="md"
     >
       <form onSubmit={handleCheckout} className="space-y-4 pt-1">
-        {/* Stay Summary */}
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-[var(--radius-md)] text-xs space-y-1.5">
-          <div className="flex justify-between">
-            <span className="text-slate-500 font-semibold">Guest:</span>
-            <span className="font-bold text-slate-800">{stay.guestName}</span>
+        {/* Stay Summary Card */}
+        <div className="p-4 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-elevated)] space-y-2.5 text-xs">
+          <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-[var(--foreground-muted)] tracking-wider block">
+                Departing Guest
+              </span>
+              <span className="font-bold text-sm text-[var(--foreground)]">{stay.guestName}</span>
+            </div>
+            <span className="font-mono text-xs font-bold text-[var(--primary)] bg-[var(--primary-subtle)] px-2 py-0.5 rounded border border-[var(--primary)]/20">
+              {stay.confirmationNumber}
+            </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500 font-semibold">Confirmation:</span>
-            <span className="font-mono text-slate-800">{stay.confirmationNumber}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500 font-semibold">Room:</span>
-            <span className="font-medium text-slate-800">Room {stay.roomNumber} ({stay.roomTypeName})</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500 font-semibold">Expected Departure:</span>
-            <span className="text-slate-800">{stay.expectedCheckOutDate}</span>
+
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-[10.5px] text-[var(--foreground-muted)] font-medium block">Room Assignment</span>
+              <span className="font-semibold text-[var(--foreground)] flex items-center gap-1 mt-0.5">
+                <BedDouble className="h-3.5 w-3.5 text-[var(--primary)]" />
+                Room {stay.roomNumber} ({stay.roomTypeName})
+              </span>
+            </div>
+            <div>
+              <span className="text-[10.5px] text-[var(--foreground-muted)] font-medium block">Scheduled Departure</span>
+              <span className="font-semibold text-[var(--foreground)] flex items-center gap-1 mt-0.5">
+                <Calendar className="h-3.5 w-3.5 text-[var(--foreground-subtle)]" />
+                {stay.expectedCheckOutDate}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Financial Settlement Check */}
         {balanceDue !== null && balanceDue > 0 && (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-[var(--radius-md)] text-amber-900 text-xs space-y-2">
+          <div className="p-3.5 bg-[var(--warning-light)] border border-[var(--warning)]/30 rounded-[var(--radius-lg)] text-[var(--warning-foreground)] text-xs space-y-2.5">
             <div className="flex items-center justify-between font-bold">
-              <span className="flex items-center gap-1 text-amber-800">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+              <span className="flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-[var(--warning)] shrink-0" />
                 Outstanding Folio Balance:
               </span>
-              <span className="font-mono text-sm text-amber-900">₹{balanceDue.toFixed(2)}</span>
+              <span className="font-mono text-base font-black">₹{balanceDue.toFixed(2)}</span>
             </div>
-            <p className="text-[11px] text-amber-700">
-              Hotel policy requires full settlement prior to check-out. You can settle the bill or record a payment in the Guest Folio.
+            <p className="text-[11px] leading-relaxed">
+              Hotel policy requires full folio settlement prior to check-out. You can settle the folio or authorize an account override.
             </p>
             {folioId && (
               <div className="pt-1">
@@ -123,21 +135,22 @@ export function CheckOutModal({
                   href={`/billing/folios/${folioId}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center text-xs font-semibold text-indigo-700 hover:text-indigo-900 underline"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[var(--primary)] hover:underline"
                 >
-                  Open Guest Folio to Record Payment &rarr;
+                  Open Guest Folio to Record Payment
+                  <ArrowRight className="h-3 w-3" />
                 </a>
               </div>
             )}
-            <div className="pt-2 border-t border-amber-200/80 flex items-center gap-2">
+            <div className="pt-2 border-t border-[var(--warning)]/30 flex items-center gap-2">
               <input
                 type="checkbox"
                 id="allow-override"
                 checked={allowOverride}
                 onChange={(e) => setAllowOverride(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-amber-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                className="h-3.5 w-3.5 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
               />
-              <label htmlFor="allow-override" className="text-[11px] font-semibold text-amber-950 cursor-pointer">
+              <label htmlFor="allow-override" className="text-[11px] font-bold cursor-pointer">
                 Authorized Override (Charge to Account / Settle Later)
               </label>
             </div>
@@ -145,33 +158,34 @@ export function CheckOutModal({
         )}
 
         {balanceDue !== null && balanceDue <= 0 && (
-          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-[var(--radius-md)] text-emerald-800 text-xs flex items-center justify-between">
-            <span className="font-semibold flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              Folio Settled (Zero Balance)
+          <div className="p-3 bg-[var(--success-light)] border border-[var(--success)]/30 rounded-[var(--radius-lg)] text-[var(--success-foreground)] text-xs flex items-center justify-between">
+            <span className="font-bold flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-[var(--success)]" />
+              Folio Settled (Zero Balance Due)
             </span>
-            <span className="font-mono font-bold text-emerald-900">₹0.00</span>
+            <span className="font-mono font-bold text-sm">₹0.00</span>
           </div>
         )}
 
         {/* Operational Invariant Notice */}
-        <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-[var(--radius-md)] text-indigo-900 text-xs flex items-start gap-2.5">
-          <Sparkles className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+        <div className="p-3 bg-[var(--primary-subtle)] border border-[var(--primary)]/20 rounded-[var(--radius-lg)] text-[var(--foreground)] text-xs flex items-start gap-2.5">
+          <Sparkles className="h-4 w-4 text-[var(--primary)] shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <div className="font-semibold text-indigo-950">Room Transitions to DIRTY</div>
-            <p className="text-[11px] text-indigo-800">
-              Upon checkout, Room <strong>{stay.roomNumber}</strong> is marked as <strong>DIRTY</strong> for Housekeeping cleaning and inspection before becoming available.
+            <div className="font-bold text-[var(--foreground)]">Room Status Progression</div>
+            <p className="text-[11px] text-[var(--foreground-muted)]">
+              Completing departure automatically sets Room <strong>{stay.roomNumber}</strong> to <strong>DIRTY</strong> for Housekeeping turnaround inspection before being released to available inventory.
             </p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-[var(--radius-md)] text-rose-700 text-xs flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+          <div className="p-3 bg-[var(--danger-light)] border border-[var(--danger)]/30 rounded-[var(--radius-md)] text-[var(--danger-foreground)] text-xs flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 text-[var(--danger)]" />
             <div>{error}</div>
           </div>
         )}
 
+        {/* Footer Actions */}
         <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--border)]">
           <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={submitting}>
             Cancel
@@ -181,10 +195,10 @@ export function CheckOutModal({
             variant="primary"
             size="sm"
             disabled={submitting}
-            className="gap-1.5 bg-amber-600 hover:bg-amber-700 text-white"
+            className="gap-1.5 shadow-md bg-[var(--warning)] hover:opacity-95 text-white"
           >
             <LogOut className="h-4 w-4" />
-            {submitting ? "Processing..." : "Confirm Check-Out"}
+            {submitting ? "Processing Departure..." : "Confirm Check-Out"}
           </Button>
         </div>
       </form>

@@ -125,69 +125,116 @@ export default function BookingDetailPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
-      {/* Page Header */}
-      <PageHeader
-        title={`Reservation: ${reservation.confirmation_number}`}
-        description={`Booked for ${guestName} • ${reservation.check_in_date} to ${reservation.check_out_date}`}
-        breadcrumbs={[
-          { label: "Bookings", href: "/bookings" },
-          { label: reservation.confirmation_number },
-        ]}
-        actions={
-          <div className="flex items-center gap-2">
-            <Link href="/bookings">
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <ArrowLeft className="h-4 w-4" />
-                Bookings
-              </Button>
-            </Link>
+      {/* ── LUXURY RESERVATION DOSSIER HERO ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 py-7 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Decorative ambient radial glows */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.20) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.10) 0%, transparent 70%)" }}
+        />
 
-            <Link href={`/bookings/${reservation.id}/edit`}>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <Edit2 className="h-4 w-4" />
-                Edit
-              </Button>
-            </Link>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setStatusOpen(true)}
-              className="gap-1.5"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Status
-            </Button>
-
-            {reservation.status !== "CANCELLED" && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setCancelOpen(true)}
-                className="gap-1.5"
+        <div className="relative z-10 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            {/* Breadcrumb Context Tag */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <Link
+                href="/bookings"
+                className="text-white/50 hover:text-white text-xs font-medium flex items-center gap-1 transition-colors"
               >
-                <XCircle className="h-4 w-4" />
-                Cancel
-              </Button>
-            )}
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Bookings
+              </Link>
+              <span className="text-white/30 text-xs">/</span>
+              <span
+                className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-0.5 rounded-full border"
+                style={{
+                  color: "var(--brand-gold)",
+                  borderColor: "rgba(214,168,90,0.30)",
+                  background: "rgba(214,168,90,0.10)",
+                }}
+              >
+                Reservation Dossier
+              </span>
+              <BookingStatusBadge status={reservation.status} className="text-xs" />
+              <BookingSourceBadge source={reservation.booking_source} className="text-xs" />
+            </div>
+
+            {/* Confirmation Number Hero */}
+            <h1 className="text-3xl sm:text-4xl font-mono font-bold text-white tracking-tight leading-none">
+              {reservation.confirmation_number}
+            </h1>
+            <p className="text-white/70 text-sm mt-1.5 font-medium">
+              Guest: <span className="text-white font-bold">{guestName}</span>
+            </p>
+
+            {/* Sub-meta */}
+            <div className="flex items-center gap-4 mt-3 text-xs text-white/60 flex-wrap">
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5 text-white/40" />
+                {reservation.check_in_date} → {reservation.check_out_date} ({reservation.nights || 1} Nights)
+              </span>
+              <span className="text-white/20">·</span>
+              <span>
+                Booked on {new Date(reservation.booked_at).toLocaleDateString()}
+              </span>
+            </div>
           </div>
-        }
-      />
 
-      {/* Top Banner / Status Overview */}
-      <div className="p-4 bg-white rounded-[var(--radius-xl)] border border-[var(--border)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <BookingStatusBadge status={reservation.status} className="text-sm px-2.5 py-1" />
-          <BookingSourceBadge source={reservation.booking_source} className="text-sm px-2.5 py-1" />
-          <span className="text-xs text-[var(--foreground-muted)]">
-            Booked on {new Date(reservation.booked_at).toLocaleDateString()}
-          </span>
-        </div>
+          {/* Right: Total & Action Toolbar */}
+          <div className="flex flex-col items-start md:items-end gap-3 shrink-0">
+            <div className="text-left md:text-right">
+              <span className="text-[10px] uppercase font-bold text-white/40 tracking-wider block">
+                Total Commitment
+              </span>
+              <span className="text-2xl font-bold text-white">
+                {formatCurrency(reservation.total_amount, currency)}
+              </span>
+            </div>
 
-        <div className="text-right">
-          <div className="text-xs text-[var(--foreground-muted)]">Room Total</div>
-          <div className="text-xl font-bold text-[var(--foreground)]">
-            {formatCurrency(reservation.total_amount, currency)}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link href={`/bookings/${reservation.id}/edit`}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-8 gap-1"
+                >
+                  <Edit2 className="h-3.5 w-3.5" />
+                  Edit
+                </Button>
+              </Link>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStatusOpen(true)}
+                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-8 gap-1"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                Status
+              </Button>
+
+              {reservation.status !== "CANCELLED" && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setCancelOpen(true)}
+                  className="h-8 gap-1"
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  Cancel
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -197,7 +244,7 @@ export default function BookingDetailPage() {
         {/* Left Column: Guest & Stay Details */}
         <div className="md:col-span-2 space-y-6">
           {/* Guest Profile Card */}
-          <div className="p-5 bg-white rounded-[var(--radius-xl)] border border-[var(--border)] shadow-xs space-y-3">
+          <div className="stayhub-card p-6 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-[var(--primary)]" />
@@ -243,7 +290,7 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Reserved Rooms & Allocations */}
-          <div className="p-5 bg-white rounded-[var(--radius-xl)] border border-[var(--border)] shadow-xs space-y-3">
+          <div className="stayhub-card p-6 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
                 <BedDouble className="h-4 w-4 text-[var(--primary)]" />
@@ -351,7 +398,7 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Notes & Special Requests */}
-          <div className="p-5 bg-white rounded-[var(--radius-xl)] border border-[var(--border)] shadow-xs space-y-3">
+          <div className="stayhub-card p-6 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[var(--border)]">
               <FileText className="h-4 w-4 text-[var(--primary)]" />
               <h3 className="font-semibold text-sm text-[var(--foreground)]">Special Requests & Notes</h3>
@@ -387,7 +434,7 @@ export default function BookingDetailPage() {
         {/* Right Column: Stay Summary & System Metadata */}
         <div className="space-y-6">
           {/* Stay Timeline Card */}
-          <div className="p-5 bg-white rounded-[var(--radius-xl)] border border-[var(--border)] shadow-xs space-y-3">
+          <div className="stayhub-card p-6 space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[var(--border)]">
               <Calendar className="h-4 w-4 text-[var(--primary)]" />
               <h3 className="font-semibold text-sm text-[var(--foreground)]">Stay Dates</h3>

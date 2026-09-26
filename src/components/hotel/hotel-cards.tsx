@@ -1,11 +1,11 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
+import type { RoomDisplay, TrendDirection } from "@/types";
 import { StatusBadge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
-import type { RoomDisplay, TrendDirection } from "@/types";
 
 // ============================================================
-// KPI WIDGET
+// KPI WIDGET — Phase 2 Premium
 // ============================================================
 
 interface KPIWidgetProps {
@@ -20,36 +20,42 @@ interface KPIWidgetProps {
   loading?: boolean;
 }
 
-const colorMap = {
-  primary: { 
-    bg: "bg-gradient-to-br from-indigo-50/90 via-indigo-50/50 to-purple-100/90 border-indigo-100/50",
-    iconBg: "bg-indigo-100 text-indigo-600 shadow-sm",
-    text: "text-indigo-900"
+const colorConfig = {
+  primary: {
+    iconBg: "bg-[var(--primary-light)] text-[var(--primary)]",
+    accent: "bg-[var(--primary)]",
+    value: "text-[var(--foreground)]",
+    bar: "#5146E5",
   },
-  success: { 
-    bg: "bg-gradient-to-br from-emerald-50/90 via-emerald-50/50 to-teal-100/90 border-emerald-100/50",
-    iconBg: "bg-emerald-100 text-emerald-600 shadow-sm",
-    text: "text-emerald-900"
+  success: {
+    iconBg: "bg-[var(--success-light)] text-[var(--success)]",
+    accent: "bg-[var(--success)]",
+    value: "text-[var(--foreground)]",
+    bar: "#16A36A",
   },
-  warning: { 
-    bg: "bg-gradient-to-br from-orange-50/90 via-orange-50/50 to-amber-100/90 border-orange-100/50",
-    iconBg: "bg-orange-100 text-orange-600 shadow-sm",
-    text: "text-orange-900"
+  warning: {
+    iconBg: "bg-[var(--warning-light)] text-[var(--warning)]",
+    accent: "bg-[var(--warning)]",
+    value: "text-[var(--foreground)]",
+    bar: "#E7A51A",
   },
-  danger: { 
-    bg: "bg-gradient-to-br from-rose-50/90 via-rose-50/50 to-red-100/90 border-rose-100/50",
-    iconBg: "bg-rose-100 text-rose-600 shadow-sm",
-    text: "text-rose-900"
+  danger: {
+    iconBg: "bg-[var(--danger-light)] text-[var(--danger)]",
+    accent: "bg-[var(--danger)]",
+    value: "text-[var(--foreground)]",
+    bar: "#E05252",
   },
-  info: { 
-    bg: "bg-gradient-to-br from-blue-50/90 via-blue-50/50 to-cyan-100/90 border-blue-100/50",
-    iconBg: "bg-blue-100 text-blue-600 shadow-sm",
-    text: "text-blue-900"
+  info: {
+    iconBg: "bg-[var(--info-light)] text-[var(--info)]",
+    accent: "bg-[var(--info)]",
+    value: "text-[var(--foreground)]",
+    bar: "#3B82F6",
   },
-  accent: { 
-    bg: "bg-gradient-to-br from-fuchsia-50/90 via-fuchsia-50/50 to-purple-200/90 border-fuchsia-100/50",
-    iconBg: "bg-fuchsia-100 text-fuchsia-600 shadow-sm",
-    text: "text-fuchsia-900"
+  accent: {
+    iconBg: "bg-[var(--accent-light)] text-[var(--accent)]",
+    accent: "bg-[var(--accent)]",
+    value: "text-[var(--foreground)]",
+    bar: "#D6A85A",
   },
 };
 
@@ -64,15 +70,15 @@ const KPIWidget = ({
   className,
   loading,
 }: KPIWidgetProps) => {
-  const colors = colorMap[color];
+  const cfg = colorConfig[color];
 
   if (loading) {
     return (
-      <div className={cn("stayhub-card p-5 border border-white/40 shadow-xl shadow-slate-200/40 backdrop-blur-sm", colors.bg, className)}>
-        <div className="animate-pulse space-y-3">
-          <div className="h-4 w-28 bg-white/50 rounded" />
-          <div className="h-8 w-20 bg-white/50 rounded" />
-          <div className="h-3 w-20 bg-white/40 rounded" />
+      <div className={cn("kpi-card animate-pulse", className)}>
+        <div className="space-y-3">
+          <div className="h-3.5 w-20 bg-[var(--border)] rounded" />
+          <div className="h-8 w-24 bg-[var(--border)] rounded" />
+          <div className="h-3 w-28 bg-[var(--border)] rounded" />
         </div>
       </div>
     );
@@ -82,67 +88,73 @@ const KPIWidget = ({
   const isNegative = trendDirection === "down";
 
   return (
-    <div className={cn(
-      "stayhub-card p-5 relative overflow-hidden border border-white/60 shadow-xl shadow-slate-200/40 backdrop-blur-md group", 
-      colors.bg, 
-      className
-    )}>
-      {/* Decorative Wave/Mountain Background shape */}
-      <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-white/20 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/20 rounded-full blur-3xl pointer-events-none" />
-      
-      <div className="relative z-10 flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            {icon && (
-              <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mb-1 hidden sm:flex", colors.iconBg)}>
-                {React.cloneElement(icon as React.ReactElement<any>, { className: "h-4 w-4" })}
-              </div>
-            )}
-            <p className="text-[13px] font-bold text-slate-700/80 uppercase tracking-wide">{title}</p>
-          </div>
-          <p className={cn("text-3xl font-black mt-1 tracking-tight", colors.text)}>{value}</p>
-          {trend !== undefined && (
-            <div className="flex items-center gap-1.5 mt-2.5">
-              <div
-                className={cn(
-                  "flex items-center gap-0.5 text-[12px] font-bold px-1.5 py-0.5 rounded-md bg-white/50 shadow-sm",
-                  isPositive ? "text-emerald-600" : isNegative ? "text-rose-600" : "text-slate-600"
-                )}
-              >
-                {isPositive && (
-                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-                    <polyline points="17 6 23 6 23 12" />
-                  </svg>
-                )}
-                {isNegative && (
-                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
-                    <polyline points="17 18 23 18 23 12" />
-                  </svg>
-                )}
-                {Math.abs(trend)}%
-              </div>
-              {trendLabel && (
-                <span className="text-[11px] font-semibold text-slate-600/80">{trendLabel}</span>
-              )}
-            </div>
-          )}
-          {trend === undefined && trendLabel && (
-            <div className="mt-2 text-[11.5px] font-semibold text-slate-600/80">
-              {trendLabel}
-            </div>
-          )}
-        </div>
-        
-        {/* Right side Icon for mobile or layout */}
+    <div className={cn("kpi-card group", className)}>
+      {/* Top accent bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[3px] rounded-t-[var(--radius-xl)]"
+        style={{ background: cfg.bar }}
+      />
+
+      {/* Header row: label + icon */}
+      <div className="flex items-start justify-between mb-3 pt-1">
+        <p className="text-[11px] font-bold uppercase tracking-[0.10em] text-[var(--foreground-subtle)]">
+          {title}
+        </p>
         {icon && (
-          <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 sm:hidden", colors.iconBg)}>
-            {React.cloneElement(icon as React.ReactElement<any>, { className: "h-5 w-5" })}
+          <div
+            className={cn(
+              "h-8 w-8 rounded-[var(--radius-md)] flex items-center justify-center shrink-0",
+              cfg.iconBg
+            )}
+          >
+            {React.cloneElement(icon as React.ReactElement<{ className?: string }>, {
+              className: "h-4 w-4",
+            })}
           </div>
         )}
       </div>
+
+      {/* Value */}
+      <p
+        className={cn(
+          "text-kpi font-bold tracking-tight mb-1.5",
+          cfg.value
+        )}
+      >
+        {value}
+      </p>
+
+      {/* Trend chip */}
+      {trend !== undefined && (
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              "inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.5 rounded-md",
+              isPositive
+                ? "bg-[var(--success-light)] text-[var(--success)]"
+                : isNegative
+                ? "bg-[var(--danger-light)] text-[var(--danger)]"
+                : "bg-[var(--secondary)] text-[var(--foreground-muted)]"
+            )}
+          >
+            {isPositive && "↑"}
+            {isNegative && "↓"}
+            {Math.abs(trend)}%
+          </span>
+          {trendLabel && (
+            <span className="text-[11px] text-[var(--foreground-subtle)] truncate">
+              {trendLabel}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Trend label without value */}
+      {trend === undefined && trendLabel && (
+        <p className="text-[11.5px] text-[var(--foreground-subtle)] leading-relaxed">
+          {trendLabel}
+        </p>
+      )}
     </div>
   );
 };
@@ -211,7 +223,7 @@ const RoomCard = ({
       )}
     >
       {/* Room image */}
-      <div className="relative h-40 bg-slate-100 overflow-hidden">
+      <div className="relative h-40 bg-[var(--secondary)] overflow-hidden">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -219,8 +231,8 @@ const RoomCard = ({
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-300">
-            <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+          <div className="w-full h-full flex items-center justify-center text-[var(--foreground-subtle)]">
+            <svg width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
@@ -230,7 +242,7 @@ const RoomCard = ({
           <StatusBadge status={status} />
         </div>
         {floor !== undefined && (
-          <div className="absolute top-2.5 left-2.5 bg-black/40 text-white text-[11px] font-medium rounded px-1.5 py-0.5">
+          <div className="absolute top-2.5 left-2.5 bg-black/50 text-white text-[10.5px] font-semibold rounded-[var(--radius-sm)] px-1.5 py-0.5">
             Floor {floor}
           </div>
         )}
@@ -327,12 +339,8 @@ const GuestCard = ({
           </span>
         )}
       </div>
-      {email && (
-        <p className="text-[12px] text-[var(--foreground-muted)] mt-0.5 truncate">{email}</p>
-      )}
-      {phone && (
-        <p className="text-[12px] text-[var(--foreground-muted)] mt-0.5">{phone}</p>
-      )}
+      {email && <p className="text-[12px] text-[var(--foreground-muted)] mt-0.5 truncate">{email}</p>}
+      {phone && <p className="text-[12px] text-[var(--foreground-muted)] mt-0.5">{phone}</p>}
       {(roomNumber || bookingStatus) && (
         <div className="flex items-center gap-2 mt-2">
           {roomNumber && (
@@ -413,17 +421,17 @@ const BookingCard = ({
     {/* Details */}
     <div className="grid grid-cols-3 gap-3 pt-3 border-t border-[var(--border)]">
       <div>
-        <p className="text-[11px] text-[var(--foreground-muted)] uppercase tracking-wide">Room</p>
+        <p className="text-[10.5px] text-[var(--foreground-subtle)] uppercase tracking-wider">Room</p>
         <p className="text-[13px] font-semibold text-[var(--foreground)] mt-0.5">{roomNumber}</p>
         <p className="text-[11px] text-[var(--foreground-muted)]">{roomType}</p>
       </div>
       <div>
-        <p className="text-[11px] text-[var(--foreground-muted)] uppercase tracking-wide">Check-in</p>
+        <p className="text-[10.5px] text-[var(--foreground-subtle)] uppercase tracking-wider">Check-in</p>
         <p className="text-[13px] font-semibold text-[var(--foreground)] mt-0.5">{checkIn}</p>
         <p className="text-[11px] text-[var(--foreground-muted)]">{nights} nights</p>
       </div>
       <div>
-        <p className="text-[11px] text-[var(--foreground-muted)] uppercase tracking-wide">Check-out</p>
+        <p className="text-[10.5px] text-[var(--foreground-subtle)] uppercase tracking-wider">Check-out</p>
         <p className="text-[13px] font-semibold text-[var(--foreground)] mt-0.5">{checkOut}</p>
         <p className="text-[11px] text-[var(--foreground-muted)]">
           {adults} adult{adults > 1 ? "s" : ""}

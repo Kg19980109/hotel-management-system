@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -106,7 +105,7 @@ export function MaintenanceBoard({
   return (
     <div className="space-y-4">
       {/* Action Toolbar & Filters */}
-      <Card className="p-4 bg-white border border-[var(--border)] shadow-xs">
+      <div className="stayhub-card p-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           {/* Search */}
           <div className="relative flex-1 min-w-[240px]">
@@ -116,7 +115,7 @@ export function MaintenanceBoard({
               placeholder="Search work orders, rooms, technicians..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-sm"
+              className="pl-9 h-9 text-xs bg-[var(--background-subtle)]"
             />
           </div>
 
@@ -126,18 +125,19 @@ export function MaintenanceBoard({
               variant="primary"
               size="sm"
               onClick={() => setIsNewModalOpen(true)}
+              className="h-9 text-xs font-semibold"
             >
               <Plus className="h-4 w-4 mr-1.5" />
               Report Work Order
             </Button>
 
-            <div className="flex items-center border border-[var(--border)] rounded-lg p-0.5 bg-[var(--background-subtle)]">
+            <div className="flex items-center border border-[var(--border)] rounded-xl p-1 bg-[var(--background-subtle)]">
               <button
                 type="button"
                 onClick={() => setViewMode("kanban")}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md flex items-center gap-1.5 transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors ${
                   viewMode === "kanban"
-                    ? "bg-white text-[var(--foreground)] shadow-xs"
+                    ? "bg-white dark:bg-slate-800 text-[var(--foreground)] shadow-xs font-bold"
                     : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                 }`}
               >
@@ -147,9 +147,9 @@ export function MaintenanceBoard({
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
-                className={`px-2.5 py-1 text-xs font-medium rounded-md flex items-center gap-1.5 transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors ${
                   viewMode === "table"
-                    ? "bg-white text-[var(--foreground)] shadow-xs"
+                    ? "bg-white dark:bg-slate-800 text-[var(--foreground)] shadow-xs font-bold"
                     : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
                 }`}
               >
@@ -161,16 +161,16 @@ export function MaintenanceBoard({
         </div>
 
         {/* Filter Dropdowns */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 pt-3 mt-3 border-t border-[var(--border)]">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 pt-3 mt-3 border-t border-[var(--border)]">
           {/* Status */}
           <div>
-            <label className="block text-[10px] font-semibold text-[var(--foreground-muted)] uppercase mb-1">
+            <label className="block text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full h-8 px-2 text-xs rounded-md border border-[var(--border)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+              className="w-full h-8 px-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
             >
               <option value="ALL">All Statuses</option>
               <option value="OPEN">Open</option>
@@ -185,13 +185,13 @@ export function MaintenanceBoard({
 
           {/* Priority */}
           <div>
-            <label className="block text-[10px] font-semibold text-[var(--foreground-muted)] uppercase mb-1">
+            <label className="block text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
               Priority
             </label>
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="w-full h-8 px-2 text-xs rounded-md border border-[var(--border)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+              className="w-full h-8 px-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
             >
               <option value="ALL">All Priorities</option>
               <option value="URGENT">Urgent</option>
@@ -203,13 +203,13 @@ export function MaintenanceBoard({
 
           {/* Category */}
           <div>
-            <label className="block text-[10px] font-semibold text-[var(--foreground-muted)] uppercase mb-1">
+            <label className="block text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
               Category
             </label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full h-8 px-2 text-xs rounded-md border border-[var(--border)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+              className="w-full h-8 px-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
             >
               <option value="ALL">All Categories</option>
               <option value="PLUMBING">Plumbing</option>
@@ -229,13 +229,13 @@ export function MaintenanceBoard({
 
           {/* Room / Area */}
           <div>
-            <label className="block text-[10px] font-semibold text-[var(--foreground-muted)] uppercase mb-1">
+            <label className="block text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
               Location
             </label>
             <select
               value={roomFilter}
               onChange={(e) => setRoomFilter(e.target.value)}
-              className="w-full h-8 px-2 text-xs rounded-md border border-[var(--border)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+              className="w-full h-8 px-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
             >
               <option value="ALL">All Locations</option>
               <option value="FACILITY">Property Area (No Room)</option>
@@ -249,13 +249,13 @@ export function MaintenanceBoard({
 
           {/* Technician */}
           <div>
-            <label className="block text-[10px] font-semibold text-[var(--foreground-muted)] uppercase mb-1">
+            <label className="block text-[10px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider mb-1">
               Technician
             </label>
             <select
               value={staffFilter}
               onChange={(e) => setStaffFilter(e.target.value)}
-              className="w-full h-8 px-2 text-xs rounded-md border border-[var(--border)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
+              className="w-full h-8 px-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
             >
               <option value="ALL">All Staff</option>
               {staff.map((s) => (
@@ -267,8 +267,8 @@ export function MaintenanceBoard({
           </div>
 
           {/* Overdue Toggle */}
-          <div className="flex items-end pb-1">
-            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-[var(--foreground)]">
+          <div className="flex items-end pb-1.5">
+            <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-[var(--foreground)]">
               <input
                 type="checkbox"
                 checked={overdueOnly}
@@ -276,15 +276,15 @@ export function MaintenanceBoard({
                 className="h-4 w-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500"
               />
               <ClockAlert className="h-3.5 w-3.5 text-rose-500" />
-              Overdue Only
+              <span>Overdue Only</span>
             </label>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Main Board Representation */}
       {filteredWorkOrders.length === 0 ? (
-        <Card className="p-12 text-center bg-white border border-[var(--border)]">
+        <div className="stayhub-card p-12 text-center">
           <EmptyState
             title="No Maintenance Work Orders"
             description={
@@ -297,7 +297,7 @@ export function MaintenanceBoard({
               onClick: () => setIsNewModalOpen(true),
             }}
           />
-        </Card>
+        </div>
       ) : viewMode === "kanban" ? (
         /* Kanban View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -310,36 +310,39 @@ export function MaintenanceBoard({
               <div key={col.title} className="flex flex-col space-y-3">
                 {/* Column Header */}
                 <div
-                  className={`flex items-center justify-between px-3 py-2 bg-white rounded-lg border-t-2 ${col.color} border-x border-b border-[var(--border)] shadow-xs`}
+                  className={`flex items-center justify-between px-3.5 py-2.5 stayhub-card border-t-2 ${col.color}`}
                 >
-                  <span className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider">
+                  <span className="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider font-heading">
                     {col.title}
                   </span>
-                  <Badge variant="default" size="sm">
+                  <Badge variant="default" size="sm" className="font-mono">
                     {columnOrders.length}
                   </Badge>
                 </div>
 
                 {/* Cards */}
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {columnOrders.map((wo) => {
                     const isUnresolved = !["RESOLVED", "CLOSED", "CANCELLED"].includes(wo.status);
                     const isOverdue = isUnresolved && wo.scheduled_for && new Date(wo.scheduled_for) < now;
+                    const isUrgent = wo.priority === "URGENT";
 
                     return (
-                      <Card
+                      <div
                         key={wo.id}
-                        className="p-3.5 bg-white border border-[var(--border)] shadow-xs hover:shadow-md transition-shadow flex flex-col space-y-2.5"
+                        className={`stayhub-card overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between ${
+                          isUrgent ? "border-rose-400/50 ring-2 ring-rose-400/15" : ""
+                        }`}
                       >
-                        {/* Header: Room/Area & Priority */}
-                        <div className="flex items-center justify-between">
+                        {/* Midnight Card Header */}
+                        <div className="bg-gradient-to-r from-[#08111F] via-[#0E1A36] to-[#14234A] px-3.5 py-2.5 text-white flex items-center justify-between border-b border-white/10">
                           <div className="flex items-center gap-1.5">
                             {wo.room ? (
-                              <span className="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800">
+                              <span className="text-xs font-extrabold font-mono px-2 py-0.5 rounded bg-white/15 text-white">
                                 Room {wo.room.room_number}
                               </span>
                             ) : (
-                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-blue-50 text-blue-800">
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">
                                 Property Area
                               </span>
                             )}
@@ -348,115 +351,118 @@ export function MaintenanceBoard({
                           <MaintenancePriorityBadge priority={wo.priority} />
                         </div>
 
-                        {/* Title & Description */}
-                        <div>
-                          <Link
-                            href={`/maintenance/${wo.id}`}
-                            className="text-sm font-semibold text-[var(--foreground)] hover:text-[var(--primary)] line-clamp-1"
-                          >
-                            {wo.title}
-                          </Link>
-                          {wo.description && (
-                            <p className="text-xs text-[var(--foreground-muted)] line-clamp-2 mt-0.5">
-                              {wo.description}
-                            </p>
-                          )}
-                        </div>
+                        {/* Card Body */}
+                        <div className="p-3.5 space-y-2.5">
+                          {/* Title & Description */}
+                          <div>
+                            <Link
+                              href={`/maintenance/${wo.id}`}
+                              className="text-xs font-bold text-[var(--foreground)] hover:text-[var(--primary)] line-clamp-1 font-heading"
+                            >
+                              {wo.title}
+                            </Link>
+                            {wo.description && (
+                              <p className="text-[11px] text-[var(--foreground-muted)] line-clamp-2 mt-0.5 leading-relaxed">
+                                {wo.description}
+                              </p>
+                            )}
+                          </div>
 
-                        {/* Meta & Overdue Tag */}
-                        <div className="flex items-center justify-between text-[11px] text-[var(--foreground-subtle)] pt-1 border-t border-[var(--border)]">
-                          <span>
-                            Tech:{" "}
-                            <strong className="text-[var(--foreground)] font-medium">
-                              {wo.technician?.full_name || "Unassigned"}
-                            </strong>
-                          </span>
-                          {isOverdue && (
-                            <span className="text-[10px] font-bold text-red-600 flex items-center gap-0.5">
-                              <ClockAlert className="h-3 w-3" /> Overdue
+                          {/* Meta & Overdue Tag */}
+                          <div className="flex items-center justify-between text-[11px] text-[var(--foreground-subtle)] pt-2 border-t border-[var(--border)]">
+                            <span className="truncate max-w-[140px]">
+                              Tech:{" "}
+                              <strong className="text-[var(--foreground)] font-semibold">
+                                {wo.technician?.full_name || "Unassigned"}
+                              </strong>
                             </span>
-                          )}
-                        </div>
-
-                        {/* Quick Action Buttons */}
-                        <div className="flex items-center justify-between pt-1 gap-1">
-                          <Link
-                            href={`/maintenance/${wo.id}`}
-                            className="text-xs font-medium text-[var(--primary)] hover:underline flex items-center gap-0.5"
-                          >
-                            View <ArrowRight className="h-3 w-3" />
-                          </Link>
-
-                          <div className="flex items-center gap-1">
-                            {wo.status === "OPEN" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs px-2"
-                                onClick={() => setAssignModalWorkOrder(wo)}
-                              >
-                                Assign
-                              </Button>
+                            {isOverdue && (
+                              <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-0.5 shrink-0 bg-rose-500/10 px-1.5 py-0.5 rounded">
+                                <ClockAlert className="h-3 w-3" /> Overdue
+                              </span>
                             )}
+                          </div>
 
-                            {(wo.status === "OPEN" || wo.status === "ASSIGNED" || wo.status === "ON_HOLD") && (
-                              <Button
-                                size="sm"
-                                variant="primary"
-                                className="h-7 text-xs px-2"
-                                onClick={() => {
-                                  if (wo.status === "ON_HOLD") {
-                                    setTransitionModalWorkOrder(wo);
-                                    setTransitionActionType("RESUME");
-                                  } else {
-                                    setAssignModalWorkOrder(wo);
-                                  }
-                                }}
-                              >
-                                {wo.status === "ON_HOLD" ? "Resume" : "Start"}
-                              </Button>
-                            )}
+                          {/* Quick Action Buttons */}
+                          <div className="flex items-center justify-between pt-1 gap-1">
+                            <Link
+                              href={`/maintenance/${wo.id}`}
+                              className="text-xs font-semibold text-[var(--primary)] hover:underline flex items-center gap-0.5"
+                            >
+                              View <ArrowRight className="h-3 w-3" />
+                            </Link>
 
-                            {wo.status === "IN_PROGRESS" && (
-                              <>
+                            <div className="flex items-center gap-1">
+                              {wo.status === "OPEN" && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 text-xs px-2 text-amber-600 border-amber-300"
-                                  onClick={() => {
-                                    setTransitionModalWorkOrder(wo);
-                                    setTransitionActionType("HOLD");
-                                  }}
+                                  className="h-7 text-xs px-2"
+                                  onClick={() => setAssignModalWorkOrder(wo)}
                                 >
-                                  Hold
+                                  Assign
                                 </Button>
+                              )}
+
+                              {(wo.status === "OPEN" || wo.status === "ASSIGNED" || wo.status === "ON_HOLD") && (
                                 <Button
                                   size="sm"
                                   variant="primary"
-                                  className="h-7 text-xs px-2 bg-emerald-600 hover:bg-emerald-700"
-                                  onClick={() => setResolveModalWorkOrder(wo)}
+                                  className="h-7 text-xs px-2 font-bold"
+                                  onClick={() => {
+                                    if (wo.status === "ON_HOLD") {
+                                      setTransitionModalWorkOrder(wo);
+                                      setTransitionActionType("RESUME");
+                                    } else {
+                                      setAssignModalWorkOrder(wo);
+                                    }
+                                  }}
                                 >
-                                  Resolve
+                                  {wo.status === "ON_HOLD" ? "Resume" : "Start"}
                                 </Button>
-                              </>
-                            )}
+                              )}
 
-                            {wo.status === "RESOLVED" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs px-2"
-                                onClick={() => {
-                                  setTransitionModalWorkOrder(wo);
-                                  setTransitionActionType("CLOSE");
-                                }}
-                              >
-                                Close
-                              </Button>
-                            )}
+                              {wo.status === "IN_PROGRESS" && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs px-2 text-amber-600 border-amber-300"
+                                    onClick={() => {
+                                      setTransitionModalWorkOrder(wo);
+                                      setTransitionActionType("HOLD");
+                                    }}
+                                  >
+                                    Hold
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="primary"
+                                    className="h-7 text-xs px-2 font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    onClick={() => setResolveModalWorkOrder(wo)}
+                                  >
+                                    Resolve
+                                  </Button>
+                                </>
+                              )}
+
+                              {wo.status === "RESOLVED" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs px-2"
+                                  onClick={() => {
+                                    setTransitionModalWorkOrder(wo);
+                                    setTransitionActionType("CLOSE");
+                                  }}
+                                >
+                                  Close
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </Card>
+                      </div>
                     );
                   })}
                 </div>
@@ -466,19 +472,19 @@ export function MaintenanceBoard({
         </div>
       ) : (
         /* Table View */
-        <Card className="bg-white border border-[var(--border)] shadow-xs overflow-hidden">
+        <div className="stayhub-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-[var(--background-subtle)] text-[var(--foreground-muted)] text-[11px] uppercase tracking-wider border-b border-[var(--border)]">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[var(--background-subtle)] text-[var(--foreground-muted)] text-[10px] uppercase tracking-wider font-bold border-b border-[var(--border)]">
                 <tr>
-                  <th className="py-3 px-4 font-semibold">Location / Room</th>
-                  <th className="py-3 px-4 font-semibold">Work Order</th>
-                  <th className="py-3 px-4 font-semibold">Category</th>
-                  <th className="py-3 px-4 font-semibold">Priority</th>
-                  <th className="py-3 px-4 font-semibold">Status</th>
-                  <th className="py-3 px-4 font-semibold">Technician</th>
-                  <th className="py-3 px-4 font-semibold">Reported</th>
-                  <th className="py-3 px-4 font-semibold text-right">Actions</th>
+                  <th className="py-3 px-4">Location / Room</th>
+                  <th className="py-3 px-4">Work Order</th>
+                  <th className="py-3 px-4">Category</th>
+                  <th className="py-3 px-4">Priority</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Technician</th>
+                  <th className="py-3 px-4">Reported</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -487,62 +493,62 @@ export function MaintenanceBoard({
                   const isOverdue = isUnresolved && wo.scheduled_for && new Date(wo.scheduled_for) < now;
 
                   return (
-                    <tr key={wo.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 font-medium">
+                    <tr key={wo.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3.5 px-4 font-medium whitespace-nowrap">
                         {wo.room ? (
-                          <span className="font-bold text-[var(--foreground)]">
+                          <span className="font-extrabold font-mono text-[var(--foreground)] text-sm">
                             Room {wo.room.room_number}
                           </span>
                         ) : (
-                          <span className="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                          <span className="text-xs font-semibold text-blue-700 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
                             Property Area
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         <Link
                           href={`/maintenance/${wo.id}`}
-                          className="font-semibold text-[var(--foreground)] hover:text-[var(--primary)] line-clamp-1"
+                          className="font-bold text-[var(--foreground)] hover:text-[var(--primary)] line-clamp-1 font-heading"
                         >
                           {wo.title}
                         </Link>
                         {wo.description && (
-                          <p className="text-xs text-[var(--foreground-muted)] line-clamp-1">
+                          <p className="text-[11px] text-[var(--foreground-muted)] line-clamp-1 mt-0.5">
                             {wo.description}
                           </p>
                         )}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <MaintenanceCategoryBadge category={wo.category} />
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <MaintenancePriorityBadge priority={wo.priority} />
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <WorkOrderStatusBadge status={wo.status} />
                           {isOverdue && (
-                            <span className="text-[10px] font-bold text-red-600 flex items-center gap-0.5">
+                            <span className="text-[10px] font-bold text-rose-600 flex items-center gap-0.5 bg-rose-500/10 px-1.5 py-0.5 rounded">
                               <ClockAlert className="h-3 w-3" /> Overdue
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-xs text-[var(--foreground-muted)]">
+                      <td className="py-3.5 px-4 text-xs text-[var(--foreground-muted)] whitespace-nowrap">
                         {wo.technician?.full_name || (
                           <span className="text-slate-400 italic">Unassigned</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-xs text-[var(--foreground-muted)] font-mono">
+                      <td className="py-3.5 px-4 text-xs text-[var(--foreground-muted)] font-mono whitespace-nowrap">
                         {new Date(wo.reported_at).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           {wo.status === "OPEN" && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-xs"
+                              className="h-7 text-xs px-2"
                               onClick={() => setAssignModalWorkOrder(wo)}
                             >
                               Assign
@@ -552,14 +558,14 @@ export function MaintenanceBoard({
                             <Button
                               size="sm"
                               variant="primary"
-                              className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                              className="h-7 text-xs px-2.5 font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
                               onClick={() => setResolveModalWorkOrder(wo)}
                             >
                               Resolve
                             </Button>
                           )}
                           <Link href={`/maintenance/${wo.id}`}>
-                            <Button size="sm" variant="outline" className="h-7 text-xs">
+                            <Button size="sm" variant="outline" className="h-7 text-xs px-2">
                               Details
                             </Button>
                           </Link>
@@ -571,7 +577,7 @@ export function MaintenanceBoard({
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Modals */}

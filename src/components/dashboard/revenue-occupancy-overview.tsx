@@ -26,24 +26,20 @@ export function RevenueOccupancyOverview({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="stayhub-card p-5">
-          <div className="animate-pulse space-y-4">
-            <div className="h-6 w-36 bg-slate-200 rounded" />
-            <div className="h-44 bg-slate-100 rounded" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {[0, 1].map((i) => (
+          <div key={i} className="stayhub-card p-5 animate-pulse space-y-4">
+            <div className="h-4 w-36 bg-[var(--border)] rounded" />
+            <div className="h-8 w-48 bg-[var(--secondary)] rounded-[var(--radius-md)]" />
+            <div className="h-40 bg-[var(--secondary)] rounded-[var(--radius-lg)]" />
           </div>
-        </div>
-        <div className="stayhub-card p-5">
-          <div className="animate-pulse space-y-4">
-            <div className="h-6 w-36 bg-slate-200 rounded" />
-            <div className="h-44 bg-slate-100 rounded" />
-          </div>
-        </div>
+        ))}
       </div>
     );
   }
 
-  const isConfigured = metrics?.roomStatus === "configured" && (metrics?.totalRooms || 0) > 0;
+  const isConfigured =
+    metrics?.roomStatus === "configured" && (metrics?.totalRooms || 0) > 0;
 
   const revenueTabs = [
     { key: "today", label: "Today" },
@@ -58,29 +54,38 @@ export function RevenueOccupancyOverview({
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* 1. REVENUE OVERVIEW CARD */}
-      <div className="stayhub-card p-5 flex flex-col justify-between">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      {/* ── REVENUE ── */}
+      <div className="stayhub-card p-5 flex flex-col">
         <div>
-          <div className="flex items-center justify-between mb-4">
+          {/* Card header */}
+          <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-[15px] font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-[var(--success)]" />
-                Revenue Analytics
-              </h2>
-              <p className="text-[12px] text-[var(--foreground-muted)]">
-                Property income across room stays, restaurant POS, and extras
+              <div className="flex items-center gap-2 mb-0.5">
+                <div
+                  className="h-7 w-7 rounded-[var(--radius-md)] flex items-center justify-center"
+                  style={{ background: "var(--success-light)" }}
+                >
+                  <TrendingUp className="h-3.5 w-3.5" style={{ color: "var(--success)" }} />
+                </div>
+                <h2 className="text-[14.5px] font-semibold text-[var(--foreground)]">
+                  Revenue Analytics
+                </h2>
+              </div>
+              <p className="text-[11.5px] text-[var(--foreground-muted)]">
+                Room stays, restaurant POS &amp; extras
               </p>
             </div>
             <Link
               href="/billing"
-              className="text-[12px] font-medium text-[var(--primary)] hover:underline flex items-center gap-1"
+              className="flex items-center gap-1 text-[11.5px] font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors shrink-0"
             >
-              Billing & Folios <ArrowUpRight className="h-3.5 w-3.5" />
+              Billing
+              <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
-          {/* Timeframe Tabs */}
+          {/* Tabs */}
           <div className="mb-4">
             <Tabs
               tabs={revenueTabs}
@@ -91,35 +96,39 @@ export function RevenueOccupancyOverview({
             />
           </div>
 
+          {/* Revenue Today */}
           {revenueTab === "today" && (
             <div>
-              <div className="grid grid-cols-3 gap-2 p-3 rounded-[var(--radius-md)] bg-[var(--surface-elevated)] border border-[var(--border)] mb-4">
-                <div>
-                  <span className="text-[11px] text-[var(--foreground-muted)]">Room Rev</span>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
-                    {formatCurrency(0, currency)}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-[11px] text-[var(--foreground-muted)]">F&B Rev</span>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
-                    {formatCurrency(0, currency)}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-[11px] text-[var(--foreground-muted)]">Total Rev</span>
-                  <p className="text-sm font-semibold text-[var(--success)]">
-                    {formatCurrency(0, currency)}
-                  </p>
-                </div>
+              <div
+                className="grid grid-cols-3 gap-3 p-3.5 rounded-[var(--radius-lg)] border mb-4"
+                style={{ background: "var(--muted)", borderColor: "var(--card-border)" }}
+              >
+                {[
+                  { label: "Room Rev", value: formatCurrency(0, currency) },
+                  { label: "F&B Rev", value: formatCurrency(0, currency) },
+                  { label: "Total Rev", value: formatCurrency(0, currency), highlight: true },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-subtle)]">
+                      {item.label}
+                    </span>
+                    <p
+                      className="text-[13px] font-bold mt-1"
+                      style={{
+                        color: item.highlight ? "var(--success)" : "var(--foreground)",
+                      }}
+                    >
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
               </div>
-
               <EmptyState
                 size="sm"
                 icon={<DollarSign className="h-7 w-7 text-[var(--foreground-subtle)]" />}
                 title="Revenue tracking pending billing setup"
-                description="Revenue charts and channel breakdowns will activate once guest folios, bookings, and payments are recorded."
-                className="py-6 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)] bg-[var(--surface-elevated)]/50"
+                description="Revenue charts will activate once guest folios and payments are recorded."
+                className="py-6 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)]"
               />
             </div>
           )}
@@ -129,8 +138,8 @@ export function RevenueOccupancyOverview({
               size="sm"
               icon={<DollarSign className="h-7 w-7 text-[var(--foreground-subtle)]" />}
               title="No 7-day revenue records"
-              description="Historical revenue trends will appear here once booking transactions are active."
-              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)] bg-[var(--surface-elevated)]/50"
+              description="Historical revenue trends will appear here once transactions are active."
+              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)]"
             />
           )}
 
@@ -140,33 +149,43 @@ export function RevenueOccupancyOverview({
               icon={<DollarSign className="h-7 w-7 text-[var(--foreground-subtle)]" />}
               title="No 30-day revenue records"
               description="Monthly revenue pacing and ADR metrics will calculate automatically."
-              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)] bg-[var(--surface-elevated)]/50"
+              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)]"
             />
           )}
         </div>
       </div>
 
-      {/* 2. OCCUPANCY OVERVIEW CARD */}
-      <div className="stayhub-card p-5 flex flex-col justify-between">
+      {/* ── OCCUPANCY ── */}
+      <div className="stayhub-card p-5 flex flex-col">
         <div>
-          <div className="flex items-center justify-between mb-4">
+          {/* Card header */}
+          <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-[15px] font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-[var(--primary)]" />
-                Occupancy Pacing
-              </h2>
-              <p className="text-[12px] text-[var(--foreground-muted)]">
-                Daily occupancy rate and capacity utilization
+              <div className="flex items-center gap-2 mb-0.5">
+                <div
+                  className="h-7 w-7 rounded-[var(--radius-md)] flex items-center justify-center"
+                  style={{ background: "var(--primary-light)" }}
+                >
+                  <BarChart3 className="h-3.5 w-3.5" style={{ color: "var(--primary)" }} />
+                </div>
+                <h2 className="text-[14.5px] font-semibold text-[var(--foreground)]">
+                  Occupancy Pacing
+                </h2>
+              </div>
+              <p className="text-[11.5px] text-[var(--foreground-muted)]">
+                Daily occupancy rate &amp; capacity utilization
               </p>
             </div>
             <Link
               href="/rooms"
-              className="text-[12px] font-medium text-[var(--primary)] hover:underline flex items-center gap-1"
+              className="flex items-center gap-1 text-[11.5px] font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors shrink-0"
             >
-              Room Setup <ArrowUpRight className="h-3.5 w-3.5" />
+              Room Setup
+              <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
+          {/* Tabs */}
           <div className="mb-4">
             <Tabs
               tabs={occupancyTabs}
@@ -179,16 +198,24 @@ export function RevenueOccupancyOverview({
 
           {occupancyTab === "today" && (
             <div>
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-[var(--radius-md)] bg-[var(--surface-elevated)] border border-[var(--border)] mb-4">
+              {/* KPI mini strip */}
+              <div
+                className="grid grid-cols-2 gap-3 p-3.5 rounded-[var(--radius-lg)] border mb-4"
+                style={{ background: "var(--muted)", borderColor: "var(--card-border)" }}
+              >
                 <div>
-                  <span className="text-[11px] text-[var(--foreground-muted)]">Occupancy Rate</span>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-subtle)]">
+                    Occupancy Rate
+                  </span>
+                  <p className="text-[13px] font-bold text-[var(--foreground)] mt-1">
                     {formatPercentage(metrics?.occupancyRate || 0)}
                   </p>
                 </div>
                 <div>
-                  <span className="text-[11px] text-[var(--foreground-muted)]">Inventory Configured</span>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-subtle)]">
+                    Total Inventory
+                  </span>
+                  <p className="text-[13px] font-bold text-[var(--foreground)] mt-1">
                     {isConfigured ? `${metrics?.totalRooms} Rooms` : "0 Rooms"}
                   </p>
                 </div>
@@ -202,19 +229,17 @@ export function RevenueOccupancyOverview({
                   description="Add physical room inventory to start measuring occupancy rates, ADR, and RevPAR."
                   action={{
                     label: "Set up rooms",
-                    onClick: () => {
-                      router.push("/rooms");
-                    },
+                    onClick: () => router.push("/rooms"),
                   }}
-                  className="py-6 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)] bg-[var(--surface-elevated)]/50"
+                  className="py-6 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)]"
                 />
               ) : (
                 <EmptyState
                   size="sm"
                   icon={<BarChart3 className="h-7 w-7 text-[var(--foreground-subtle)]" />}
                   title="No active reservations for today"
-                  description="Occupancy calculation is live. Add guest reservations to view room distribution."
-                  className="py-6 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)] bg-[var(--surface-elevated)]/50"
+                  description="Occupancy calculation is live. Add reservations to view room distribution."
+                  className="py-6 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)]"
                 />
               )}
             </div>
@@ -226,7 +251,7 @@ export function RevenueOccupancyOverview({
               icon={<BarChart3 className="h-7 w-7 text-[var(--foreground-subtle)]" />}
               title="7-day forecast unavailable"
               description="Forward-looking reservation pace requires active bookings in the system."
-              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)] bg-[var(--surface-elevated)]/50"
+              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)]"
             />
           )}
 
@@ -235,8 +260,8 @@ export function RevenueOccupancyOverview({
               size="sm"
               icon={<BarChart3 className="h-7 w-7 text-[var(--foreground-subtle)]" />}
               title="30-day forecast unavailable"
-              description="Month-ahead occupancy forecasting activates once booking inventory is populated."
-              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)] bg-[var(--surface-elevated)]/50"
+              description="Month-ahead forecasting activates once booking inventory is populated."
+              className="py-10 border border-dashed border-[var(--border)] rounded-[var(--radius-lg)]"
             />
           )}
         </div>

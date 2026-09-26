@@ -6,12 +6,23 @@ import {
   Search, 
   RotateCcw, 
   Clock, 
-  Eye
+  Eye,
+  Sparkles,
+  Wrench,
+  Utensils,
+  BedDouble,
+  Car,
+  Shirt,
+  BellRing,
+  Inbox,
+  CheckCircle2,
+  AlertTriangle
 } from "lucide-react";
 import { StaffGuestServiceRequest, ServiceRequestStatus } from "@/lib/guest-services/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { KPIWidget } from "@/components/hotel/hotel-cards";
 import { AssignRequestModal } from "./assign-request-modal";
 import { StatusActionModal, StatusActionType } from "./status-action-modal";
 
@@ -71,66 +82,96 @@ export function GuestRequestsBoard({
   const getPriorityBadge = (p: string) => {
     switch (p) {
       case "URGENT":
-        return <Badge variant="danger" className="font-bold">URGENT</Badge>;
+        return <Badge variant="danger" className="font-black animate-pulse">URGENT</Badge>;
       case "HIGH":
-        return <Badge variant="warning" className="font-semibold">HIGH</Badge>;
+        return <Badge variant="warning" className="font-bold">HIGH</Badge>;
       case "LOW":
-        return <Badge variant="default">LOW</Badge>;
+        return <Badge variant="default" className="text-slate-500">LOW</Badge>;
       default:
-        return <Badge variant="info">MEDIUM</Badge>;
+        return <Badge variant="info">NORMAL</Badge>;
     }
   };
 
   const getStatusBadge = (s: ServiceRequestStatus) => {
     switch (s) {
       case "COMPLETED":
-        return <Badge variant="success">COMPLETED</Badge>;
+        return <Badge variant="success" className="font-bold">COMPLETED</Badge>;
       case "IN_PROGRESS":
-        return <Badge variant="info">IN PROGRESS</Badge>;
+        return <Badge variant="info" className="font-bold">IN PROGRESS</Badge>;
       case "ASSIGNED":
         return <Badge variant="info">ASSIGNED</Badge>;
       case "ACKNOWLEDGED":
-        return <Badge variant="warning">ACKNOWLEDGED</Badge>;
+        return <Badge variant="warning" className="font-bold">ACKNOWLEDGED</Badge>;
       case "CANCELLED":
       case "REJECTED":
         return <Badge variant="danger">{s}</Badge>;
       default:
-        return <Badge variant="pending">SUBMITTED</Badge>;
+        return <Badge variant="pending" className="font-bold text-amber-500">SUBMITTED</Badge>;
+    }
+  };
+
+  const getCategoryIcon = (cat: string) => {
+    switch (cat?.toUpperCase()) {
+      case "HOUSEKEEPING":
+        return <Sparkles className="w-3.5 h-3.5 text-emerald-500" />;
+      case "MAINTENANCE":
+        return <Wrench className="w-3.5 h-3.5 text-blue-500" />;
+      case "ROOM_SERVICE":
+      case "FOOD":
+        return <Utensils className="w-3.5 h-3.5 text-amber-500" />;
+      case "LAUNDRY":
+        return <Shirt className="w-3.5 h-3.5 text-cyan-500" />;
+      case "TRANSPORT":
+        return <Car className="w-3.5 h-3.5 text-indigo-500" />;
+      default:
+        return <BellRing className="w-3.5 h-3.5 text-violet-500" />;
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* 1. KPI Cards */}
+      {/* 1. Canonical KPI Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-card border shadow-sm space-y-1">
-          <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Total Requests</p>
-          <p className="text-2xl font-black">{total}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-card border border-amber-500/20 shadow-sm space-y-1">
-          <p className="text-xs text-amber-500 uppercase font-bold tracking-wider">New / Submitted</p>
-          <p className="text-2xl font-black text-amber-500">{submitted}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-card border border-blue-500/20 shadow-sm space-y-1">
-          <p className="text-xs text-blue-500 uppercase font-bold tracking-wider">Active / In-Progress</p>
-          <p className="text-2xl font-black text-blue-500">{inProgress}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-card border border-emerald-500/20 shadow-sm space-y-1">
-          <p className="text-xs text-emerald-500 uppercase font-bold tracking-wider">Completed Today</p>
-          <p className="text-2xl font-black text-emerald-500">{completed}</p>
-        </div>
+        <KPIWidget
+          title="Total Requests"
+          value={total}
+          trendLabel="Hotel-wide logs"
+          color="primary"
+          icon={<Inbox className="w-4 h-4 text-primary" />}
+        />
+        <KPIWidget
+          title="New / Submitted"
+          value={submitted}
+          trendLabel={submitted > 0 ? "Requires triage" : "Acknowledged"}
+          color="warning"
+          icon={<AlertTriangle className="w-4 h-4 text-amber-500" />}
+        />
+        <KPIWidget
+          title="Active / In-Progress"
+          value={inProgress}
+          trendLabel="In operational dispatch"
+          color="info"
+          icon={<Clock className="w-4 h-4 text-blue-500" />}
+        />
+        <KPIWidget
+          title="Completed Today"
+          value={completed}
+          trendLabel="Resolved"
+          color="success"
+          icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+        />
       </div>
 
-      {/* 2. Filter Bar */}
-      <div className="p-4 rounded-xl bg-card border shadow-sm space-y-3">
+      {/* 2. Filter Bar in stayhub-card */}
+      <div className="stayhub-card p-4 space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search room, guest name, title..."
-              className="pl-9"
+              className="pl-9 bg-background/50 h-10 border-border/80 rounded-xl"
             />
           </div>
 
@@ -138,7 +179,7 @@ export function GuestRequestsBoard({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="h-10 px-3 rounded-lg border border-[var(--border)] bg-card text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+              className="h-10 px-3.5 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-foreground transition"
             >
               <option value="ALL">All Categories</option>
               <option value="HOUSEKEEPING">Housekeeping</option>
@@ -155,7 +196,7 @@ export function GuestRequestsBoard({
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="h-10 px-3 rounded-lg border border-[var(--border)] bg-card text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+              className="h-10 px-3.5 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-foreground transition"
             >
               <option value="ALL">All Statuses</option>
               <option value="SUBMITTED">Submitted</option>
@@ -170,7 +211,7 @@ export function GuestRequestsBoard({
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="h-10 px-3 rounded-lg border border-[var(--border)] bg-card text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-[var(--foreground)]"
+              className="h-10 px-3.5 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-foreground transition"
             >
               <option value="ALL">All Priorities</option>
               <option value="URGENT">Urgent</option>
@@ -179,82 +220,96 @@ export function GuestRequestsBoard({
               <option value="LOW">Low</option>
             </select>
 
-            <Button variant="outline" size="icon" onClick={onRefresh} title="Refresh Requests">
+            <Button variant="outline" size="icon" onClick={onRefresh} title="Refresh Requests" className="h-10 w-10 rounded-xl">
               <RotateCcw className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* 3. Requests Table */}
+      {/* 3. Requests Table in stayhub-card */}
       {filtered.length === 0 ? (
-        <div className="p-12 text-center rounded-xl bg-card border border-dashed space-y-2">
-          <Clock className="w-8 h-8 text-muted-foreground mx-auto" />
-          <h3 className="text-sm font-bold">No guest requests match your filters</h3>
-          <p className="text-xs text-muted-foreground">Try clearing filters or search terms.</p>
+        <div className="stayhub-card p-12 text-center border-dashed space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+            <Clock className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-foreground">No guest requests match your filters</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Try adjusting your search criteria or clearing department filters to view active hotel tickets.
+          </p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <div className="stayhub-card p-0 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-muted/50 border-b text-muted-foreground uppercase font-bold tracking-wider">
+              <thead className="bg-[#0B1528]/5 dark:bg-white/5 border-b border-border text-muted-foreground uppercase font-bold tracking-wider text-[10px]">
                 <tr>
-                  <th className="py-3 px-4">Room</th>
-                  <th className="py-3 px-4">Guest</th>
-                  <th className="py-3 px-4">Category / Type</th>
-                  <th className="py-3 px-4">Request Title & Note</th>
-                  <th className="py-3 px-4">Priority</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Assigned To</th>
-                  <th className="py-3 px-4">Time</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3.5 px-4">Room</th>
+                  <th className="py-3.5 px-4">Guest</th>
+                  <th className="py-3.5 px-4">Category / Type</th>
+                  <th className="py-3.5 px-4">Request Title & Note</th>
+                  <th className="py-3.5 px-4">Priority</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Assigned To</th>
+                  <th className="py-3.5 px-4">Time</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-border/60">
                 {filtered.map((r) => (
-                  <tr key={r.id} className="hover:bg-muted/30 transition">
-                    <td className="py-3 px-4 font-bold text-foreground whitespace-nowrap">
-                      Room {r.room?.room_number || "—"}
+                  <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-3.5 px-4 font-black whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 text-xs">
+                        <BedDouble className="w-3.5 h-3.5" />
+                        Room {r.room?.room_number || "—"}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      {r.guest?.first_name} {r.guest?.last_name}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="space-y-0.5">
-                        <span className="font-semibold text-foreground block">{r.category}</span>
-                        <span className="text-[10px] text-muted-foreground">{r.request_type}</span>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="font-semibold text-foreground">
+                        {r.guest?.first_name} {r.guest?.last_name}
                       </div>
                     </td>
-                    <td className="py-3 px-4 max-w-xs">
-                      <p className="font-semibold text-foreground line-clamp-1">{r.title}</p>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <div className="p-1 rounded bg-muted/60">
+                          {getCategoryIcon(r.category)}
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="font-semibold text-foreground block text-xs">{r.category}</span>
+                          <span className="text-[10px] text-muted-foreground block">{r.request_type}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 max-w-xs">
+                      <p className="font-bold text-foreground text-xs line-clamp-1">{r.title}</p>
                       {r.description && (
-                        <p className="text-[11px] text-muted-foreground line-clamp-1">{r.description}</p>
+                        <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">{r.description}</p>
                       )}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {getPriorityBadge(r.priority)}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {getStatusBadge(r.status)}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {r.assigned_staff ? (
-                        <span className="font-medium">{r.assigned_staff.full_name}</span>
+                        <span className="font-medium text-foreground">{r.assigned_staff.full_name}</span>
                       ) : r.assigned_department ? (
-                        <span className="text-muted-foreground italic">Dept: {r.assigned_department}</span>
+                        <span className="text-muted-foreground italic text-xs">Dept: {r.assigned_department}</span>
                       ) : (
-                        <span className="text-muted-foreground italic">Unassigned</span>
+                        <span className="text-muted-foreground/80 italic text-xs">Unassigned</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap text-muted-foreground">
+                    <td className="py-3.5 px-4 whitespace-nowrap text-muted-foreground font-mono text-[11px]">
                       {new Date(r.requested_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </td>
-                    <td className="py-3 px-4 text-right whitespace-nowrap space-x-1">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-1.5">
                       {r.status === "SUBMITTED" && (
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/30"
+                          className="h-7 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/30 font-bold"
                           onClick={() => setActionTarget({ request: r, type: "ACKNOWLEDGE" })}
                         >
                           Acknowledge
@@ -265,7 +320,7 @@ export function GuestRequestsBoard({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 text-xs"
+                          className="h-7 text-xs font-semibold"
                           onClick={() => setAssignTarget(r)}
                         >
                           Assign
@@ -276,7 +331,7 @@ export function GuestRequestsBoard({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border-blue-500/30"
+                          className="h-7 text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border-blue-500/30 font-semibold"
                           onClick={() => setActionTarget({ request: r, type: "START" })}
                         >
                           Start
@@ -287,7 +342,7 @@ export function GuestRequestsBoard({
                         <Button
                           size="sm"
                           variant="success"
-                          className="h-7 text-xs"
+                          className="h-7 text-xs font-bold"
                           onClick={() => setActionTarget({ request: r, type: "COMPLETE" })}
                         >
                           Complete
@@ -295,8 +350,8 @@ export function GuestRequestsBoard({
                       )}
 
                       <Link href={`/guest-requests/${r.id}`}>
-                        <Button size="sm" variant="ghost" className="h-7 text-xs">
-                          <Eye className="w-3.5 h-3.5" />
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="View Dossier">
+                          <Eye className="w-3.5 h-3.5 text-muted-foreground" />
                         </Button>
                       </Link>
                     </td>

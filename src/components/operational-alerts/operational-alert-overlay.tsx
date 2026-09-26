@@ -109,30 +109,35 @@ export function OperationalAlertOverlay() {
       <aside aria-label="Operational Alert Badge" className="fixed bottom-6 right-6 z-50 animate-bounce">
         <button
           onClick={() => setIsModalMinimized(false)}
-          className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border transition-all ${
+          className={`flex items-center gap-3.5 px-5 py-3.5 rounded-2xl shadow-2xl border transition-all ${
             isUrgent
-              ? "bg-rose-950 text-white border-rose-500 animate-pulse ring-4 ring-rose-500/30"
+              ? "bg-[#1A0A0E] text-white border-rose-500/80 ring-4 ring-rose-500/20 shadow-rose-950/60"
               : isHigh
-              ? "bg-amber-950 text-white border-amber-500 ring-4 ring-amber-500/30"
-              : "bg-slate-900 text-white border-slate-700"
+              ? "bg-[#181206] text-white border-[#D4AF37]/80 ring-4 ring-[#D4AF37]/20 shadow-amber-950/60"
+              : "bg-[#08111F] text-white border-white/20 shadow-black/60"
           }`}
         >
           <div className="relative">
-            <BellRing className={`w-5 h-5 ${isBuzzing ? "text-amber-400 animate-spin" : "text-slate-300"}`} />
-            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+            <div className={`p-2 rounded-xl ${isUrgent ? "bg-rose-500/20" : isHigh ? "bg-[#D4AF37]/20" : "bg-primary/20"}`}>
+              <BellRing className={`w-5 h-5 ${isBuzzing ? "text-[#E5C158] animate-spin" : isUrgent ? "text-rose-400" : "text-[#E5C158]"}`} />
+            </div>
+            <span className="absolute -top-1 -right-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500 ring-2 ring-black"></span>
             </span>
           </div>
           <div className="text-left">
-            <p className="text-xs font-black uppercase tracking-wider">
-              {alerts.length} New Request{alerts.length > 1 ? "s" : ""}
-            </p>
-            <p className="text-[10px] text-slate-300 font-mono">
-              Room {currentAlert.roomNumber} • Click to open
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+              <p className="text-xs font-black uppercase tracking-wider text-white">
+                {alerts.length} New Request{alerts.length > 1 ? "s" : ""}
+              </p>
+            </div>
+            <p className="text-[11px] text-slate-300 font-mono mt-0.5">
+              Room {currentAlert.roomNumber} • Expand Alert
             </p>
           </div>
-          <Maximize2 className="w-4 h-4 text-slate-400 ml-1" />
+          <Maximize2 className="w-4 h-4 text-slate-400 ml-1.5" />
         </button>
       </aside>
     );
@@ -144,49 +149,52 @@ export function OperationalAlertOverlay() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="operational-alert-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
     >
       <div
-        className={`w-full max-w-lg rounded-3xl overflow-hidden border shadow-2xl transition-all ${
+        className={`w-full max-w-lg rounded-3xl overflow-hidden border shadow-2xl transition-all relative ${
           isUrgent
-            ? "border-rose-500/60 bg-gradient-to-b from-rose-950/90 via-slate-900 to-slate-950 ring-4 ring-rose-500/30"
+            ? "border-rose-500/60 bg-gradient-to-b from-[#1C0B12] via-[#0A101D] to-[#050B14] ring-2 ring-rose-500/30 shadow-rose-950/50"
             : isHigh
-            ? "border-amber-500/50 bg-gradient-to-b from-amber-950/80 via-slate-900 to-slate-950 ring-2 ring-amber-500/20"
-            : "border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950"
+            ? "border-[#D4AF37]/60 bg-gradient-to-b from-[#1C1608] via-[#0A101D] to-[#050B14] ring-2 ring-[#D4AF37]/30 shadow-amber-950/50"
+            : "border-white/20 bg-gradient-to-b from-[#08111F] via-[#0D172E] to-[#050B14] shadow-black/80"
         }`}
       >
+        {/* Glow ambient background */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
+
         {/* Top Header Bar */}
-        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        <div className="relative px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+          <div className="flex items-center gap-3">
             <div
-              className={`p-2 rounded-xl ${
+              className={`p-2.5 rounded-xl border ${
                 isUrgent
-                  ? "bg-rose-500/20 text-rose-400 animate-pulse"
+                  ? "bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse"
                   : isHigh
-                  ? "bg-amber-500/20 text-amber-400"
-                  : "bg-primary/20 text-primary"
+                  ? "bg-[#D4AF37]/20 text-[#E5C158] border-[#D4AF37]/40"
+                  : "bg-primary/20 text-primary border-primary/30"
               }`}
             >
-              <BellRing className={`w-5 h-5 ${isBuzzing ? "animate-wiggle" : ""}`} />
+              <BellRing className={`w-5 h-5 ${isBuzzing ? "animate-bounce" : ""}`} />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black uppercase tracking-wider text-white" id="operational-alert-title">
-                  New Operational Alert
+                  Operational Command Alert
                 </span>
                 <span
-                  className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
+                  className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                     isUrgent
-                      ? "bg-rose-500 text-white animate-pulse"
+                      ? "bg-rose-600 text-white animate-pulse shadow-sm shadow-rose-900"
                       : isHigh
-                      ? "bg-amber-500 text-slate-950 font-bold"
-                      : "bg-slate-800 text-slate-300"
+                      ? "bg-[#D4AF37] text-slate-950 font-bold shadow-sm shadow-amber-900"
+                      : "bg-slate-800 text-slate-200 border border-white/10"
                   }`}
                 >
                   {currentAlert.priority}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-mono">
+              <p className="text-[11px] text-slate-300 font-mono mt-0.5">
                 {currentAlert.department} • Received {formatElapsed(elapsedSeconds)}
               </p>
             </div>
@@ -200,12 +208,12 @@ export function OperationalAlertOverlay() {
                 setSoundEnabled(!soundEnabled);
               }}
               title={soundEnabled ? "Mute buzzer" : "Unmute buzzer"}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition"
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition"
             >
               {soundEnabled ? (
                 <Volume2 className="w-4 h-4 text-emerald-400" />
               ) : (
-                <VolumeX className="w-4 h-4 text-slate-500" />
+                <VolumeX className="w-4 h-4 text-slate-400" />
               )}
             </button>
 
@@ -213,7 +221,7 @@ export function OperationalAlertOverlay() {
             <button
               onClick={() => setIsModalMinimized(true)}
               title="Minimize alert"
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition"
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition"
             >
               <Minimize2 className="w-4 h-4" />
             </button>
@@ -227,35 +235,35 @@ export function OperationalAlertOverlay() {
               void unlockAudio();
               if (!soundEnabled) setSoundEnabled(true);
             }}
-            className="w-full px-4 py-2.5 bg-rose-500/20 hover:bg-rose-500/30 border-b border-rose-500/30 text-rose-300 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition animate-pulse"
+            className="w-full px-4 py-2.5 bg-rose-500/25 hover:bg-rose-500/35 border-b border-rose-500/40 text-rose-200 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition animate-pulse"
           >
-            <Volume2 className="w-4 h-4 animate-bounce" />
-            <span>⚠️ BROWSER AUDIO MUTED — CLICK HERE TO ACTIVATE LOUD EMERGENCY BUZZER</span>
+            <Volume2 className="w-4 h-4" />
+            <span>⚠️ BROWSER AUDIO MUTED — CLICK TO ACTIVATE EMERGENCY BUZZER</span>
           </button>
         )}
 
         {/* Multi-Request Queue Pagination */}
         {alerts.length > 1 && (
-          <div className="px-6 py-2 bg-black/30 border-b border-white/5 flex items-center justify-between text-xs">
-            <span className="font-bold text-amber-400 flex items-center gap-1.5">
+          <div className="px-6 py-2.5 bg-black/40 border-b border-white/10 flex items-center justify-between text-xs">
+            <span className="font-bold text-[#E5C158] flex items-center gap-2 text-[11px] tracking-wide">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
               {alerts.length} UNACKNOWLEDGED REQUESTS IN QUEUE
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 disabled={currentIndex === 0}
                 onClick={() => setRawIndex((prev) => Math.max(0, prev - 1))}
-                className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="text-[11px] font-mono text-slate-400 px-1">
+              <span className="text-[11px] font-mono font-bold text-slate-300 px-1.5">
                 {currentIndex + 1} / {alerts.length}
               </span>
               <button
                 disabled={currentIndex === alerts.length - 1}
                 onClick={() => setRawIndex((prev) => Math.min(alerts.length - 1, prev + 1))}
-                className="p-1 rounded text-slate-400 hover:text-white disabled:opacity-30"
+                className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -264,18 +272,18 @@ export function OperationalAlertOverlay() {
         )}
 
         {/* Alert Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 relative">
           {/* Room Number Hero Card */}
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/15 flex items-center justify-between backdrop-blur-sm shadow-inner">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 flex items-center justify-center shadow-md">
                 {getCategoryIcon(currentAlert.category)}
               </div>
               <div>
                 <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
                   Guest Destination
                 </p>
-                <p className="text-xl font-black text-white tracking-tight">
+                <p className="text-2xl font-black text-white tracking-tight">
                   ROOM {currentAlert.roomNumber}
                 </p>
               </div>
@@ -283,9 +291,9 @@ export function OperationalAlertOverlay() {
 
             <div className="text-right">
               <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                Guest Name
+                Registered Guest
               </p>
-              <p className="text-sm font-bold text-amber-400">
+              <p className="text-sm font-bold text-[#E5C158]">
                 {currentAlert.guestName}
               </p>
             </div>
@@ -295,17 +303,17 @@ export function OperationalAlertOverlay() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">
-                Request Details
+                Request Summary
               </span>
-              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-white/10 text-slate-200 border border-white/10">
                 {currentAlert.category}
               </span>
             </div>
-            <h3 className="text-lg font-black text-white leading-snug">
+            <h3 className="text-xl font-black text-white leading-snug">
               {currentAlert.title}
             </h3>
             {currentAlert.description && (
-              <p className="text-xs text-slate-300 leading-relaxed bg-black/20 p-3 rounded-xl border border-white/5">
+              <p className="text-xs text-slate-300 leading-relaxed bg-black/40 p-3.5 rounded-xl border border-white/10 font-medium">
                 {currentAlert.description}
               </p>
             )}
@@ -313,11 +321,11 @@ export function OperationalAlertOverlay() {
 
           {/* Browser Audio Warning if Audio Context is Locked */}
           {!audioUnlocked && soundEnabled && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-300">
+            <div className="p-3 rounded-xl bg-[#D4AF37]/15 border border-[#D4AF37]/30 flex items-center justify-between text-xs text-[#E5C158]">
               <span>🔔 Click to unlock audible buzzer tones for this device</span>
               <button
                 onClick={() => void unlockAudio()}
-                className="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition"
+                className="px-3 py-1 rounded-lg bg-[#D4AF37] text-slate-950 font-bold hover:bg-[#E5C158] transition"
               >
                 Enable Sound
               </button>
@@ -326,18 +334,18 @@ export function OperationalAlertOverlay() {
         </div>
 
         {/* Modal Action Footer */}
-        <div className="p-6 pt-0 flex items-center gap-3">
+        <div className="p-6 pt-0 flex items-center gap-3 relative">
           <button
             disabled={isSubmitting}
             onClick={handleAcknowledge}
-            className="flex-1 py-3.5 px-6 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-amber-500/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#E5C158] hover:from-[#E5C158] hover:to-[#F3D77B] text-[#08111F] font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-[#D4AF37]/25 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <span>Acknowledge Request</span>
           </button>
 
           <button
             onClick={handleView}
-            className="py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/10 flex items-center gap-1.5"
+            className="py-3.5 px-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/15 flex items-center gap-1.5"
           >
             <span>View Queue</span>
             <ArrowRight className="w-3.5 h-3.5" />

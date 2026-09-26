@@ -119,28 +119,58 @@ export default function WorkOrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Back Link & Header */}
-      <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)]">
-        <Link
-          href="/maintenance"
-          className="flex items-center gap-1 hover:text-[var(--foreground)] transition-colors"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Maintenance Board
-        </Link>
-      </div>
+      {/* ── LUXURY DOSSIER HERO ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%)" }}
+        />
 
-      <PageHeader
-        title={workOrder.title}
-        description={`Work Order ID: ${workOrder.id.slice(0, 8)} • Reported on ${new Date(
-          workOrder.reported_at
-        ).toLocaleString()}`}
-        breadcrumbs={[
-          { label: "Operations", href: "/maintenance" },
-          { label: "Maintenance", href: "/maintenance" },
-          { label: `WO-${workOrder.id.slice(0, 6)}` },
-        ]}
-      />
+        <div className="relative z-10 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Link
+              href="/maintenance"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white transition"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Maintenance Board</span>
+            </Link>
+
+            <span className="font-mono text-xs text-slate-400">
+              ID: {workOrder.id}
+            </span>
+          </div>
+
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div>
+              <div
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-2"
+                style={{
+                  color: "var(--brand-gold)",
+                  borderColor: "rgba(214,168,90,0.25)",
+                  background: "rgba(214,168,90,0.08)",
+                }}
+              >
+                <span>WO-{workOrder.id.slice(0, 8).toUpperCase()}</span>
+                {workOrder.room && <span>• Room {workOrder.room.room_number}</span>}
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-heading">
+                {workOrder.title}
+              </h1>
+              <p className="text-xs text-slate-300/80 mt-1 font-mono">
+                Reported {new Date(workOrder.reported_at).toLocaleString()}
+                {workOrder.reporter && ` by ${workOrder.reporter.full_name}`}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Client Interactive Actions & Console */}
       <WorkOrderDetailClient

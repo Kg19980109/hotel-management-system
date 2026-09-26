@@ -4,9 +4,9 @@ import * as React from "react";
 import Link from "next/link";
 import type { Room } from "@/lib/rooms/types";
 import { formatCurrency } from "@/lib/dashboard/formatters";
-import { OperationalStatusBadge, HousekeepingStatusBadge } from "./room-status-badge";
-import { Button } from "@/components/ui/button";
-import { BedDouble, Users, MapPin, SlidersHorizontal, Edit, ArrowRight } from "lucide-react";
+import { HousekeepingStatusBadge } from "./room-status-badge";
+import { BedDouble, Users, MapPin, SlidersHorizontal, Edit, ArrowRight, ShieldCheck, Sparkles, AlertTriangle, Wrench } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RoomCardGridProps {
   rooms: Room[];
@@ -16,54 +16,44 @@ interface RoomCardGridProps {
 
 const STATUS_CONFIG = {
   AVAILABLE: {
-    gradient: "from-emerald-500 to-teal-500",
-    lightBg: "bg-emerald-50",
-    dot: "bg-emerald-500",
-    text: "text-emerald-700",
-    border: "border-emerald-200",
+    accent: "var(--success)",
+    bg: "var(--success-light)",
+    fg: "var(--success-foreground)",
     label: "Available",
     pulse: true,
-    cardClass: "room-card-available",
+    icon: ShieldCheck,
   },
   OCCUPIED: {
-    gradient: "from-violet-600 to-purple-600",
-    lightBg: "bg-violet-50",
-    dot: "bg-violet-600",
-    text: "text-violet-700",
-    border: "border-violet-200",
+    accent: "var(--purple)",
+    bg: "var(--purple-light)",
+    fg: "var(--purple-foreground)",
     label: "Occupied",
     pulse: true,
-    cardClass: "room-card-occupied",
+    icon: BedDouble,
   },
   DIRTY: {
-    gradient: "from-amber-500 to-orange-500",
-    lightBg: "bg-amber-50",
-    dot: "bg-amber-500",
-    text: "text-amber-700",
-    border: "border-amber-200",
-    label: "Needs Cleaning",
+    accent: "var(--warning)",
+    bg: "var(--warning-light)",
+    fg: "var(--warning-foreground)",
+    label: "Cleaning",
     pulse: false,
-    cardClass: "room-card-dirty",
+    icon: Sparkles,
   },
   OUT_OF_ORDER: {
-    gradient: "from-red-500 to-rose-600",
-    lightBg: "bg-red-50",
-    dot: "bg-red-500",
-    text: "text-red-700",
-    border: "border-red-200",
+    accent: "var(--danger)",
+    bg: "var(--danger-light)",
+    fg: "var(--danger-foreground)",
     label: "Out of Order",
     pulse: false,
-    cardClass: "room-card-maintenance",
+    icon: AlertTriangle,
   },
   MAINTENANCE: {
-    gradient: "from-red-500 to-rose-600",
-    lightBg: "bg-red-50",
-    dot: "bg-red-500",
-    text: "text-red-700",
-    border: "border-red-200",
+    accent: "var(--danger)",
+    bg: "var(--danger-light)",
+    fg: "var(--danger-foreground)",
     label: "Maintenance",
     pulse: false,
-    cardClass: "room-card-maintenance",
+    icon: Wrench,
   },
 } as const;
 
@@ -81,6 +71,7 @@ export function RoomCardGrid({
           ? (room.status as StatusKey)
           : "AVAILABLE";
         const cfg = STATUS_CONFIG[statusKey];
+        const StatusIcon = cfg.icon;
         const typeName = room.room_type?.name || "Standard Room";
         const floorName = room.floor?.name || "Ground Floor";
         const rate = room.room_type?.base_rate || 0;
@@ -89,96 +80,146 @@ export function RoomCardGrid({
         return (
           <div
             key={room.id}
-            className={`group relative flex flex-col overflow-hidden rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-250 ${cfg.cardClass} ${!room.is_active ? "opacity-55" : ""}`}
+            className={cn(
+              "stayhub-card hover-lift group relative flex flex-col overflow-hidden",
+              !room.is_active && "opacity-60"
+            )}
           >
-            {/* Top color banner with room number */}
-            <div className={`relative h-20 bg-gradient-to-br ${cfg.gradient} flex items-center justify-between px-4 overflow-hidden shrink-0`}>
-              {/* Decorative circles */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full" />
-              <div className="absolute top-6 right-8 w-10 h-10 bg-white/10 rounded-full" />
+            {/* Top accent line */}
+            <div
+              className="absolute top-0 left-0 right-0 h-[3px]"
+              style={{ background: cfg.accent }}
+            />
 
-              {/* Room number */}
-              <div>
-                <span className="text-white/70 text-[10px] font-bold uppercase tracking-widest block">Room</span>
-                <span className="text-white font-black text-2xl tracking-tight leading-none">{room.room_number}</span>
+            {/* Room Header Banner with Midnight Surface */}
+            <div
+              className="relative p-4 flex items-center justify-between overflow-hidden shrink-0 border-b border-[var(--border)]"
+              style={{
+                background: "linear-gradient(145deg, #08111F 0%, #0D1830 100%)",
+              }}
+            >
+              {/* Decorative subtle ambient circle */}
+              <div
+                className="absolute -top-6 -right-6 w-20 h-20 rounded-full pointer-events-none opacity-20"
+                style={{ background: cfg.accent }}
+              />
+
+              {/* Room Identifier */}
+              <div className="relative z-10">
+                <span className="text-white/50 text-[10px] font-bold uppercase tracking-[0.14em] block">
+                  Room
+                </span>
+                <span className="text-white font-bold text-2xl tracking-tight leading-none">
+                  {room.room_number}
+                </span>
                 {room.room_name && (
-                  <span className="text-white/70 text-[10px] italic block mt-0.5 font-serif truncate max-w-[100px]">{room.room_name}</span>
+                  <span className="text-[var(--brand-gold)] text-[11px] font-medium italic block mt-0.5 truncate max-w-[120px]">
+                    {room.room_name}
+                  </span>
                 )}
               </div>
 
-              {/* Live status dot */}
-              <div className="flex flex-col items-end gap-1.5">
-                <div className="flex items-center gap-1.5">
+              {/* Status Pill Badge */}
+              <div className="relative z-10 flex flex-col items-end gap-1">
+                <span
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-bold"
+                  style={{
+                    backgroundColor: cfg.bg,
+                    color: cfg.fg,
+                  }}
+                >
                   {cfg.pulse ? (
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-60" />
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+                    <span className="relative flex h-2 w-2">
+                      <span
+                        className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                        style={{ backgroundColor: cfg.accent }}
+                      />
+                      <span
+                        className="relative inline-flex rounded-full h-2 w-2"
+                        style={{ backgroundColor: cfg.accent }}
+                      />
                     </span>
                   ) : (
-                    <span className="h-2.5 w-2.5 rounded-full bg-white/60" />
+                    <StatusIcon className="h-2.5 w-2.5" />
                   )}
-                  <span className="text-white text-[10px] font-bold">{cfg.label}</span>
-                </div>
+                  {cfg.label}
+                </span>
 
                 {!room.is_active && (
-                  <span className="bg-black/30 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="bg-white/10 text-white/70 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                     INACTIVE
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Content area */}
-            <div className="flex flex-col flex-1 p-3.5 gap-3">
-              {/* Type & Floor */}
+            {/* Room Card Body */}
+            <div className="flex flex-col flex-1 p-4 gap-3 bg-white">
+              {/* Type & Floor Meta */}
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <BedDouble className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span className="text-xs font-bold text-slate-800 truncate">{typeName}</span>
+                  <BedDouble className="h-3.5 w-3.5 text-[var(--foreground-muted)] shrink-0" />
+                  <span className="text-xs font-bold text-[var(--foreground)] truncate">
+                    {typeName}
+                  </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                  <span className="text-[11px] text-slate-500 truncate">{floorName}</span>
+                  <MapPin className="h-3 w-3 text-[var(--foreground-subtle)] shrink-0" />
+                  <span className="text-[11px] text-[var(--foreground-muted)] truncate">
+                    {floorName}
+                  </span>
                 </div>
               </div>
 
-              {/* Housekeeping badge */}
-              <div className="flex items-center justify-between">
+              {/* Housekeeping & Capacity */}
+              <div className="flex items-center justify-between pt-1">
                 <HousekeepingStatusBadge status={room.housekeeping_status} />
-                <div className="flex items-center gap-1 text-slate-500">
-                  <Users className="h-3 w-3" />
-                  <span className="text-[10px] font-semibold">{occupancy}</span>
+                <div className="flex items-center gap-1 text-[var(--foreground-muted)] text-[11px] font-medium">
+                  <Users className="h-3 w-3 text-[var(--foreground-subtle)]" />
+                  <span>{occupancy} guests</span>
                 </div>
               </div>
 
-              {/* Rate */}
-              <div className="pt-2.5 border-t border-slate-100">
-                <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-0.5">Nightly Rate</span>
-                <span className="text-sm font-black text-slate-900 font-serif">{formatCurrency(rate, currency)}</span>
-                <span className="text-[10px] text-slate-400 font-normal ml-1">/night</span>
+              {/* Nightly Rate Strip */}
+              <div className="pt-2.5 border-t border-[var(--border)] flex items-baseline justify-between">
+                <span className="text-[10px] uppercase font-bold text-[var(--foreground-subtle)] tracking-wider">
+                  Nightly Rate
+                </span>
+                <div>
+                  <span className="text-sm font-bold text-[var(--foreground)]">
+                    {formatCurrency(rate, currency)}
+                  </span>
+                  <span className="text-[10px] text-[var(--foreground-muted)] ml-0.5">/night</span>
+                </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-1.5 mt-auto">
+              {/* Operational Action Toolbar */}
+              <div className="flex items-center gap-1.5 mt-auto pt-2 border-t border-[var(--border)]">
                 <button
+                  type="button"
                   onClick={() => onOpenStatusModal(room)}
-                  className="flex-1 flex items-center justify-center gap-1 h-8 text-[11px] font-semibold rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 h-7 text-[11px] font-semibold rounded-[var(--radius-md)] bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:bg-[var(--secondary-hover)] transition-colors"
+                  title="Adjust room operational state"
                 >
-                  <SlidersHorizontal className="h-3 w-3" />
+                  <SlidersHorizontal className="h-3 w-3 text-[var(--foreground-muted)]" />
                   Status
                 </button>
                 <Link href={`/rooms/${room.id}`} className="flex-1">
-                  <button className={`w-full flex items-center justify-center gap-1 h-8 text-[11px] font-bold rounded-xl text-white transition-all bg-gradient-to-r ${cfg.gradient} hover:opacity-90 shadow-sm`}>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-center gap-1 h-7 text-[11px] font-bold rounded-[var(--radius-md)] text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors shadow-xs"
+                  >
                     View
                     <ArrowRight className="h-3 w-3" />
                   </button>
                 </Link>
                 <Link href={`/rooms/${room.id}/edit`}>
                   <button
-                    className="h-8 w-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
-                    title="Edit Room"
+                    type="button"
+                    className="h-7 w-7 flex items-center justify-center text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] rounded-[var(--radius-md)] transition-colors"
+                    title="Edit Room Specifications"
                   >
-                    <Edit className="h-3.5 w-3.5" />
+                    <Edit className="h-3 w-3" />
                   </button>
                 </Link>
               </div>

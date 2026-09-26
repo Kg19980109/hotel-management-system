@@ -105,7 +105,7 @@ export async function getStaffGuestServiceRequests(
       updated_by,
       guest:guests(id, first_name, last_name, email, phone),
       room:rooms(id, room_number),
-      stay:stays(id, status, check_in_date, check_out_date),
+      stay:stays(id, status, actual_check_in_at, expected_check_out_date),
       assignee:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
     `
     )
@@ -157,6 +157,8 @@ export async function getStaffGuestServiceRequestDetail(
       priority,
       status,
       requested_at,
+      acknowledged_at,
+      acknowledged_by,
       assigned_to,
       assigned_department,
       started_at,
@@ -170,7 +172,7 @@ export async function getStaffGuestServiceRequestDetail(
       updated_by,
       guest:guests(id, first_name, last_name, email, phone),
       room:rooms(id, room_number),
-      stay:stays(id, status, check_in_date, check_out_date),
+      stay:stays(id, status, actual_check_in_at, expected_check_out_date),
       assignee:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
     `
     )

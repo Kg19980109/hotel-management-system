@@ -64,9 +64,14 @@ export function OperationalAlertOverlay() {
 
   const handleAcknowledge = async () => {
     if (!currentAlert) return;
+    const targetAlert = currentAlert;
     setIsSubmitting(true);
     try {
-      await acknowledgeAlert(currentAlert.id);
+      await acknowledgeAlert(targetAlert.id);
+      // Automatically navigate to the respective department queue so staff can track progress immediately
+      const href = getDepartmentQueueHref(targetAlert.category, targetAlert.id);
+      setIsModalMinimized(true);
+      router.push(href);
     } finally {
       setIsSubmitting(false);
     }

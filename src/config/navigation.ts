@@ -104,6 +104,13 @@ export const navigationConfig: NavGroup[] = [
         matchPaths: ["/maintenance/new"],
         permission: "maintenance.view",
       },
+      {
+        label: "Guest Requests",
+        href: "/guest-requests",
+        icon: Bell,
+        matchPaths: ["/guest-requests"],
+        permission: "guest_services.view",
+      },
     ],
   },
   {

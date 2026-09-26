@@ -33,10 +33,10 @@ async function checkStaffAuth(
 
   const { data: membership } = await supabase
     .from("property_memberships")
-    .select("role:roles(code), is_active")
+    .select("role:roles(code), status")
     .eq("property_id", propertyId)
     .eq("user_id", user.id)
-    .eq("is_active", true)
+    .eq("status", "active")
     .single();
 
   if (!membership || !membership.role) {

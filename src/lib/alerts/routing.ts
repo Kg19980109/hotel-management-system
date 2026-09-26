@@ -104,6 +104,12 @@ export function isRequestRelevantForRole(
  */
 export function getDepartmentQueueHref(category: string, requestId?: string): string {
   const cat = category.toUpperCase();
+  if (requestId) {
+    if (cat === "ROOM_SERVICE" || cat === "FOOD" || cat === "DINING") {
+      return `/restaurant/orders/${requestId}`;
+    }
+    return `/guest-requests/${requestId}`;
+  }
   if (cat === "ROOM_SERVICE" || cat === "FOOD" || cat === "DINING") {
     return "/restaurant/orders";
   }
@@ -112,9 +118,6 @@ export function getDepartmentQueueHref(category: string, requestId?: string): st
   }
   if (cat === "MAINTENANCE") {
     return "/maintenance";
-  }
-  if (requestId) {
-    return `/guest-requests/${requestId}`;
   }
   return "/guest-requests";
 }

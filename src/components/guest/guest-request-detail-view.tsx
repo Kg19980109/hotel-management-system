@@ -10,10 +10,14 @@ import {
   Sparkles, 
   XCircle, 
   AlertCircle,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  UserCheck,
+  Wrench
 } from "lucide-react";
-import { GuestServiceRequestDetail } from "@/lib/guest-services/types";
+import { GuestServiceRequestDetail, ServiceRequestStatus } from "@/lib/guest-services/types";
 import { cancelGuestServiceRequestAction } from "@/lib/guest-services/actions";
+import { createClient } from "@/lib/supabase/client";
 
 interface GuestRequestDetailViewProps {
   request: GuestServiceRequestDetail;
@@ -21,11 +25,47 @@ interface GuestRequestDetailViewProps {
 
 export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps) {
   const router = useRouter();
+  const [currentStatus, setCurrentStatus] = React.useState<ServiceRequestStatus>(request.status);
+  const [guestNotes, setGuestNotes] = React.useState<string | null | undefined>(request.guest_visible_notes);
   const [isCancelling, setIsCancelling] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
+  // Real-time listener for live status updates without browser refresh
+  React.useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`stayhub:guest-request:${request.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "guest_service_requests",
+          filter: `id=eq.${request.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as {
+            status?: ServiceRequestStatus;
+            guest_visible_notes?: string | null;
+          };
+          if (updated.status) {
+            setCurrentStatus(updated.status);
+          }
+          if (updated.guest_visible_notes !== undefined) {
+            setGuestNotes(updated.guest_visible_notes);
+          }
+          router.refresh();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [request.id, router]);
+
   const isCancellable =
-    request.status === "SUBMITTED" || request.status === "ACKNOWLEDGED";
+    currentStatus === "SUBMITTED" || currentStatus === "ACKNOWLEDGED";
 
   const handleCancel = async () => {
     if (!confirm("Are you sure you want to cancel this request?")) return;
@@ -45,8 +85,26 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
       return;
     }
 
+    setCurrentStatus("CANCELLED");
     router.refresh();
   };
+
+  // Determine Stepper Stage: 1 = Submitted, 2 = Acknowledged, 3 = Assigned, 4 = In Progress, 5 = Completed
+  let stage = 1;
+  if (currentStatus === "ACKNOWLEDGED") stage = 2;
+  else if (currentStatus === "ASSIGNED") stage = 3;
+  else if (currentStatus === "IN_PROGRESS") stage = 4;
+  else if (currentStatus === "COMPLETED") stage = 5;
+
+  const isCancelledOrRejected = currentStatus === "CANCELLED" || currentStatus === "REJECTED";
+
+  const stages = [
+    { label: "Submitted", icon: Clock, completed: stage >= 1 },
+    { label: "Acknowledged", icon: Sparkles, completed: stage >= 2 },
+    { label: "Assigned", icon: UserCheck, completed: stage >= 3 },
+    { label: "In Progress", icon: Wrench, completed: stage >= 4 },
+    { label: "Completed", icon: CheckCircle2, completed: stage >= 5 },
+  ];
 
   return (
     <div className="p-4 space-y-5 pb-20">
@@ -65,7 +123,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
       </div>
 
       {/* Hero Status Card */}
-      <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border border-slate-800 shadow-xl space-y-3">
+      <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 border border-slate-800 shadow-xl space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <span className="text-[10px] uppercase font-bold text-slate-400">
@@ -73,8 +131,14 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
             </span>
             <h2 className="text-lg font-black text-white">{request.title}</h2>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-amber-400 border border-slate-700">
-            {request.status}
+          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+            currentStatus === "COMPLETED"
+              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+              : isCancelledOrRejected
+              ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
+              : "bg-amber-500/20 text-amber-400 border-amber-500/30"
+          }`}>
+            {currentStatus}
           </span>
         </div>
 
@@ -82,6 +146,36 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
           <p className="text-xs text-slate-300 pt-1 border-t border-slate-800">
             {request.description}
           </p>
+        )}
+
+        {/* Live Stepper */}
+        {!isCancelledOrRejected && (
+          <div className="grid grid-cols-5 gap-1 pt-3 border-t border-slate-800">
+            {stages.map((st, idx) => {
+              const Icon = st.icon;
+              const isCurrent = stage === idx + 1;
+              return (
+                <div key={st.label} className="flex flex-col items-center text-center space-y-1.5">
+                  <div
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
+                      st.completed
+                        ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20"
+                        : "bg-slate-800 text-slate-500"
+                    } ${isCurrent ? "ring-2 ring-amber-400/50 animate-pulse" : ""}`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <span
+                    className={`text-[8px] sm:text-[9px] font-semibold leading-tight ${
+                      st.completed ? "text-slate-200" : "text-slate-500"
+                    }`}
+                  >
+                    {st.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         )}
 
         <div className="flex items-center gap-2 text-[11px] text-slate-400 pt-1">
@@ -106,10 +200,10 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
       </div>
 
       {/* Guest-Visible Notes from Hotel Staff */}
-      {request.guest_visible_notes && (
+      {guestNotes && (
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-1 text-xs">
           <span className="text-[10px] uppercase font-bold text-amber-400">Message from Hotel Staff</span>
-          <p className="text-slate-200">{request.guest_visible_notes}</p>
+          <p className="text-slate-200">{guestNotes}</p>
         </div>
       )}
 
@@ -123,7 +217,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
         </div>
 
         <div className="space-y-3">
-          {request.events.map((evt, idx) => (
+          {(request.events || []).map((evt, idx) => (
             <div key={evt.id || idx} className="flex items-start gap-3 text-xs">
               <div className="w-2 h-2 rounded-full bg-amber-400 mt-1.5 shrink-0" />
               <div className="space-y-0.5 flex-1">
@@ -149,25 +243,22 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
         </div>
       )}
 
-      {/* Cancel Request Button */}
+      {/* Cancel Action */}
       {isCancellable && (
-        <button
-          onClick={handleCancel}
-          disabled={isCancelling}
-          className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-850 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-[0.99]"
-        >
-          {isCancelling ? (
-            <>
+        <div className="pt-2">
+          <button
+            onClick={handleCancel}
+            disabled={isCancelling}
+            className="w-full py-3 px-4 rounded-xl border border-rose-500/30 text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 font-bold text-xs transition disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {isCancelling ? (
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Cancelling Request...</span>
-            </>
-          ) : (
-            <>
+            ) : (
               <XCircle className="w-4 h-4" />
-              <span>Cancel Request</span>
-            </>
-          )}
-        </button>
+            )}
+            <span>Cancel Request</span>
+          </button>
+        </div>
       )}
     </div>
   );

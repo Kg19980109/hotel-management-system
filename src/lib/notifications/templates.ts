@@ -97,6 +97,15 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Array<Omit<NotificationTemplate, "i
     isActive: true,
   },
   {
+    eventType: "ROOM_SERVICE_ORDER_PLACED",
+    category: "RESTAURANT",
+    channel: "IN_APP",
+    titleTemplate: "New Room Service Order #{{order_number}}",
+    bodyTemplate: "Room {{room_number}} placed an order from {{restaurant_name}} (Total: {{total_amount}}).",
+    variables: ["order_number", "room_number", "restaurant_name", "total_amount"],
+    isActive: true,
+  },
+  {
     eventType: "LOW_INVENTORY_ALERT",
     category: "INVENTORY",
     channel: "IN_APP",

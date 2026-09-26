@@ -825,6 +825,8 @@ Represents guest-initiated service requests submitted via the mobile Guest Porta
 - `assigned_to` (UUID, NULLABLE, FOREIGN KEY references public.profiles(id) ON DELETE SET NULL)
 - `assigned_department` (VARCHAR 50, NULLABLE)
 - `requested_at` (TIMESTAMPTZ, NOT NULL DEFAULT now())
+- `acknowledged_at` (TIMESTAMPTZ, NULLABLE) - **Timestamp when staff acknowledges request**
+- `acknowledged_by` (UUID, NULLABLE, FOREIGN KEY references auth.users(id)) - **Staff member who acknowledged request**
 - `started_at` (TIMESTAMPTZ, NULLABLE)
 - `completed_at` (TIMESTAMPTZ, NULLABLE)
 - `cancelled_at` (TIMESTAMPTZ, NULLABLE)

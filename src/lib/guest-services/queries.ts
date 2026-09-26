@@ -90,6 +90,8 @@ export async function getStaffGuestServiceRequests(
       priority,
       status,
       requested_at,
+      acknowledged_at,
+      acknowledged_by,
       assigned_to,
       assigned_department,
       started_at,

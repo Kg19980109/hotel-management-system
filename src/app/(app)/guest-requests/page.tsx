@@ -66,6 +66,32 @@ export default function GuestRequestsPage() {
     };
   }, [authLoading, activePropertyId, loadData]);
 
+  // Real-time subscription to auto-update board on any request change
+  React.useEffect(() => {
+    if (!activePropertyId) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`stayhub:guest-requests-board:${activePropertyId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "guest_service_requests",
+          filter: `property_id=eq.${activePropertyId}`,
+        },
+        () => {
+          void loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [activePropertyId, loadData]);
+
   if (authLoading || (loading && !requests.length)) {
     return (
       <div className="space-y-6">

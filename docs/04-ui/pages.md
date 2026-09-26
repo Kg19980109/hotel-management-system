@@ -323,6 +323,20 @@ All management routes require an active authenticated session. Unauthenticated a
 
 ---
 
+## 4. Real-Time Operational Alerting & Buzzer System (Phase 23)
+
+- **Persistent Global Alert Layer (`OperationalAlertOverlay`)**:
+  - Embedded directly into `AppShell` to ensure staff receives alerts regardless of which page (`/dashboard`, `/rooms`, `/housekeeping`, `/kitchen`, etc.) is currently active.
+  - Prominent modal and minimized floating corner badge with real-time room number display, request category, guest name, priority styling (`NORMAL`, `HIGH`, `URGENT`), elapsed time counter, and instant one-click `[Acknowledge]` action.
+- **Audio Synthesizer & Sound Controller (`AlertSoundController`)**:
+  - Embedded in the persistent `Topbar`.
+  - Displays real-time sync status (`Connected` / `Syncing...`), pending unacknowledged request count, and Web Audio API tone toggle (Audible / Muted).
+  - Web Audio API harmonic alert tones synthesize directly on-device with zero external MP3 latency and full browser autoplay policy compliance.
+- **Live Guest Stepper Synchronizer (`GuestRequestDetailView` & `GuestOrderDetailView`)**:
+  - Subscribed to Supabase Realtime for instant status advancement (`SUBMITTED` -> `ACKNOWLEDGED` -> `ASSIGNED` -> `IN_PROGRESS` -> `COMPLETED`) on the guest mobile portal without browser reload.
+
+---
+
 ## 3. Page Structure Standard
 
 Every management page adheres to the standard layout:

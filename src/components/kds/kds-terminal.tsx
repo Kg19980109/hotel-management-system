@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
+import { createClient } from "@/lib/supabase/client";
 import {
   KitchenTicket,
   KitchenStation,
@@ -97,15 +98,53 @@ export function KdsTerminal({
     }
   }, [propertyId, restaurantId, selectedStationId]);
 
-  // Polling auto-refresh every 10 seconds for live kitchen updates
+  // Initial load & fallback polling
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
     const timer = setInterval(() => {
       loadData();
-    }, 10000);
+    }, 15000);
     return () => clearInterval(timer);
   }, [loadData]);
+
+  // Real-time Supabase subscription for instant kitchen ticket updates
+  useEffect(() => {
+    if (!propertyId) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`stayhub:kds-terminal:${propertyId}:${restaurantId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "kitchen_tickets",
+          filter: `property_id=eq.${propertyId}`,
+        },
+        () => {
+          void loadData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "restaurant_orders",
+          filter: `property_id=eq.${propertyId}`,
+        },
+        () => {
+          void loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [propertyId, restaurantId, loadData]);
 
   // Handle Item Actions
   const handleStartItem = async (itemId: string) => {

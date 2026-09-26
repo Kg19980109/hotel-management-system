@@ -35,6 +35,7 @@ export interface GuestServiceRequestSummary {
   guest_visible_notes?: string | null;
   requested_at: string;
   started_at?: string | null;
+  acknowledged_at?: string | null;
   completed_at?: string | null;
   cancelled_at?: string | null;
 }
@@ -59,6 +60,7 @@ export interface GuestServiceRequestDetail {
   status: ServiceRequestStatus;
   guest_visible_notes?: string | null;
   requested_at: string;
+  acknowledged_at?: string | null;
   started_at?: string | null;
   completed_at?: string | null;
   cancelled_at?: string | null;
@@ -78,6 +80,8 @@ export interface StaffGuestServiceRequest {
   priority: ServiceRequestPriority;
   status: ServiceRequestStatus;
   requested_at: string;
+  acknowledged_at?: string | null;
+  acknowledged_by?: string | null;
   assigned_to?: string | null;
   assigned_department?: string | null;
   started_at?: string | null;

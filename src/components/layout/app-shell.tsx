@@ -6,6 +6,10 @@ import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { MobileNav } from "./mobile-nav";
 import { ContentContainer } from "@/components/shared/content-container";
+import {
+  OperationalAlertProvider,
+  OperationalAlertOverlay,
+} from "@/components/operational-alerts";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -34,49 +38,54 @@ export function AppShell({ children, contentWidth = "default" }: AppShellProps) 
     : "0px";
 
   return (
-    <div
-      className="min-h-screen bg-[var(--background)] flex flex-col"
-      style={
-        {
-          "--topbar-left-offset": currentSidebarWidth,
-        } as React.CSSProperties
-      }
-    >
-      {/* Desktop Permanent Sidebar */}
-      <Sidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed((prev) => !prev)}
-      />
-
-      {/* Mobile / Tablet Off-canvas Drawer Navigation */}
-      <MobileNav
-        open={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-      />
-
-      {/* Persistent Topbar */}
-      <Topbar
-        sidebarCollapsed={collapsed}
-        onOpenMobileNav={() => setMobileNavOpen(true)}
-      />
-
-      {/* Main Content Area */}
-      <main
-        className={cn(
-          "flex-1 pt-[var(--topbar-height)] transition-[margin-left] duration-300 ease-in-out",
-          isLargeScreen
-            ? collapsed
-              ? "ml-[var(--sidebar-collapsed-width)]"
-              : "ml-[var(--sidebar-width)]"
-            : "ml-0"
-        )}
+    <OperationalAlertProvider>
+      <div
+        className="min-h-screen bg-[var(--background)] flex flex-col"
+        style={
+          {
+            "--topbar-left-offset": currentSidebarWidth,
+          } as React.CSSProperties
+        }
       >
-        <div className="p-4 sm:p-6 lg:p-8">
-          <ContentContainer width={contentWidth}>
-            {children}
-          </ContentContainer>
-        </div>
-      </main>
-    </div>
+        {/* Global Operational Alert Overlay (Buzzer & Modal) */}
+        <OperationalAlertOverlay />
+
+        {/* Desktop Permanent Sidebar */}
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed((prev) => !prev)}
+        />
+
+        {/* Mobile / Tablet Off-canvas Drawer Navigation */}
+        <MobileNav
+          open={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+        />
+
+        {/* Persistent Topbar */}
+        <Topbar
+          sidebarCollapsed={collapsed}
+          onOpenMobileNav={() => setMobileNavOpen(true)}
+        />
+
+        {/* Main Content Area */}
+        <main
+          className={cn(
+            "flex-1 pt-[var(--topbar-height)] transition-[margin-left] duration-300 ease-in-out",
+            isLargeScreen
+              ? collapsed
+                ? "ml-[var(--sidebar-collapsed-width)]"
+                : "ml-[var(--sidebar-width)]"
+              : "ml-0"
+          )}
+        >
+          <div className="p-4 sm:p-6 lg:p-8">
+            <ContentContainer width={contentWidth}>
+              {children}
+            </ContentContainer>
+          </div>
+        </main>
+      </div>
+    </OperationalAlertProvider>
   );
 }

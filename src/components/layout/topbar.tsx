@@ -7,6 +7,7 @@ import { GlobalSearch } from "./global-search";
 import { NotificationsDropdown } from "./notifications-dropdown";
 import { ProfileMenu } from "./profile-menu";
 import { PropertySelector } from "./property-selector";
+import { AlertSoundController } from "@/components/operational-alerts";
 
 interface TopbarProps {
   sidebarCollapsed: boolean;
@@ -60,6 +61,9 @@ export function Topbar({
         <div className="hidden lg:block">
           <PropertySelector variant="topbar" />
         </div>
+
+        {/* Operational Realtime Alerts & Sound Controller */}
+        <AlertSoundController />
 
         {/* Notifications */}
         <NotificationsDropdown />

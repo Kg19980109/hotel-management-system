@@ -216,7 +216,7 @@ export interface OrderFilterParams {
   offset?: number;
 }
 
-export type PosBillingSection = "FOOD" | "ROOMS" | "SERVICES";
+export type PosBillingSection = "FOOD" | "ROOMS" | "SERVICES" | "LAUNDRY" | "SPA";
 
 export function getPosItemSection(item: {
   name: string;
@@ -225,6 +225,7 @@ export function getPosItemSection(item: {
   const cat = (item.category_name || "").toLowerCase();
   const name = item.name.toLowerCase();
 
+  // Room tariffs & stay charges
   if (
     cat.includes("room") ||
     cat.includes("stay") ||
@@ -238,17 +239,45 @@ export function getPosItemSection(item: {
     return "ROOMS";
   }
 
+  // Laundry & dry cleaning
   if (
-    cat.includes("service") ||
-    cat.includes("spa") ||
-    cat.includes("amenit") ||
-    cat.includes("transfer") ||
     cat.includes("laundry") ||
-    cat.includes("banquet") ||
-    cat.includes("event") ||
+    cat.includes("dry clean") ||
+    cat.includes("washing") ||
+    cat.includes("pressing") ||
+    name.includes("laundry") ||
+    name.includes("dry clean") ||
+    name.includes("ironing") ||
+    name.includes("pressing") ||
+    name.includes("washing")
+  ) {
+    return "LAUNDRY";
+  }
+
+  // Spa & wellness treatments
+  if (
+    cat.includes("spa") ||
+    cat.includes("wellness") ||
+    cat.includes("massage") ||
+    cat.includes("beauty") ||
+    cat.includes("salon") ||
     name.includes("spa") ||
     name.includes("massage") ||
-    name.includes("laundry") ||
+    name.includes("facial") ||
+    name.includes("aromatherapy") ||
+    name.includes("body scrub") ||
+    name.includes("wellness")
+  ) {
+    return "SPA";
+  }
+
+  // General hotel services
+  if (
+    cat.includes("service") ||
+    cat.includes("amenit") ||
+    cat.includes("transfer") ||
+    cat.includes("banquet") ||
+    cat.includes("event") ||
     name.includes("transfer") ||
     name.includes("airport shuttle") ||
     name.includes("valet") ||

@@ -147,16 +147,39 @@ export default function PosConfigurationPage() {
           c.name.toLowerCase().includes("tariff")
       );
     }
+    if (activeSection === "LAUNDRY") {
+      return categories.filter(
+        (c) =>
+          c.name.toLowerCase().includes("laundry") ||
+          c.name.toLowerCase().includes("dry clean") ||
+          c.name.toLowerCase().includes("washing") ||
+          c.name.toLowerCase().includes("pressing") ||
+          c.name.toLowerCase().includes("iron")
+      );
+    }
+    if (activeSection === "SPA") {
+      return categories.filter(
+        (c) =>
+          c.name.toLowerCase().includes("spa") ||
+          c.name.toLowerCase().includes("wellness") ||
+          c.name.toLowerCase().includes("massage") ||
+          c.name.toLowerCase().includes("beauty") ||
+          c.name.toLowerCase().includes("salon") ||
+          c.name.toLowerCase().includes("facial")
+      );
+    }
     if (activeSection === "SERVICES") {
       return categories.filter(
         (c) =>
-          c.name.toLowerCase().includes("service") ||
+          (c.name.toLowerCase().includes("service") ||
           c.name.toLowerCase().includes("amenit") ||
-          c.name.toLowerCase().includes("spa") ||
-          c.name.toLowerCase().includes("laundry") ||
           c.name.toLowerCase().includes("transfer") ||
           c.name.toLowerCase().includes("banquet") ||
-          c.name.toLowerCase().includes("event")
+          c.name.toLowerCase().includes("event")) &&
+          !c.name.toLowerCase().includes("laundry") &&
+          !c.name.toLowerCase().includes("spa") &&
+          !c.name.toLowerCase().includes("dry clean") &&
+          !c.name.toLowerCase().includes("massage")
       );
     }
     // FOOD section: all dining categories
@@ -165,7 +188,11 @@ export default function PosConfigurationPage() {
         !c.name.toLowerCase().includes("room tariff") &&
         !c.name.toLowerCase().includes("stay charge") &&
         !c.name.toLowerCase().includes("hotel service") &&
-        !c.name.toLowerCase().includes("spa & wellness")
+        !c.name.toLowerCase().includes("spa") &&
+        !c.name.toLowerCase().includes("laundry") &&
+        !c.name.toLowerCase().includes("wellness") &&
+        !c.name.toLowerCase().includes("dry clean") &&
+        !c.name.toLowerCase().includes("massage")
     );
   }, [categories, activeSection]);
 
@@ -174,18 +201,22 @@ export default function PosConfigurationPage() {
     return menuItems.filter((item) => getPosItemSection(item) === activeSection);
   }, [menuItems, activeSection]);
 
-  // Counts for all 3 sections
+  // Counts for all 5 sections
   const counts = useMemo(() => {
     let food = 0;
     let rooms = 0;
+    let laundry = 0;
+    let spa = 0;
     let services = 0;
     for (const item of menuItems) {
       const sec = getPosItemSection(item);
       if (sec === "FOOD") food++;
       else if (sec === "ROOMS") rooms++;
+      else if (sec === "LAUNDRY") laundry++;
+      else if (sec === "SPA") spa++;
       else if (sec === "SERVICES") services++;
     }
-    return { food, rooms, services, total: menuItems.length };
+    return { food, rooms, laundry, spa, services, total: menuItems.length };
   }, [menuItems]);
 
   // Filtered Items based on search, category filter, and status filter
@@ -556,8 +587,8 @@ export default function PosConfigurationPage() {
         </div>
       </div>
 
-      {/* ── 3 MASTER POS BILLING SECTION TABS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* ── 5 MASTER POS BILLING SECTION TABS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         {/* TAB 1: FOOD & DINING */}
         <button
           type="button"
@@ -565,15 +596,15 @@ export default function PosConfigurationPage() {
             setActiveSection("FOOD");
             setSelectedCategoryFilter("ALL");
           }}
-          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
             activeSection === "FOOD"
               ? "bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border-amber-500/50 shadow-lg shadow-amber-500/10"
               : "bg-card border-border hover:border-border/80 text-muted-foreground"
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between w-full mb-2">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-base ${
                 activeSection === "FOOD"
                   ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20"
                   : "bg-muted text-muted-foreground"
@@ -581,22 +612,22 @@ export default function PosConfigurationPage() {
             >
               🍽️
             </div>
-            <div>
-              <h3 className={`text-sm font-bold ${activeSection === "FOOD" ? "text-foreground font-extrabold" : "text-foreground"}`}>
-                Food & Dining Menu
-              </h3>
-              <p className="text-[11px] text-muted-foreground">Kitchen dishes, drinks & room dining</p>
-            </div>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                activeSection === "FOOD"
+                  ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {counts.food}
+            </span>
           </div>
-          <span
-            className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
-              activeSection === "FOOD"
-                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {counts.food}
-          </span>
+          <div>
+            <h3 className={`text-xs font-bold ${activeSection === "FOOD" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+              Food & Dining
+            </h3>
+            <p className="text-[10px] text-muted-foreground line-clamp-1">Kitchen dishes & beverages</p>
+          </div>
         </button>
 
         {/* TAB 2: ROOMS & STAY CHARGES */}
@@ -606,15 +637,15 @@ export default function PosConfigurationPage() {
             setActiveSection("ROOMS");
             setSelectedCategoryFilter("ALL");
           }}
-          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
             activeSection === "ROOMS"
               ? "bg-gradient-to-r from-indigo-500/15 via-indigo-500/10 to-transparent border-indigo-500/50 shadow-lg shadow-indigo-500/10"
               : "bg-card border-border hover:border-border/80 text-muted-foreground"
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between w-full mb-2">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-base ${
                 activeSection === "ROOMS"
                   ? "bg-indigo-600 text-white font-bold shadow-md shadow-indigo-500/20"
                   : "bg-muted text-muted-foreground"
@@ -622,40 +653,122 @@ export default function PosConfigurationPage() {
             >
               🛏️
             </div>
-            <div>
-              <h3 className={`text-sm font-bold ${activeSection === "ROOMS" ? "text-foreground font-extrabold" : "text-foreground"}`}>
-                Rooms & Stay Charges
-              </h3>
-              <p className="text-[11px] text-muted-foreground">Room tariffs, day passes & extra beds</p>
-            </div>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                activeSection === "ROOMS"
+                  ? "bg-indigo-500/20 text-indigo-500 border border-indigo-500/30"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {counts.rooms}
+            </span>
           </div>
-          <span
-            className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
-              activeSection === "ROOMS"
-                ? "bg-indigo-500/20 text-indigo-500 border border-indigo-500/30"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {counts.rooms}
-          </span>
+          <div>
+            <h3 className={`text-xs font-bold ${activeSection === "ROOMS" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+              Rooms & Stay
+            </h3>
+            <p className="text-[10px] text-muted-foreground line-clamp-1">Tariffs & extra beds</p>
+          </div>
         </button>
 
-        {/* TAB 3: HOTEL SERVICES & SPA */}
+        {/* TAB 3: LAUNDRY & DRY CLEANING */}
+        <button
+          type="button"
+          onClick={() => {
+            setActiveSection("LAUNDRY");
+            setSelectedCategoryFilter("ALL");
+          }}
+          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+            activeSection === "LAUNDRY"
+              ? "bg-gradient-to-r from-sky-500/15 via-sky-500/10 to-transparent border-sky-500/50 shadow-lg shadow-sky-500/10"
+              : "bg-card border-border hover:border-border/80 text-muted-foreground"
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-2">
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-base ${
+                activeSection === "LAUNDRY"
+                  ? "bg-sky-500 text-slate-950 font-bold shadow-md shadow-sky-500/20"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              🧺
+            </div>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                activeSection === "LAUNDRY"
+                  ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {counts.laundry}
+            </span>
+          </div>
+          <div>
+            <h3 className={`text-xs font-bold ${activeSection === "LAUNDRY" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+              Laundry & Pressing
+            </h3>
+            <p className="text-[10px] text-muted-foreground line-clamp-1">Wash, dry clean & iron rates</p>
+          </div>
+        </button>
+
+        {/* TAB 4: SPA & WELLNESS */}
+        <button
+          type="button"
+          onClick={() => {
+            setActiveSection("SPA");
+            setSelectedCategoryFilter("ALL");
+          }}
+          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+            activeSection === "SPA"
+              ? "bg-gradient-to-r from-pink-500/15 via-pink-500/10 to-transparent border-pink-500/50 shadow-lg shadow-pink-500/10"
+              : "bg-card border-border hover:border-border/80 text-muted-foreground"
+          }`}
+        >
+          <div className="flex items-center justify-between w-full mb-2">
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-base ${
+                activeSection === "SPA"
+                  ? "bg-pink-500 text-white font-bold shadow-md shadow-pink-500/20"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              💆
+            </div>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                activeSection === "SPA"
+                  ? "bg-pink-500/20 text-pink-400 border border-pink-500/30"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {counts.spa}
+            </span>
+          </div>
+          <div>
+            <h3 className={`text-xs font-bold ${activeSection === "SPA" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+              Spa & Wellness
+            </h3>
+            <p className="text-[10px] text-muted-foreground line-clamp-1">Massages, facial & therapies</p>
+          </div>
+        </button>
+
+        {/* TAB 5: HOTEL SERVICES */}
         <button
           type="button"
           onClick={() => {
             setActiveSection("SERVICES");
             setSelectedCategoryFilter("ALL");
           }}
-          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
+          className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
             activeSection === "SERVICES"
               ? "bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent border-emerald-500/50 shadow-lg shadow-emerald-500/10"
               : "bg-card border-border hover:border-border/80 text-muted-foreground"
           }`}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between w-full mb-2">
             <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center text-base ${
                 activeSection === "SERVICES"
                   ? "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-500/20"
                   : "bg-muted text-muted-foreground"
@@ -663,22 +776,22 @@ export default function PosConfigurationPage() {
             >
               ✨
             </div>
-            <div>
-              <h3 className={`text-sm font-bold ${activeSection === "SERVICES" ? "text-foreground font-extrabold" : "text-foreground"}`}>
-                Hotel Services & Spa
-              </h3>
-              <p className="text-[11px] text-muted-foreground">Spa, laundry, transfers & amenities</p>
-            </div>
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                activeSection === "SERVICES"
+                  ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/30"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {counts.services}
+            </span>
           </div>
-          <span
-            className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
-              activeSection === "SERVICES"
-                ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/30"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {counts.services}
-          </span>
+          <div>
+            <h3 className={`text-xs font-bold ${activeSection === "SERVICES" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+              Hotel Services
+            </h3>
+            <p className="text-[10px] text-muted-foreground line-clamp-1">Transfers, banquets & extras</p>
+          </div>
         </button>
       </div>
 
@@ -689,7 +802,17 @@ export default function PosConfigurationPage() {
           <div className="relative w-full sm:w-72">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder={`Search ${activeSection === "FOOD" ? "dishes" : activeSection === "ROOMS" ? "tariffs" : "services"}...`}
+              placeholder={`Search ${
+                activeSection === "FOOD"
+                  ? "dishes"
+                  : activeSection === "ROOMS"
+                  ? "tariffs"
+                  : activeSection === "LAUNDRY"
+                  ? "laundry items"
+                  : activeSection === "SPA"
+                  ? "spa treatments"
+                  : "services"
+              }...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 text-xs h-9 bg-background"
@@ -889,18 +1012,46 @@ export default function PosConfigurationPage() {
       <Modal
         open={isAddItemModalOpen}
         onClose={() => setIsAddItemModalOpen(false)}
-        title={`Add Item to ${activeSection === "FOOD" ? "Food & Dining" : activeSection === "ROOMS" ? "Rooms & Stay" : "Hotel Services"}`}
+        title={`Add Item to ${
+          activeSection === "FOOD"
+            ? "Food & Dining"
+            : activeSection === "ROOMS"
+            ? "Rooms & Stay"
+            : activeSection === "LAUNDRY"
+            ? "Laundry & Pressing"
+            : activeSection === "SPA"
+            ? "Spa & Wellness"
+            : "Hotel Services"
+        }`}
       >
         <form onSubmit={handleSaveNewItem} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-foreground">Category *</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-foreground">Category *</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddItemModalOpen(false);
+                  setIsAddCategoryModalOpen(true);
+                  if (activeSection === "LAUNDRY") setNewCatName("Laundry & Dry Cleaning");
+                  else if (activeSection === "SPA") setNewCatName("Spa & Wellness Treatments");
+                  else if (activeSection === "ROOMS") setNewCatName("Room Tariffs");
+                }}
+                className="text-[10px] text-primary hover:underline font-semibold cursor-pointer"
+              >
+                + Create New Category
+              </button>
+            </div>
             <select
               value={itemCategoryId}
               onChange={(e) => setItemCategoryId(e.target.value)}
               className="w-full text-xs h-9 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground"
               required
             >
-              {sectionCategories.map((c) => (
+              <option value="" disabled>
+                -- Select Category --
+              </option>
+              {(sectionCategories.length > 0 ? sectionCategories : categories).map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>

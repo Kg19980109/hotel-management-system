@@ -192,8 +192,17 @@ export default function KitchenKdsPage() {
     if (!propertyId || !selectedRestaurant) return;
 
     const supabase = createClient();
+
+    // Authenticate Realtime WebSocket connection
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+    });
+
+    const channelName = `stayhub:kds-live:${propertyId}:${selectedRestaurant.id}:${Math.random().toString(36).slice(2, 7)}`;
     const channel = supabase
-      .channel(`stayhub:kds-live:${propertyId}:${selectedRestaurant.id}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -235,8 +244,9 @@ export default function KitchenKdsPage() {
       .subscribe();
 
     const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       void refreshTickets();
-    }, 10000);
+    }, 4000);
 
     return () => {
       clearInterval(interval);
@@ -277,19 +287,38 @@ export default function KitchenKdsPage() {
     }
   };
 
-  // Ticket Item Status Handlers
+  // Ticket Item Status Handlers with Instant Optimistic UI Reflection
   const handleStartItem = async (itemId: string) => {
     if (!propertyId) return;
+
+    // 1. Optimistic Update (0ms instant UI reflection)
+    setTickets((prev) =>
+      prev.map((ticket) => {
+        const hasItem = ticket.items?.some((i) => i.id === itemId);
+        if (!hasItem) return ticket;
+        const updatedItems = ticket.items?.map((i) =>
+          i.id === itemId ? { ...i, status: "IN_PROGRESS" as const, started_at: new Date().toISOString() } : i
+        );
+        return {
+          ...ticket,
+          status: ticket.status === "QUEUED" ? ("IN_PROGRESS" as const) : ticket.status,
+          items: updatedItems,
+        };
+      })
+    );
+
     setIsSubmitting(true);
     try {
       const res = await startTicketItemAction(propertyId, itemId);
       if (!res.success) {
         toastError("Error", res.error || "Failed to start preparation");
+        await refreshTickets();
         return;
       }
-      await refreshTickets();
+      void refreshTickets();
     } catch (err: unknown) {
       toastError("Error", err instanceof Error ? err.message : "Action failed");
+      await refreshTickets();
     } finally {
       setIsSubmitting(false);
     }
@@ -297,16 +326,38 @@ export default function KitchenKdsPage() {
 
   const handleReadyItem = async (itemId: string) => {
     if (!propertyId) return;
+
+    // 1. Optimistic Update (0ms instant UI reflection)
+    setTickets((prev) =>
+      prev.map((ticket) => {
+        const hasItem = ticket.items?.some((i) => i.id === itemId);
+        if (!hasItem) return ticket;
+        const updatedItems = ticket.items?.map((i) =>
+          i.id === itemId ? { ...i, status: "READY" as const, ready_at: new Date().toISOString() } : i
+        );
+        const allReadyOrCompleted = updatedItems?.every(
+          (i) => i.status === "READY" || i.status === "COMPLETED" || i.status === "CANCELLED"
+        );
+        return {
+          ...ticket,
+          status: allReadyOrCompleted ? ("READY" as const) : ticket.status,
+          items: updatedItems,
+        };
+      })
+    );
+
     setIsSubmitting(true);
     try {
       const res = await readyTicketItemAction(propertyId, itemId);
       if (!res.success) {
         toastError("Error", res.error || "Failed to mark item ready");
+        await refreshTickets();
         return;
       }
-      await refreshTickets();
+      void refreshTickets();
     } catch (err: unknown) {
       toastError("Error", err instanceof Error ? err.message : "Action failed");
+      await refreshTickets();
     } finally {
       setIsSubmitting(false);
     }
@@ -314,16 +365,38 @@ export default function KitchenKdsPage() {
 
   const handleCompleteItem = async (itemId: string) => {
     if (!propertyId) return;
+
+    // 1. Optimistic Update (0ms instant UI reflection)
+    setTickets((prev) =>
+      prev.map((ticket) => {
+        const hasItem = ticket.items?.some((i) => i.id === itemId);
+        if (!hasItem) return ticket;
+        const updatedItems = ticket.items?.map((i) =>
+          i.id === itemId ? { ...i, status: "COMPLETED" as const, completed_at: new Date().toISOString() } : i
+        );
+        const allCompleted = updatedItems?.every(
+          (i) => i.status === "COMPLETED" || i.status === "CANCELLED"
+        );
+        return {
+          ...ticket,
+          status: allCompleted ? ("COMPLETED" as const) : ticket.status,
+          items: updatedItems,
+        };
+      })
+    );
+
     setIsSubmitting(true);
     try {
       const res = await completeTicketItemAction(propertyId, itemId);
       if (!res.success) {
         toastError("Error", res.error || "Failed to complete item");
+        await refreshTickets();
         return;
       }
-      await refreshTickets();
+      void refreshTickets();
     } catch (err: unknown) {
       toastError("Error", err instanceof Error ? err.message : "Action failed");
+      await refreshTickets();
     } finally {
       setIsSubmitting(false);
     }
@@ -331,16 +404,31 @@ export default function KitchenKdsPage() {
 
   const handleRequeueItem = async (itemId: string) => {
     if (!propertyId) return;
+
+    // 1. Optimistic Update
+    setTickets((prev) =>
+      prev.map((ticket) => {
+        const hasItem = ticket.items?.some((i) => i.id === itemId);
+        if (!hasItem) return ticket;
+        return {
+          ...ticket,
+          items: ticket.items?.map((i) => (i.id === itemId ? { ...i, status: "QUEUED" as const } : i)),
+        };
+      })
+    );
+
     setIsSubmitting(true);
     try {
       const res = await requeueTicketItemAction(propertyId, itemId);
       if (!res.success) {
         toastError("Error", res.error || "Failed to requeue item");
+        await refreshTickets();
         return;
       }
-      await refreshTickets();
+      void refreshTickets();
     } catch (err: unknown) {
       toastError("Error", err instanceof Error ? err.message : "Action failed");
+      await refreshTickets();
     } finally {
       setIsSubmitting(false);
     }
@@ -355,7 +443,7 @@ export default function KitchenKdsPage() {
         return;
       }
       success("Item Re-Fired", "Dispatched to kitchen queue with urgent priority.");
-      await refreshTickets();
+      void refreshTickets();
     } catch (err: unknown) {
       toastError("Error", err instanceof Error ? err.message : "Failed to re-fire item.");
     }
@@ -363,15 +451,23 @@ export default function KitchenKdsPage() {
 
   const handleChangePriority = async (ticketId: string, priority: KitchenPriority) => {
     if (!propertyId) return;
+
+    // 1. Optimistic Update
+    setTickets((prev) =>
+      prev.map((ticket) => (ticket.id === ticketId ? { ...ticket, priority } : ticket))
+    );
+
     try {
       const res = await updateTicketPriorityAction(propertyId, ticketId, priority);
       if (!res.success) {
         toastError("Error", res.error || "Failed to update priority");
+        await refreshTickets();
         return;
       }
-      await refreshTickets();
+      void refreshTickets();
     } catch (err: unknown) {
       toastError("Error", err instanceof Error ? err.message : "Failed to change priority");
+      await refreshTickets();
     }
   };
 

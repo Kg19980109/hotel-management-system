@@ -34,6 +34,8 @@ import {
   OrderTypeBadge,
 } from "@/components/restaurant";
 
+import { createClient } from "@/lib/supabase/client";
+
 export default function RestaurantOrdersPage() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
@@ -92,6 +94,58 @@ export default function RestaurantOrdersPage() {
       void Promise.resolve().then(() => loadData());
     }
   }, [authLoading, propertyId, loadData]);
+
+  // Real-time Supabase subscription for instant order status reflection
+  useEffect(() => {
+    if (!propertyId) return;
+
+    const supabase = createClient();
+
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+    });
+
+    const channelName = `stayhub:restaurant-orders-live:${propertyId}:${Math.random().toString(36).slice(2, 7)}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "restaurant_orders",
+          filter: `property_id=eq.${propertyId}`,
+        },
+        () => {
+          void loadData();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "kitchen_tickets",
+          filter: `property_id=eq.${propertyId}`,
+        },
+        () => {
+          void loadData();
+        }
+      )
+      .subscribe();
+
+    const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadData();
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+      void supabase.removeChannel(channel);
+    };
+  }, [propertyId, loadData]);
 
   const clearFilters = () => {
     setSelectedRestaurantId("ALL");

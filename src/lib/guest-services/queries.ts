@@ -223,3 +223,84 @@ export async function getStaffGuestServiceRequestEvents(
 
   return (data || []) as unknown as StaffGuestServiceRequestEvent[];
 }
+
+export interface PayableServiceItem {
+  id: string;
+  name: string;
+  category_name: string;
+  price: number;
+  description: string | null;
+  is_available: boolean;
+}
+
+/**
+ * Fetch payable services configured in POS for guests to view transparently
+ */
+export async function getGuestPayableServices(
+  propertyId: string
+): Promise<PayableServiceItem[]> {
+  if (!propertyId) return [];
+
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("menu_items")
+    .select(`
+      id,
+      name,
+      price,
+      description,
+      is_available,
+      category:category_id (
+        name
+      ),
+      restaurant:restaurant_id (
+        property_id
+      )
+    `)
+    .eq("restaurant.property_id", propertyId)
+    .eq("is_available", true);
+
+  if (error || !data) {
+    return [];
+  }
+
+  const services: PayableServiceItem[] = [];
+  for (const item of data as any[]) {
+    if (!item.restaurant || item.restaurant.property_id !== propertyId) continue;
+    const catName = item.category?.name || "Services";
+    const catLower = catName.toLowerCase();
+    const nameLower = item.name.toLowerCase();
+
+    // Filter for services, laundry, spa, room amenities, tariffs, transport
+    const isService =
+      catLower.includes("service") ||
+      catLower.includes("laundry") ||
+      catLower.includes("spa") ||
+      catLower.includes("amenity") ||
+      catLower.includes("amenities") ||
+      catLower.includes("tariff") ||
+      catLower.includes("room") ||
+      nameLower.includes("laundry") ||
+      nameLower.includes("spa") ||
+      nameLower.includes("wash") ||
+      nameLower.includes("dry clean") ||
+      nameLower.includes("iron") ||
+      nameLower.includes("massage") ||
+      nameLower.includes("cab") ||
+      nameLower.includes("taxi");
+
+    if (isService) {
+      services.push({
+        id: item.id,
+        name: item.name,
+        category_name: catName,
+        price: Number(item.price) || 0,
+        description: item.description || null,
+        is_available: Boolean(item.is_available),
+      });
+    }
+  }
+
+  return services;
+}

@@ -286,3 +286,87 @@ export async function reassignStayRoomAction(
     return { success: false, error: msg };
   }
 }
+
+export interface DirectRoomAssignmentInput {
+  propertyId: string;
+  roomId: string;
+  guestId?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  idDocumentType?: string | null;
+  idDocumentNumber?: string | null;
+  checkInDate?: string;
+  checkOutDate?: string;
+  ratePerNight?: number;
+  adults?: number;
+  children?: number;
+  notes?: string | null;
+}
+
+/**
+ * Direct Room Assignment & Check-In for Existing or New Guest
+ */
+export async function assignRoomAndCheckInGuestAction(
+  input: DirectRoomAssignmentInput
+): Promise<ActionResponse<{
+  stay_id: string;
+  guest_id: string;
+  guest_name: string;
+  room_id: string;
+  room_number: string;
+  confirmation_number: string;
+  folio_id: string;
+  folio_number: string;
+  check_in_date: string;
+  check_out_date: string;
+  rate_per_night: number;
+  total_amount: number;
+}>> {
+  const authRes = await authenticateFrontDeskSession(input.propertyId, "CHECK_IN");
+  if (authRes.error) {
+    return { success: false, error: authRes.error };
+  }
+
+  const supabase = await createClient();
+
+  try {
+    const { data, error } = await supabase.rpc("assign_room_and_check_in_guest", {
+      p_property_id: input.propertyId,
+      p_room_id: input.roomId,
+      p_guest_id: input.guestId || null,
+      p_first_name: input.firstName || null,
+      p_last_name: input.lastName || null,
+      p_phone: input.phone || null,
+      p_email: input.email || null,
+      p_id_document_type: input.idDocumentType || null,
+      p_id_document_number: input.idDocumentNumber || null,
+      p_check_in_date: input.checkInDate || new Date().toISOString().split("T")[0],
+      p_check_out_date: input.checkOutDate || undefined,
+      p_rate_per_night: input.ratePerNight || 0,
+      p_adults: input.adults || 1,
+      p_children: input.children || 0,
+      p_notes: input.notes || null,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.message || "Failed to assign room and check in guest." };
+    }
+
+    revalidatePath("/front-desk");
+    revalidatePath("/bookings");
+    revalidatePath("/rooms");
+    revalidatePath("/guests");
+    revalidatePath("/billing/folios");
+
+    return { success: true, data };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to assign room and check in guest";
+    return { success: false, error: msg };
+  }
+}

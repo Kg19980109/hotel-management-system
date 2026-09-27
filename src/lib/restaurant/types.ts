@@ -202,6 +202,7 @@ export interface CreateOrderInput {
   stay_id?: string | null;
   notes?: string | null;
   discount_amount?: number;
+  fire_kitchen_ticket?: boolean;
   items: CartItemInput[];
 }
 

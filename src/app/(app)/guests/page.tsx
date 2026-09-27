@@ -7,10 +7,11 @@ import { createClient } from "@/lib/supabase/client";
 import { GuestCRM, GuestKPIStats, GuestStatus } from "@/lib/guests/types";
 import { fetchGuests, fetchGuestKPIs } from "@/lib/guests/queries";
 import { GuestKPIGrid, GuestTable } from "@/components/guests";
+import { DirectRoomAssignmentModal } from "@/components/front-desk/direct-room-assignment-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingState, ErrorState } from "@/components/ui/states";
-import { UserPlus, Search, RefreshCw, Users, Star, TrendingUp } from "lucide-react";
+import { UserPlus, Search, RefreshCw, Users, Star, TrendingUp, BedDouble } from "lucide-react";
 
 const STATUS_TABS: { label: string; value: GuestStatus | "ALL"; color: string; activeClass: string }[] = [
   { label: "All Guests", value: "ALL", color: "bg-slate-900 text-white", activeClass: "bg-slate-900 text-white shadow-sm" },
@@ -33,6 +34,7 @@ export default function GuestsPage() {
   const [statusFilter, setStatusFilter] = React.useState<GuestStatus | "ALL">("ALL");
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false);
   const [kpiStats, setKpiStats] = React.useState<GuestKPIStats>({
     totalGuests: 0,
     activeGuests: 0,
@@ -125,10 +127,17 @@ export default function GuestsPage() {
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Refresh</span>
             </button>
+            <button
+              onClick={() => setIsAssignModalOpen(true)}
+              className="h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 shadow-md shadow-amber-400/30 transition-all"
+            >
+              <BedDouble className="h-4 w-4" />
+              Assign Room & Check-In
+            </button>
             <Link href="/guests/new">
-              <button className="h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-indigo-900 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 shadow-md shadow-amber-400/30 transition-all">
+              <button className="h-9 px-4 rounded-xl flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md transition-all">
                 <UserPlus className="h-4 w-4" />
-                Add Guest
+                Add Profile
               </button>
             </Link>
           </div>
@@ -185,6 +194,14 @@ export default function GuestsPage() {
           onPageChange={setPage}
         />
       )}
+
+      {/* Direct Room Assignment Modal */}
+      <DirectRoomAssignmentModal
+        isOpen={isAssignModalOpen}
+        propertyId={activePropertyId || ""}
+        onClose={() => setIsAssignModalOpen(false)}
+        onSuccess={loadData}
+      />
     </div>
   );
 }

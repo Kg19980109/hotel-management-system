@@ -27,6 +27,7 @@ import {
   CheckOutModal,
   NoShowModal,
   ReassignStayRoomModal,
+  DirectRoomAssignmentModal,
 } from "@/components/front-desk";
 import { AssignRoomModal } from "@/components/bookings/assign-room-modal";
 import type { ReservationRoom } from "@/lib/bookings/types";
@@ -76,6 +77,8 @@ export default function FrontDeskPage() {
   const [checkInArrival, setCheckInArrival] = React.useState<ArrivalRecord | null>(null);
   const [checkOutStay, setCheckOutStay] = React.useState<DepartureRecord | InHouseRecord | null>(null);
   const [noShowArrival, setNoShowArrival] = React.useState<ArrivalRecord | null>(null);
+  // Direct Guest-to-Room Assignment Modal State
+  const [isDirectAssignOpen, setIsDirectAssignOpen] = React.useState(false);
   const [reassignStay, setReassignStay] = React.useState<InHouseRecord | null>(null);
 
   // Pre-Checkin Room Assignment Modal State
@@ -242,14 +245,23 @@ export default function FrontDeskPage() {
                 Tape Chart
               </Button>
             </Link>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setIsDirectAssignOpen(true)}
+              className="h-9 gap-1.5 shadow-md bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold"
+            >
+              <BedDouble className="h-4 w-4" />
+              Assign Room & Check-In
+            </Button>
             <Link href="/bookings/new?source=WALK_IN">
               <Button
-                variant="primary"
+                variant="outline"
                 size="sm"
-                className="h-9 gap-1.5 shadow-md"
+                className="h-9 gap-1.5 border-white/20 text-white hover:bg-white/10"
               >
                 <UserPlus className="h-4 w-4" />
-                Walk-In Guest
+                New Reservation
               </Button>
             </Link>
             <Button
@@ -535,6 +547,14 @@ export default function FrontDeskPage() {
         stay={reassignStay}
         propertyId={activePropertyId || ""}
         onClose={() => setReassignStay(null)}
+        onSuccess={loadData}
+      />
+
+      {/* Direct Guest-to-Room Assignment Modal */}
+      <DirectRoomAssignmentModal
+        isOpen={isDirectAssignOpen}
+        propertyId={activePropertyId || ""}
+        onClose={() => setIsDirectAssignOpen(false)}
         onSuccess={loadData}
       />
 

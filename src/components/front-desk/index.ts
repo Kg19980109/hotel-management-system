@@ -11,3 +11,4 @@ export * from "./check-in-modal";
 export * from "./check-out-modal";
 export * from "./no-show-modal";
 export * from "./reassign-stay-room-modal";
+export * from "./direct-room-assignment-modal";

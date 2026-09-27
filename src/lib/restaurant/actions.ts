@@ -724,8 +724,8 @@ export async function createOrderAction(
     return { success: false, error: error.message };
   }
 
-  // Auto-fire kitchen ticket for KDS integration
-  if (data?.order_id) {
+  // Fire kitchen ticket for KDS integration ONLY if requested (e.g. live food cooking order)
+  if (input.fire_kitchen_ticket && data?.order_id) {
     try {
       await supabase.rpc("create_or_fire_kitchen_ticket", {
         p_order_id: data.order_id,

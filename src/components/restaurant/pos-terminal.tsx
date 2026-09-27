@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   CheckCircle2,
   Bed,
+  BedDouble,
   Sparkles,
   Receipt,
   CreditCard,
@@ -28,6 +29,13 @@ import {
   X,
   Store,
   RefreshCw,
+  UserCheck,
+  Calendar,
+  Phone,
+  Mail,
+  Loader2,
+  DollarSign,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +55,11 @@ import {
   completeOrderAction,
 } from "@/lib/restaurant/actions";
 import { getRestaurantOrders } from "@/lib/restaurant/queries";
+import {
+  searchActiveRoomFolioAction,
+  recordFolioPaymentAction,
+  generateInvoiceAction,
+} from "@/lib/billing/actions";
 
 interface CartItem {
   menu_item_id: string;
@@ -66,7 +79,7 @@ interface PosTerminalProps {
   onOrderCreated?: (orderId: string, orderNumber: string) => void;
 }
 
-type CatalogSection = "FOOD" | "ROOMS" | "SERVICES" | "ORDERS";
+type CatalogSection = "FOOD" | "ROOMS" | "SERVICES" | "CHECKOUT" | "ORDERS";
 type PaymentMethod = "CASH" | "UPI" | "CARD" | "ROOM_CHARGE";
 
 export function PosTerminal({
@@ -112,6 +125,106 @@ export function PosTerminal({
   // Recent Orders State (for the Live Bills tab)
   const [recentOrders, setRecentOrders] = useState<RestaurantOrder[]>([]);
   const [loadingRecentOrders, setLoadingRecentOrders] = useState(false);
+
+  // Room Folio Search & Checkout State
+  const [folioSearchQuery, setFolioSearchQuery] = useState<string>("");
+  const [isSearchingFolio, setIsSearchingFolio] = useState<boolean>(false);
+  const [searchedRoomFolio, setSearchedRoomFolio] = useState<any | null>(null);
+  const [folioSettlePaymentMethod, setFolioSettlePaymentMethod] = useState<"CASH" | "UPI" | "CARD">("CASH");
+  const [folioSettleNotes, setFolioSettleNotes] = useState<string>("");
+  const [isSettlingRoomFolio, setIsSettlingRoomFolio] = useState<boolean>(false);
+
+  const handleSearchRoomFolio = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!folioSearchQuery.trim()) {
+      toastError("Search Query Required", "Please enter a room number or guest name.");
+      return;
+    }
+
+    try {
+      setIsSearchingFolio(true);
+      const res = await searchActiveRoomFolioAction(propertyId, folioSearchQuery.trim());
+      if (!res.success || !res.data) {
+        toastError("Not Found", res.error || "Failed to search room folio.");
+        setSearchedRoomFolio(null);
+        return;
+      }
+
+      if (!res.data.found) {
+        toastError("No Active Stay Found", res.data.message || "No active checked-in stay found.");
+        setSearchedRoomFolio(null);
+        return;
+      }
+
+      setSearchedRoomFolio(res.data);
+    } catch (err: unknown) {
+      toastError("Error", err instanceof Error ? err.message : "Failed to search folio.");
+    } finally {
+      setIsSearchingFolio(false);
+    }
+  };
+
+  const handleSettleRoomFolio = async () => {
+    if (!searchedRoomFolio || !searchedRoomFolio.folio) return;
+    const folioId = searchedRoomFolio.folio.id;
+    const balanceDue = searchedRoomFolio.folio.balance_due;
+
+    try {
+      setIsSettlingRoomFolio(true);
+
+      if (balanceDue > 0) {
+        const payRes = await recordFolioPaymentAction({
+          propertyId,
+          folioId,
+          paymentMethod: folioSettlePaymentMethod,
+          amount: balanceDue,
+          notes: folioSettleNotes.trim() || `POS Room Checkout Settlement (${folioSettlePaymentMethod})`,
+        });
+
+        if (!payRes.success) {
+          toastError("Payment Failed", payRes.error || "Failed to record settlement payment.");
+          return;
+        }
+      }
+
+      // Generate invoice
+      await generateInvoiceAction({
+        propertyId,
+        folioId,
+        billingName: searchedRoomFolio.stay.guest_name,
+        billingEmail: searchedRoomFolio.stay.email,
+      });
+
+      // Prepare completed bill receipt modal
+      setCompletedBill({
+        orderId: folioId,
+        orderNumber: searchedRoomFolio.folio.folio_number,
+        items: (searchedRoomFolio.charges || []).map((c: any) => ({
+          menu_item_id: c.id,
+          name: c.description,
+          price: Number(c.unit_price),
+          quantity: Number(c.quantity),
+          notes: c.charge_type,
+        })),
+        subtotal: searchedRoomFolio.folio.charges_subtotal,
+        discount: searchedRoomFolio.folio.discounts_total,
+        total: searchedRoomFolio.folio.charges_subtotal + searchedRoomFolio.folio.taxes_total,
+        paymentMethod: folioSettlePaymentMethod,
+        paidAt: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+        destination: `Room ${searchedRoomFolio.stay.room_number} (${searchedRoomFolio.stay.guest_name})`,
+      });
+
+      setIsReceiptModalOpen(true);
+      success("Room Bill Settled!", `Room ${searchedRoomFolio.stay.room_number} folio is now settled. Tax invoice generated.`);
+
+      // Re-search to refresh
+      void handleSearchRoomFolio();
+    } catch (err: unknown) {
+      toastError("Error", err instanceof Error ? err.message : "Failed to settle room folio.");
+    } finally {
+      setIsSettlingRoomFolio(false);
+    }
+  };
 
   const loadRecentOrders = useCallback(async () => {
     if (!propertyId || !restaurant.id) return;
@@ -309,6 +422,7 @@ export function PosTerminal({
         table_id: orderType === "DINE_IN" ? selectedTableId : null,
         notes: formattedNotes || null,
         discount_amount: sanitizedDiscount,
+        fire_kitchen_ticket: false,
         items: cart.map((ci) => ({
           menu_item_id: ci.menu_item_id,
           quantity: ci.quantity,
@@ -425,6 +539,19 @@ export function PosTerminal({
 
           <button
             type="button"
+            onClick={() => setActiveSection("CHECKOUT")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeSection === "CHECKOUT"
+                ? "bg-amber-500 text-slate-950 shadow-sm"
+                : "bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <BedDouble className="h-4 w-4" />
+            Room Checkout & Folio
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveSection("ORDERS")}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeSection === "ORDERS"
@@ -458,8 +585,388 @@ export function PosTerminal({
         )}
       </div>
 
-      {/* ── LIVE ORDERS & BILLS TAB ── */}
-      {activeSection === "ORDERS" ? (
+      {/* ── ROOM CHECKOUT & FOLIO SEARCH TAB ── */}
+      {activeSection === "CHECKOUT" ? (
+        <div className="space-y-5">
+          {/* Top Search Banner */}
+          <div className="p-5 rounded-2xl bg-card border border-border shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <BedDouble className="w-4 h-4 text-amber-500" />
+                  Room Folio Search & Instant Checkout
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Fetch live guest stay charges, food orders, laundry, services, and settle the final bill directly from POS.
+                </p>
+              </div>
+
+              {searchedRoomFolio && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchedRoomFolio(null);
+                    setFolioSearchQuery("");
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground h-8"
+                >
+                  <X className="w-3.5 h-3.5 mr-1" />
+                  Clear Search
+                </Button>
+              )}
+            </div>
+
+            <form onSubmit={handleSearchRoomFolio} className="flex gap-2 max-w-xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Enter Room Number (e.g. 303, 101) or Guest Name / Phone..."
+                  value={folioSearchQuery}
+                  onChange={(e) => setFolioSearchQuery(e.target.value)}
+                  className="pl-9 h-10 text-xs font-medium"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={isSearchingFolio || !folioSearchQuery.trim()}
+                className="h-10 px-5 text-xs font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 shrink-0"
+              >
+                {isSearchingFolio ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-3.5 h-3.5 mr-1.5" />
+                    Fetch Room Bill
+                  </>
+                )}
+              </Button>
+            </form>
+          </div>
+
+          {/* Search Result or Empty State */}
+          {searchedRoomFolio ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              {/* Left Column: Stay Info & Itemized Charges (8 cols) */}
+              <div className="lg:col-span-8 space-y-4">
+                {/* Stay Profile Header */}
+                <div className="p-4 rounded-2xl bg-card border border-border shadow-xs space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center font-black text-sm">
+                        {searchedRoomFolio.stay.room_number}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-foreground flex items-center gap-1.5">
+                          <span>Room {searchedRoomFolio.stay.room_number}</span>
+                          <span className="text-xs font-normal text-muted-foreground">• {searchedRoomFolio.stay.room_type || "Room"}</span>
+                        </h4>
+                        <p className="text-xs font-bold text-amber-500">
+                          {searchedRoomFolio.stay.guest_name}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right text-xs">
+                      <span className="font-mono text-[11px] font-bold text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border">
+                        Folio #{searchedRoomFolio.folio.folio_number}
+                      </span>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Ref: {searchedRoomFolio.stay.confirmation_number}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-muted-foreground pt-1">
+                    <div>
+                      <span className="text-[10px] block opacity-70">Check-In</span>
+                      <span className="font-semibold text-foreground">
+                        {new Date(searchedRoomFolio.stay.check_in_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] block opacity-70">Expected Out</span>
+                      <span className="font-semibold text-foreground">
+                        {new Date(searchedRoomFolio.stay.expected_check_out_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] block opacity-70">Contact Phone</span>
+                      <span className="font-mono font-semibold text-foreground">
+                        {searchedRoomFolio.stay.phone || "—"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] block opacity-70">Occupancy</span>
+                      <span className="font-semibold text-foreground">
+                        {searchedRoomFolio.stay.adults} Adults, {searchedRoomFolio.stay.children} Kids
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Itemized Charges Table */}
+                <div className="p-4 rounded-2xl bg-card border border-border shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Itemized Stay & Incidentals ({searchedRoomFolio.charges?.length || 0})
+                    </h4>
+                    <span className="text-xs font-mono font-bold text-foreground">
+                      Subtotal: ₹{searchedRoomFolio.folio.charges_subtotal.toFixed(2)}
+                    </span>
+                  </div>
+
+                  {(!searchedRoomFolio.charges || searchedRoomFolio.charges.length === 0) ? (
+                    <div className="p-6 text-center text-xs text-muted-foreground rounded-xl bg-muted/20 border border-dashed border-border">
+                      No incidentals or room charges posted yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-thin pr-1">
+                      {searchedRoomFolio.charges.map((charge: any) => (
+                        <div
+                          key={charge.id}
+                          className="p-3 rounded-xl bg-muted/30 border border-border flex items-center justify-between gap-2 text-xs"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-background flex items-center justify-center shrink-0 border border-border/80">
+                              {charge.charge_type === "ROOM" ? (
+                                <Bed className="w-3.5 h-3.5 text-indigo-500" />
+                              ) : charge.charge_type === "RESTAURANT" || charge.charge_type === "ROOM_SERVICE" ? (
+                                <UtensilsCrossed className="w-3.5 h-3.5 text-amber-500" />
+                              ) : (
+                                <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-foreground">{charge.description}</p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {charge.charge_date} • Qty: {charge.quantity} × ₹{Number(charge.unit_price).toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right font-mono">
+                            <span className="font-bold text-foreground">
+                              ₹{Number(charge.total_amount).toFixed(2)}
+                            </span>
+                            {Number(charge.tax_amount) > 0 && (
+                              <p className="text-[9px] text-muted-foreground">
+                                Incl. ₹{Number(charge.tax_amount).toFixed(2)} Tax
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recorded Payments */}
+                {searchedRoomFolio.payments && searchedRoomFolio.payments.length > 0 && (
+                  <div className="p-4 rounded-2xl bg-card border border-border shadow-xs space-y-2.5">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Recorded Advances & Payments ({searchedRoomFolio.payments.length})
+                    </h4>
+
+                    <div className="space-y-1.5">
+                      {searchedRoomFolio.payments.map((p: any) => (
+                        <div
+                          key={p.id}
+                          className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="w-3.5 h-3.5 text-emerald-500" />
+                            <span className="font-bold text-foreground">
+                              {p.payment_method} Payment
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              ({p.payment_reference})
+                            </span>
+                          </div>
+                          <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
+                            - ₹{Number(p.amount).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Settle & Checkout Action Card (4 cols) */}
+              <div className="lg:col-span-4 bg-card rounded-2xl border border-border shadow-md p-4 space-y-4 sticky top-4">
+                <div className="flex items-center justify-between pb-3 border-b border-border">
+                  <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                    <Receipt className="w-4 h-4 text-amber-500" />
+                    Bill Settlement
+                  </h4>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      searchedRoomFolio.folio.balance_due <= 0
+                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/30"
+                        : "bg-amber-500/10 text-amber-600 border border-amber-500/30"
+                    }`}
+                  >
+                    {searchedRoomFolio.folio.balance_due <= 0 ? "PAID IN FULL" : "BALANCE DUE"}
+                  </span>
+                </div>
+
+                {/* Balance Summary Box */}
+                <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2 text-xs font-mono">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="font-sans">Charges Subtotal:</span>
+                    <span>₹{searchedRoomFolio.folio.charges_subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="font-sans">Taxes (GST):</span>
+                    <span>₹{searchedRoomFolio.folio.taxes_total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="font-sans">Total Payments:</span>
+                    <span className="text-emerald-500">- ₹{searchedRoomFolio.folio.net_payments.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm font-black text-foreground pt-2 border-t border-border">
+                    <span className="font-sans">Balance Due:</span>
+                    <span className="text-amber-500 font-mono text-base">
+                      ₹{searchedRoomFolio.folio.balance_due.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Settlement Method & Action */}
+                {searchedRoomFolio.folio.balance_due > 0 ? (
+                  <div className="space-y-3 pt-1">
+                    <div>
+                      <label className="block text-xs font-bold text-foreground mb-1">
+                        Select Settlement Mode
+                      </label>
+                      <div className="grid grid-cols-3 gap-1.5 p-1 bg-muted rounded-xl text-xs">
+                        <button
+                          type="button"
+                          onClick={() => setFolioSettlePaymentMethod("CASH")}
+                          className={`py-1.5 rounded-lg font-bold transition flex items-center justify-center gap-1 ${
+                            folioSettlePaymentMethod === "CASH"
+                              ? "bg-card text-foreground shadow-xs"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Banknote className="w-3.5 h-3.5" />
+                          Cash
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFolioSettlePaymentMethod("UPI")}
+                          className={`py-1.5 rounded-lg font-bold transition flex items-center justify-center gap-1 ${
+                            folioSettlePaymentMethod === "UPI"
+                              ? "bg-card text-foreground shadow-xs"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <QrCode className="w-3.5 h-3.5" />
+                          UPI
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFolioSettlePaymentMethod("CARD")}
+                          className={`py-1.5 rounded-lg font-bold transition flex items-center justify-center gap-1 ${
+                            folioSettlePaymentMethod === "CARD"
+                              ? "bg-card text-foreground shadow-xs"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          Card
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                        Settlement Remarks (Optional)
+                      </label>
+                      <Input
+                        placeholder="e.g. Settled at checkout counter"
+                        value={folioSettleNotes}
+                        onChange={(e) => setFolioSettleNotes(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleSettleRoomFolio}
+                      disabled={isSettlingRoomFolio}
+                      className="w-full h-11 text-xs font-black bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-md transition-all flex items-center justify-center gap-1.5"
+                    >
+                      {isSettlingRoomFolio ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Processing Settlement...
+                        </>
+                      ) : (
+                        <>
+                          <Receipt className="w-4 h-4" />
+                          Collect ₹{searchedRoomFolio.folio.balance_due.toFixed(2)} & Settle
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-2">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto" />
+                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      Folio is fully paid & settled!
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCompletedBill({
+                          orderId: searchedRoomFolio.folio.id,
+                          orderNumber: searchedRoomFolio.folio.folio_number,
+                          items: (searchedRoomFolio.charges || []).map((c: any) => ({
+                            menu_item_id: c.id,
+                            name: c.description,
+                            price: Number(c.unit_price),
+                            quantity: Number(c.quantity),
+                            notes: c.charge_type,
+                          })),
+                          subtotal: searchedRoomFolio.folio.charges_subtotal,
+                          discount: searchedRoomFolio.folio.discounts_total,
+                          total: searchedRoomFolio.folio.charges_subtotal + searchedRoomFolio.folio.taxes_total,
+                          paymentMethod: "CASH",
+                          paidAt: new Date().toLocaleString("en-IN"),
+                          destination: `Room ${searchedRoomFolio.stay.room_number}`,
+                        });
+                        setIsReceiptModalOpen(true);
+                      }}
+                      className="text-xs h-8 w-full border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 font-bold"
+                    >
+                      <Printer className="w-3.5 h-3.5 mr-1" />
+                      Print Tax Invoice
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="py-16 text-center bg-card rounded-2xl border border-dashed border-border p-6 space-y-3">
+              <BedDouble className="w-12 h-12 text-muted-foreground/30 mx-auto" />
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-foreground">
+                  Quick Room Folio Lookup & Billing
+                </h4>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  Type any room number (e.g. <span className="font-bold text-amber-500">303</span>) or guest name above to fetch and bill their stay charges, meals, and services.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : activeSection === "ORDERS" ? (
         <div className="bg-card rounded-2xl border border-border p-5 space-y-4 shadow-xs">
           <div className="flex items-center justify-between border-b border-border pb-3">
             <div>

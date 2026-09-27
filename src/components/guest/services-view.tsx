@@ -25,8 +25,11 @@ import { GuestVerifiedSessionContext } from "@/lib/guest-portal/types";
 import { createClient } from "@/lib/supabase/client";
 import { getDepartmentForCategory } from "@/lib/alerts/routing";
 
+import { PayableServiceItem } from "@/lib/guest-services/queries";
+
 interface ServicesViewProps {
   session?: GuestVerifiedSessionContext | null;
+  payableServices?: PayableServiceItem[];
 }
 
 interface CategoryConfig {
@@ -217,7 +220,7 @@ const CATEGORIES: CategoryConfig[] = [
   },
 ];
 
-export function ServicesView({ session }: ServicesViewProps) {
+export function ServicesView({ session, payableServices }: ServicesViewProps) {
   const router = useRouter();
   const isVerifiedStay = session?.session_type === "VERIFIED_STAY";
 
@@ -391,10 +394,68 @@ export function ServicesView({ session }: ServicesViewProps) {
         </div>
       )}
 
-      {/* Service Categories Grid */}
+      {/* Payable Services & Tariff Cards (from POS Configuration) */}
+      {payableServices && payableServices.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              Payable Services & Rate Card
+            </h3>
+            <span className="text-[10px] text-slate-400 font-mono">
+              Billed to Room Folio
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {payableServices.map((svc) => (
+              <div
+                key={svc.id}
+                className="p-3.5 rounded-2xl bg-[#0E1B2E] border border-slate-800 hover:border-amber-500/30 transition shadow-md flex items-center justify-between gap-3"
+              >
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      {svc.category_name}
+                    </span>
+                    <h4 className="text-xs font-bold text-white">{svc.name}</h4>
+                  </div>
+                  {svc.description && (
+                    <p className="text-[10px] text-slate-400 line-clamp-1">{svc.description}</p>
+                  )}
+                </div>
+
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-black text-amber-400 font-mono">
+                    ₹{svc.price.toFixed(2)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const matchedCat = CATEGORIES.find(
+                        (c) =>
+                          c.name.toLowerCase().includes(svc.category_name.toLowerCase()) ||
+                          svc.name.toLowerCase().includes(c.name.toLowerCase())
+                      ) || CATEGORIES[0];
+                      openCategoryModal(matchedCat);
+                      setSelectedOption(svc.name);
+                      setDescription(`Please provide ${svc.name} (Rate: ₹${svc.price.toFixed(2)})`);
+                    }}
+                    className="mt-1 text-[10px] font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 px-2 py-0.5 rounded-lg transition"
+                  >
+                    Request
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Standard Service Categories Grid */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">
-          Select Service Category
+          Complimentary & Standard Services
         </h3>
 
         <div className="grid grid-cols-2 gap-3">

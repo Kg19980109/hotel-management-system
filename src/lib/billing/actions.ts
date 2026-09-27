@@ -431,3 +431,28 @@ export async function voidInvoiceAction(
   revalidatePath(`/billing/invoices`);
   return { success: true };
 }
+
+/**
+ * Action: Search Active Room Folio (for POS Room Bill & Checkout)
+ */
+export async function searchActiveRoomFolioAction(
+  propertyId: string,
+  query: string
+) {
+  const authCheck = await checkStaffBillingAuth(propertyId, "FOLIO_VIEW");
+  if (authCheck.error || !authCheck.user) {
+    return { success: false, error: authCheck.error };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("search_active_room_folio", {
+    p_property_id: propertyId,
+    p_query: query.trim(),
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, data };
+}

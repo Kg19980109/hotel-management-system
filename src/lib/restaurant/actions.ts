@@ -666,10 +666,26 @@ export async function createOrderAction(
     return { success: false, error: error.message };
   }
 
+  // Auto-fire kitchen ticket for KDS integration
+  if (data?.order_id) {
+    try {
+      await supabase.rpc("create_or_fire_kitchen_ticket", {
+        p_order_id: data.order_id,
+        p_property_id: input.property_id,
+        p_priority: "NORMAL",
+      });
+    } catch (kdsErr) {
+      console.warn("Auto-fire kitchen ticket warning:", kdsErr);
+    }
+  }
+
   revalidatePath("/restaurant");
   revalidatePath("/restaurant/pos");
   revalidatePath("/restaurant/tables");
   revalidatePath("/restaurant/orders");
+  revalidatePath("/kitchen");
+  revalidatePath("/restaurant/kds");
+  revalidatePath("/pos");
 
   return {
     success: true,

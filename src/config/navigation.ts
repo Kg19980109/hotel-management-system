@@ -123,6 +123,13 @@ export const navigationConfig: NavGroup[] = [
         permission: "pos.view",
       },
       {
+        label: "Kitchen (KDS)",
+        href: "/kitchen",
+        icon: ChefHat,
+        matchPaths: ["/kitchen", "/restaurant/kds"],
+        permission: "kds.view",
+      },
+      {
         label: "POS Configuration",
         href: "/pos-configuration",
         icon: Settings,

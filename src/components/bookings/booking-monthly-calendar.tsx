@@ -588,9 +588,9 @@ export function BookingMonthlyCalendar({
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           {role === "ARRIVAL"
-                            ? "Check-In Today"
+                            ? "Check-In Day"
                             : role === "DEPARTURE"
-                            ? "Check-Out Today"
+                            ? "Check-Out Day"
                             : "In-House Stay"}
                         </span>
 

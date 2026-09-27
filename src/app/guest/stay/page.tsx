@@ -188,7 +188,7 @@ export default async function GuestStayPage() {
           </Link>
 
           <Link
-            href="/guest/services"
+            href="/guest/services?category=LAUNDRY"
             className="p-3 rounded-2xl bg-[#0E1B2E] hover:bg-[#132238] border border-slate-800 hover:border-indigo-500/30 text-center space-y-1.5 transition active:scale-[0.98] group"
           >
             <div className="w-8 h-8 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 mx-auto flex items-center justify-center group-hover:scale-110 transition">
@@ -198,7 +198,7 @@ export default async function GuestStayPage() {
           </Link>
 
           <Link
-            href="/guest/services"
+            href="/guest/services?category=SPA"
             className="p-3 rounded-2xl bg-[#0E1B2E] hover:bg-[#132238] border border-slate-800 hover:border-pink-500/30 text-center space-y-1.5 transition active:scale-[0.98] group"
           >
             <div className="w-8 h-8 rounded-xl bg-pink-500/15 border border-pink-500/20 text-pink-400 mx-auto flex items-center justify-center group-hover:scale-110 transition">

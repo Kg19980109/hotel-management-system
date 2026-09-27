@@ -110,6 +110,8 @@ export interface KitchenTicket {
   order_type?: OrderType;
   table_number?: string | null;
   table_display_name?: string | null;
+  room_number?: string | null;
+  guest_name?: string | null;
   order_notes?: string | null;
   restaurant_name?: string;
   items?: KitchenTicketItem[];

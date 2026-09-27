@@ -35,6 +35,7 @@ import { PayableServiceItem } from "@/lib/guest-services/queries";
 interface ServicesViewProps {
   session?: GuestVerifiedSessionContext | null;
   payableServices?: PayableServiceItem[];
+  initialCategory?: string;
 }
 
 interface ServiceCategoryMeta {
@@ -217,11 +218,23 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
   },
 ];
 
-export function ServicesView({ session, payableServices = [] }: ServicesViewProps) {
+export function ServicesView({ session, payableServices = [], initialCategory }: ServicesViewProps) {
   const router = useRouter();
   const isVerifiedStay = session?.session_type === "VERIFIED_STAY";
 
-  const [selectedCat, setSelectedCat] = React.useState<ServiceCategoryMeta | null>(null);
+  // Match initial category if provided via query params or props
+  const matchedInitialCat = React.useMemo(() => {
+    if (!initialCategory) return null;
+    const clean = initialCategory.trim().toUpperCase();
+    return SERVICE_CATEGORIES.find(
+      (c) =>
+        c.id.toUpperCase() === clean ||
+        c.name.toUpperCase().includes(clean) ||
+        clean.includes(c.id.toUpperCase())
+    ) || null;
+  }, [initialCategory]);
+
+  const [selectedCat, setSelectedCat] = React.useState<ServiceCategoryMeta | null>(matchedInitialCat);
   const [selectedQuickOption, setSelectedQuickOption] = React.useState<string>("");
   const [selectedPaidItem, setSelectedPaidItem] = React.useState<PayableServiceItem | null>(null);
   const [customMessage, setCustomMessage] = React.useState<string>("");
@@ -229,6 +242,12 @@ export function ServicesView({ session, payableServices = [] }: ServicesViewProp
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [successNotice, setSuccessNotice] = React.useState<{ id: string; title: string } | null>(null);
+
+  React.useEffect(() => {
+    if (matchedInitialCat) {
+      setSelectedCat(matchedInitialCat);
+    }
+  }, [matchedInitialCat]);
 
   // Helper to filter POS items strictly relevant to the active category
   const getCategoryPaidItems = (cat: ServiceCategoryMeta): PayableServiceItem[] => {

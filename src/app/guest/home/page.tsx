@@ -229,7 +229,7 @@ export default async function GuestHomePage() {
 
           <div className="grid grid-cols-3 gap-2">
             <Link
-              href="/guest/services"
+              href="/guest/services?category=HOUSEKEEPING"
               className="p-3 rounded-2xl bg-white/[0.04] hover:bg-emerald-500/10 border border-white/[0.08] hover:border-emerald-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
             >
               <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
@@ -242,7 +242,7 @@ export default async function GuestHomePage() {
             </Link>
 
             <Link
-              href="/guest/services"
+              href="/guest/services?category=MAINTENANCE"
               className="p-3 rounded-2xl bg-white/[0.04] hover:bg-blue-500/10 border border-white/[0.08] hover:border-blue-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
             >
               <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-slate-950 transition">
@@ -255,7 +255,7 @@ export default async function GuestHomePage() {
             </Link>
 
             <Link
-              href="/guest/services"
+              href="/guest/services?category=LAUNDRY"
               className="p-3 rounded-2xl bg-white/[0.04] hover:bg-indigo-500/10 border border-white/[0.08] hover:border-indigo-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
             >
               <div className="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-slate-950 transition">
@@ -268,7 +268,7 @@ export default async function GuestHomePage() {
             </Link>
 
             <Link
-              href="/guest/services"
+              href="/guest/services?category=FRONT_DESK"
               className="p-3 rounded-2xl bg-white/[0.04] hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
             >
               <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-slate-950 transition">
@@ -294,7 +294,7 @@ export default async function GuestHomePage() {
             </Link>
 
             <Link
-              href="/guest/services"
+              href="/guest/services?category=TRANSPORT"
               className="p-3 rounded-2xl bg-white/[0.04] hover:bg-teal-500/10 border border-white/[0.08] hover:border-teal-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
             >
               <div className="w-8 h-8 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center group-hover:bg-teal-500 group-hover:text-slate-950 transition">

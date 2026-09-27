@@ -14,6 +14,7 @@ import { formatCurrency } from "@/lib/dashboard/formatters";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { RecordPaymentModal } from "@/components/billing/record-payment-modal";
 import {
   BedDouble,
   User,
@@ -136,6 +137,7 @@ export function RoomLiveDetailsModal({
   const [activeTab, setActiveTab] = React.useState<"guest" | "billing" | "requests" | "specs">("guest");
   const [updatingStatus, setUpdatingStatus] = React.useState(false);
   const [updatingRequestId, setUpdatingRequestId] = React.useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = React.useState(false);
 
   React.useEffect(() => {
     if (room?.liveStay) {
@@ -209,7 +211,8 @@ export function RoomLiveDetailsModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} size="xl" className="p-0 overflow-hidden max-w-3xl" hideCloseButton={true}>
+    <>
+      <Modal open={open} onClose={onClose} size="xl" className="p-0 overflow-hidden max-w-3xl" hideCloseButton={true}>
       <div className="flex flex-col max-h-[88vh] overflow-hidden -m-6">
         {/* ── TOP HERO HEADER BANNER ── */}
         <div
@@ -426,15 +429,27 @@ export function RoomLiveDetailsModal({
                       </div>
                     </div>
 
-                    <Link href={`/front-desk/stays/${liveStay.id}`} className="self-end sm:self-auto">
-                      <Button
-                        size="sm"
-                        className="h-8 px-3 text-[11.5px] font-bold rounded-lg gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
-                      >
-                        <span>Stay Record</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    </Link>
+                    <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+                      {liveStay.folioId && (
+                        <Button
+                          size="sm"
+                          onClick={() => setShowPaymentModal(true)}
+                          className="h-8 px-3 text-[11.5px] font-bold rounded-lg gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Take Payment</span>
+                        </Button>
+                      )}
+                      <Link href={`/front-desk/stays/${liveStay.id}`}>
+                        <Button
+                          size="sm"
+                          className="h-8 px-3 text-[11.5px] font-bold rounded-lg gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs"
+                        >
+                          <span>Stay Record</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
 
                   {/* Stay Dates & Occupants Grid */}
@@ -562,11 +577,22 @@ export function RoomLiveDetailsModal({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      {liveStay.folioId && (
+                        <Button
+                          size="sm"
+                          onClick={() => setShowPaymentModal(true)}
+                          className="h-8 px-3 text-[11.5px] font-bold rounded-lg gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Collect Payment</span>
+                        </Button>
+                      )}
                       <Link href={liveStay.folioId ? `/billing/folios/${liveStay.folioId}` : "/billing/folios"}>
                         <Button
                           size="sm"
-                          className="h-8 px-3 text-[11.5px] font-bold rounded-lg gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                          variant="outline"
+                          className="h-8 px-3 text-[11.5px] font-bold rounded-lg gap-1.5 bg-white border-slate-300 hover:bg-slate-100 text-slate-800 shadow-xs"
                         >
                           <span>Manage Folio</span>
                           <ExternalLink className="w-3 h-3" />
@@ -867,5 +893,22 @@ export function RoomLiveDetailsModal({
         </div>
       </div>
     </Modal>
+
+    {liveStay?.folioId && (
+      <RecordPaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        propertyId={propertyId}
+        folioId={liveStay.folioId}
+        currency={currency}
+        balanceDue={liveStay.balanceDue || 0}
+        onSuccess={() => {
+          setShowPaymentModal(false);
+          onSuccess();
+          router.refresh();
+        }}
+      />
+    )}
+    </>
   );
 }

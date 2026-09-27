@@ -206,6 +206,16 @@ export async function getActiveKitchenTickets(
         order_number,
         order_type,
         notes,
+        room_id,
+        stays (
+          rooms (
+            room_number
+          )
+        ),
+        guests (
+          first_name,
+          last_name
+        ),
         restaurant_tables (
           table_number,
           display_name
@@ -336,6 +346,16 @@ export async function getActiveKitchenTickets(
       order_number: string;
       order_type: OrderType;
       notes?: string | null;
+      room_id?: string | null;
+      stays?: {
+        rooms?: {
+          room_number?: string | null;
+        } | null;
+      } | null;
+      guests?: {
+        first_name?: string | null;
+        last_name?: string | null;
+      } | null;
       restaurant_tables?: { table_number: string; display_name?: string | null } | null;
     } | null;
   };
@@ -354,6 +374,16 @@ export async function getActiveKitchenTickets(
     const waitingSeconds = Math.max(0, Math.floor((nowMs - firedMs) / 1000));
     const prepSeconds = startedMs ? Math.max(0, Math.floor((nowMs - startedMs) / 1000)) : 0;
     const isDelayed = waitingSeconds > 900; // > 15 minutes waiting
+
+    // Extract room number reliably
+    let roomNum = t.restaurant_orders?.stays?.rooms?.room_number || null;
+    if (!roomNum && t.restaurant_orders?.notes) {
+      const match = t.restaurant_orders.notes.match(/(?:\[Room:\s*|Room\s*#?\s*)(\w+)/i);
+      if (match) roomNum = match[1];
+    }
+    const guestName = t.restaurant_orders?.guests
+      ? `${t.restaurant_orders.guests.first_name || ""} ${t.restaurant_orders.guests.last_name || ""}`.trim()
+      : null;
 
     formatted.push({
       id: t.id,
@@ -375,6 +405,8 @@ export async function getActiveKitchenTickets(
       order_notes: t.restaurant_orders?.notes ?? null,
       table_number: t.restaurant_orders?.restaurant_tables?.table_number ?? null,
       table_display_name: t.restaurant_orders?.restaurant_tables?.display_name ?? null,
+      room_number: roomNum,
+      guest_name: guestName || null,
       items,
       waiting_seconds: waitingSeconds,
       prep_seconds: prepSeconds,
@@ -415,6 +447,16 @@ export async function getKitchenTicketById(
         order_number,
         order_type,
         notes,
+        room_id,
+        stays (
+          rooms (
+            room_number
+          )
+        ),
+        guests (
+          first_name,
+          last_name
+        ),
         restaurant_tables (
           table_number,
           display_name
@@ -561,6 +603,16 @@ export async function getKitchenTicketById(
       order_number: string;
       order_type: OrderType;
       notes?: string | null;
+      room_id?: string | null;
+      stays?: {
+        rooms?: {
+          room_number?: string | null;
+        } | null;
+      } | null;
+      guests?: {
+        first_name?: string | null;
+        last_name?: string | null;
+      } | null;
       restaurant_tables?: {
         table_number: string;
         display_name?: string | null;
@@ -569,6 +621,15 @@ export async function getKitchenTicketById(
   };
 
   const tObj = t as unknown as DbTicketDetailRow;
+
+  let roomNum = tObj.restaurant_orders?.stays?.rooms?.room_number || null;
+  if (!roomNum && tObj.restaurant_orders?.notes) {
+    const match = tObj.restaurant_orders.notes.match(/(?:\[Room:\s*|Room\s*#?\s*)(\w+)/i);
+    if (match) roomNum = match[1];
+  }
+  const guestName = tObj.restaurant_orders?.guests
+    ? `${tObj.restaurant_orders.guests.first_name || ""} ${tObj.restaurant_orders.guests.last_name || ""}`.trim()
+    : null;
 
   return {
     id: tObj.id,
@@ -590,6 +651,8 @@ export async function getKitchenTicketById(
     order_notes: tObj.restaurant_orders?.notes ?? null,
     table_number: tObj.restaurant_orders?.restaurant_tables?.table_number ?? null,
     table_display_name: tObj.restaurant_orders?.restaurant_tables?.display_name ?? null,
+    room_number: roomNum,
+    guest_name: guestName || null,
     items,
     events,
   };

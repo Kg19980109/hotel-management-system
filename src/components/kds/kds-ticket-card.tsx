@@ -78,13 +78,19 @@ export function KdsTicketCard({
     >
       {/* CARD HEADER */}
       <div className={`p-3 flex items-center justify-between ${headerBg}`}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="font-extrabold text-sm tracking-wide">
             {ticket.ticket_number}
           </span>
           {ticket.order_number && (
             <span className="text-[11px] opacity-80 font-mono">
-              ({ticket.order_number})
+              (#{ticket.order_number})
+            </span>
+          )}
+          {ticket.room_number && (
+            <span className="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-[11px] shadow-sm flex items-center gap-1 tracking-wider uppercase">
+              <BedDouble className="h-3 w-3" />
+              Room {ticket.room_number}
             </span>
           )}
         </div>
@@ -116,12 +122,17 @@ export function KdsTicketCard({
       </div>
 
       {/* METADATA BAR */}
-      <div className="px-3 py-1.5 bg-muted/60 border-b border-border flex items-center justify-between text-xs font-medium text-muted-foreground">
-        <div className="flex items-center gap-2">
-          {ticket.order_type === "ROOM_SERVICE" ? (
-            <div className="flex items-center gap-1 font-bold text-amber-500">
+      <div className="px-3 py-1.5 bg-muted/60 border-b border-border flex items-center justify-between text-xs font-medium text-muted-foreground flex-wrap gap-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          {ticket.order_type === "ROOM_SERVICE" || ticket.room_number ? (
+            <div className="flex items-center gap-1 font-extrabold text-amber-500">
               <BedDouble className="h-3.5 w-3.5" />
-              <span>Room Service</span>
+              <span>Room {ticket.room_number || "Service"}</span>
+              {ticket.guest_name && (
+                <span className="text-slate-400 font-normal text-[11px]">
+                  ({ticket.guest_name})
+                </span>
+              )}
             </div>
           ) : ticket.order_type === "DINE_IN" ? (
             <div className="flex items-center gap-1 font-bold text-foreground">

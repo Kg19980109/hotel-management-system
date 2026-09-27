@@ -8,11 +8,24 @@ export const metadata = {
   description: "Request housekeeping, maintenance, front desk, and concierge services.",
 };
 
-export default async function GuestServicesPage() {
+interface PageProps {
+  searchParams?: Promise<{ category?: string; cat?: string }>;
+}
+
+export default async function GuestServicesPage(props: PageProps) {
   const session = await getActiveGuestSession();
   const payableServices = session?.property_id
     ? await getGuestPayableServices(session.property_id)
     : [];
 
-  return <ServicesView session={session} payableServices={payableServices} />;
+  const searchParams = props.searchParams ? await props.searchParams : {};
+  const initialCategory = searchParams.category || searchParams.cat;
+
+  return (
+    <ServicesView
+      session={session}
+      payableServices={payableServices}
+      initialCategory={initialCategory}
+    />
+  );
 }

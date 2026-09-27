@@ -71,16 +71,16 @@ export function AlertSoundController() {
         )}
       </button>
 
-      {/* 4. Test Emergency Buzzer Button */}
+      {/* 4. Test Alert Chime Button */}
       <button
         onClick={() => {
           void unlockAudio();
           operationalAlertManager.playTestSound();
         }}
-        title="Test Emergency Siren Buzzer"
-        className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/25 transition"
+        title="Test Soothing Alert Chime"
+        className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 transition"
       >
-        <span>Test Siren</span>
+        <span>Test Chime</span>
       </button>
     </div>
   );

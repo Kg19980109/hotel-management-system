@@ -21,6 +21,11 @@ import {
   CheckCircle2,
   ChefHat,
   Star,
+  Flower2,
+  Compass,
+  Crown,
+  HelpCircle,
+  Coffee,
 } from "lucide-react";
 import { cookies } from "next/headers";
 import { getActiveGuestSession } from "@/lib/guest-portal/actions";
@@ -221,88 +226,160 @@ export default async function GuestHomePage() {
           </div>
         </div>
 
-        {/* ── 6-TILE QUICK SERVICES GRID ── */}
-        <div className="space-y-2">
-          <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
-            Quick Services
-          </h3>
+        {/* ── ALL HOTEL SERVICES GRID ── */}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-[10.5px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Hotel Services &amp; Amenities</span>
+            </h3>
+            <Link
+              href="/guest/services"
+              className="text-[10px] font-black text-amber-400 hover:text-amber-300 flex items-center gap-0.5"
+            >
+              <span>Explore All</span>
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {/* 1. Housekeeping */}
             <Link
               href="/guest/services?category=HOUSEKEEPING"
-              className="p-3 rounded-2xl bg-white/[0.04] hover:bg-emerald-500/10 border border-white/[0.08] hover:border-emerald-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-emerald-500/10 border border-white/[0.08] hover:border-emerald-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
             >
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
                 <Sparkles className="w-4 h-4" />
               </div>
-              <div>
-                <h4 className="text-[10px] font-bold text-white leading-tight">Housekeeping</h4>
-                <p className="text-[9px] text-slate-500">Towels & cleaning</p>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-emerald-300 leading-tight truncate">Housekeeping</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Linens &amp; cleaning</p>
               </div>
             </Link>
 
-            <Link
-              href="/guest/services?category=MAINTENANCE"
-              className="p-3 rounded-2xl bg-white/[0.04] hover:bg-blue-500/10 border border-white/[0.08] hover:border-blue-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-slate-950 transition">
-                <Wrench className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-[10px] font-bold text-white leading-tight">Maintenance</h4>
-                <p className="text-[9px] text-slate-500">AC, plumbing & more</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/guest/services?category=LAUNDRY"
-              className="p-3 rounded-2xl bg-white/[0.04] hover:bg-indigo-500/10 border border-white/[0.08] hover:border-indigo-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-slate-950 transition">
-                <Shirt className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-[10px] font-bold text-white leading-tight">Laundry</h4>
-                <p className="text-[9px] text-slate-500">Dry clean & press</p>
-              </div>
-            </Link>
-
+            {/* 2. Front Desk */}
             <Link
               href="/guest/services?category=FRONT_DESK"
-              className="p-3 rounded-2xl bg-white/[0.04] hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
             >
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-slate-950 transition">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
                 <BedDouble className="w-4 h-4" />
               </div>
-              <div>
-                <h4 className="text-[10px] font-bold text-white leading-tight">Front Desk</h4>
-                <p className="text-[9px] text-slate-500">Checkout & keys</p>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-amber-300 leading-tight truncate">Front Desk</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Keys &amp; checkout</p>
               </div>
             </Link>
 
+            {/* 3. Maintenance */}
             <Link
-              href="/guest/folio"
-              className="p-3 rounded-2xl bg-white/[0.04] hover:bg-rose-500/10 border border-white/[0.08] hover:border-rose-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
+              href="/guest/services?category=MAINTENANCE"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-blue-500/10 border border-white/[0.08] hover:border-blue-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
             >
-              <div className="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-slate-950 transition">
-                <Receipt className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/20 text-blue-400 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
+                <Wrench className="w-4 h-4" />
               </div>
-              <div>
-                <h4 className="text-[10px] font-bold text-white leading-tight">My Bill</h4>
-                <p className="text-[9px] text-slate-500">Charges & folio</p>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-blue-300 leading-tight truncate">Maintenance</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">AC &amp; room repairs</p>
               </div>
             </Link>
 
+            {/* 4. Laundry & Pressing */}
+            <Link
+              href="/guest/services?category=LAUNDRY"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-indigo-500/10 border border-white/[0.08] hover:border-indigo-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
+            >
+              <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
+                <Shirt className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-indigo-300 leading-tight truncate">Laundry &amp; Press</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Dry clean &amp; wash</p>
+              </div>
+            </Link>
+
+            {/* 5. Spa & Wellness */}
+            <Link
+              href="/guest/services?category=SPA"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-pink-500/10 border border-white/[0.08] hover:border-pink-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
+            >
+              <div className="w-9 h-9 rounded-xl bg-pink-500/15 border border-pink-500/20 text-pink-400 flex items-center justify-center group-hover:bg-pink-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
+                <Flower2 className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-pink-300 leading-tight truncate">Spa &amp; Wellness</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Massage &amp; therapies</p>
+              </div>
+            </Link>
+
+            {/* 6. Transport & Cabs */}
             <Link
               href="/guest/services?category=TRANSPORT"
-              className="p-3 rounded-2xl bg-white/[0.04] hover:bg-teal-500/10 border border-white/[0.08] hover:border-teal-500/30 transition active:scale-[0.97] flex flex-col gap-2 group"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-teal-500/10 border border-white/[0.08] hover:border-teal-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
             >
-              <div className="w-8 h-8 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center group-hover:bg-teal-500 group-hover:text-slate-950 transition">
+              <div className="w-9 h-9 rounded-xl bg-teal-500/15 border border-teal-500/20 text-teal-400 flex items-center justify-center group-hover:bg-teal-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
                 <Car className="w-4 h-4" />
               </div>
-              <div>
-                <h4 className="text-[10px] font-bold text-white leading-tight">Transport</h4>
-                <p className="text-[9px] text-slate-500">Taxi & transfers</p>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-teal-300 leading-tight truncate">Transport &amp; Cabs</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Airport &amp; city taxis</p>
+              </div>
+            </Link>
+
+            {/* 7. In-Room Dining Amenities */}
+            <Link
+              href="/guest/services?category=ROOM_SERVICE"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-rose-500/10 border border-white/[0.08] hover:border-rose-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
+            >
+              <div className="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/20 text-rose-400 flex items-center justify-center group-hover:bg-rose-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
+                <Coffee className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-rose-300 leading-tight truncate">Room Amenities</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Cutlery &amp; ice bucket</p>
+              </div>
+            </Link>
+
+            {/* 8. Concierge & Guidance */}
+            <Link
+              href="/guest/services?category=CONCIERGE"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-purple-500/10 border border-white/[0.08] hover:border-purple-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
+            >
+              <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/20 text-purple-400 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
+                <Compass className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-purple-300 leading-tight truncate">Concierge &amp; Tours</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Tours &amp; reservations</p>
+              </div>
+            </Link>
+
+            {/* 9. Special Requests & Banquet */}
+            <Link
+              href="/guest/services?category=OTHER"
+              className="p-3 rounded-2xl bg-[#0E1A34]/90 hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/40 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
+            >
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-slate-950 transition shrink-0 shadow-sm">
+                <Crown className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-bold text-white group-hover:text-amber-300 leading-tight truncate">Special Requests</h4>
+                <p className="text-[9.5px] text-slate-400 truncate">Banquet &amp; VIP cots</p>
+              </div>
+            </Link>
+
+            {/* 10. Live Bill & Folio */}
+            <Link
+              href="/guest/folio"
+              className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#0E1A34] to-[#0E1A34] hover:from-amber-500/30 border border-amber-500/30 transition-all duration-200 active:scale-[0.98] flex items-center gap-3 group shadow-md"
+            >
+              <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-sm">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[11px] font-black text-amber-400 leading-tight truncate">My Room Bill</h4>
+                <p className="text-[9.5px] text-slate-300 truncate">Charges &amp; payments</p>
               </div>
             </Link>
           </div>

@@ -347,8 +347,12 @@ export async function createCategoryAction(
 
   revalidatePath("/restaurant/menu");
   revalidatePath("/restaurant/pos");
+  revalidatePath("/pos-configuration");
+  revalidatePath("/pos");
   return { success: true, data: { id: data.id } };
 }
+
+export const createMenuCategoryAction = createCategoryAction;
 
 /**
  * 6b. Update menu category
@@ -495,6 +499,8 @@ export async function createMenuItemAction(
 
   revalidatePath("/restaurant/menu");
   revalidatePath("/restaurant/pos");
+  revalidatePath("/pos-configuration");
+  revalidatePath("/pos");
   return { success: true, data: { id: data.id } };
 }
 
@@ -548,6 +554,8 @@ export async function updateMenuItemAction(
 
   revalidatePath("/restaurant/menu");
   revalidatePath("/restaurant/pos");
+  revalidatePath("/pos-configuration");
+  revalidatePath("/pos");
   return { success: true };
 }
 
@@ -578,6 +586,8 @@ export async function toggleMenuItemAvailabilityAction(
 
   revalidatePath("/restaurant/menu");
   revalidatePath("/restaurant/pos");
+  revalidatePath("/pos-configuration");
+  revalidatePath("/pos");
   return { success: true };
 }
 
@@ -607,6 +617,8 @@ export async function deactivateMenuItemAction(
 
   revalidatePath("/restaurant/menu");
   revalidatePath("/restaurant/pos");
+  revalidatePath("/pos-configuration");
+  revalidatePath("/pos");
   return { success: true };
 }
 

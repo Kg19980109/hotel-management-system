@@ -215,3 +215,49 @@ export interface OrderFilterParams {
   limit?: number;
   offset?: number;
 }
+
+export type PosBillingSection = "FOOD" | "ROOMS" | "SERVICES";
+
+export function getPosItemSection(item: {
+  name: string;
+  category_name?: string | null;
+}): PosBillingSection {
+  const cat = (item.category_name || "").toLowerCase();
+  const name = item.name.toLowerCase();
+
+  if (
+    cat.includes("room") ||
+    cat.includes("stay") ||
+    cat.includes("tariff") ||
+    name.includes("room tariff") ||
+    name.includes("day pass") ||
+    name.includes("extra bed") ||
+    name.includes("late checkout") ||
+    name.includes("suite upgrade")
+  ) {
+    return "ROOMS";
+  }
+
+  if (
+    cat.includes("service") ||
+    cat.includes("spa") ||
+    cat.includes("amenit") ||
+    cat.includes("transfer") ||
+    cat.includes("laundry") ||
+    cat.includes("banquet") ||
+    cat.includes("event") ||
+    name.includes("spa") ||
+    name.includes("massage") ||
+    name.includes("laundry") ||
+    name.includes("transfer") ||
+    name.includes("airport shuttle") ||
+    name.includes("valet") ||
+    name.includes("cabana") ||
+    name.includes("banquet")
+  ) {
+    return "SERVICES";
+  }
+
+  return "FOOD";
+}
+

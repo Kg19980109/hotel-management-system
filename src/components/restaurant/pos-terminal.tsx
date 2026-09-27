@@ -40,6 +40,7 @@ import {
   MenuItem,
   OrderType,
   RestaurantOrder,
+  getPosItemSection,
 } from "@/lib/restaurant/types";
 import {
   createOrderAction,
@@ -164,41 +165,7 @@ export function PosTerminal({
 
   // Filter items according to section, category, and search query
   const filteredItems = useMemo(() => {
-    let items = menuItems.filter((m) => m.is_active);
-
-    if (activeSection === "ROOMS") {
-      items = items.filter(
-        (m) =>
-          m.category_name?.toLowerCase().includes("room") ||
-          m.name.toLowerCase().includes("tariff") ||
-          m.name.toLowerCase().includes("room") ||
-          m.name.toLowerCase().includes("suite") ||
-          m.name.toLowerCase().includes("bed") ||
-          m.name.toLowerCase().includes("checkout") ||
-          m.name.toLowerCase().includes("day pass")
-      );
-    } else if (activeSection === "SERVICES") {
-      items = items.filter(
-        (m) =>
-          m.category_name?.toLowerCase().includes("service") ||
-          m.category_name?.toLowerCase().includes("amenit") ||
-          m.name.toLowerCase().includes("spa") ||
-          m.name.toLowerCase().includes("laundry") ||
-          m.name.toLowerCase().includes("transfer") ||
-          m.name.toLowerCase().includes("cab") ||
-          m.name.toLowerCase().includes("minibar") ||
-          m.name.toLowerCase().includes("banquet") ||
-          m.name.toLowerCase().includes("hall") ||
-          m.name.toLowerCase().includes("pool")
-      );
-    } else {
-      // FOOD: exclude rooms and hotel services items
-      items = items.filter(
-        (m) =>
-          !m.category_name?.toLowerCase().includes("room tariffs") &&
-          !m.category_name?.toLowerCase().includes("hotel services")
-      );
-    }
+    let items = menuItems.filter((m) => m.is_active && getPosItemSection(m) === activeSection);
 
     if (selectedCategory !== "ALL") {
       items = items.filter((item) => item.category_id === selectedCategory);

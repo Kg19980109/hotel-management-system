@@ -680,9 +680,72 @@ export async function getKitchenTicketHistory(
     .range(offset, offset + limit - 1);
 
   const { data, error, count } = await query;
-  if (error) {
+  if (error || !data) {
     console.error("Error fetching kitchen ticket history:", error);
     return { tickets: [], count: 0 };
+  }
+
+  const ticketIds = data.map((t) => t.id);
+  const itemsByTicket: Record<string, KitchenTicketItem[]> = {};
+
+  if (ticketIds.length > 0) {
+    const { data: itemsData } = await supabase
+      .from("kitchen_ticket_items")
+      .select(`
+        id,
+        kitchen_ticket_id,
+        restaurant_order_item_id,
+        station_id,
+        item_name,
+        quantity,
+        notes,
+        status,
+        started_at,
+        ready_at,
+        completed_at,
+        created_at,
+        updated_at
+      `)
+      .in("kitchen_ticket_id", ticketIds);
+
+    type DbItemHistory = {
+      id: string;
+      kitchen_ticket_id: string;
+      restaurant_order_item_id: string;
+      station_id: string | null;
+      item_name: string;
+      quantity: number;
+      notes: string | null;
+      status: KitchenTicketItemStatus;
+      started_at?: string | null;
+      ready_at?: string | null;
+      completed_at?: string | null;
+      created_at: string;
+      updated_at: string;
+    };
+
+    ((itemsData as unknown as DbItemHistory[]) || []).forEach((item) => {
+      if (!itemsByTicket[item.kitchen_ticket_id]) {
+        itemsByTicket[item.kitchen_ticket_id] = [];
+      }
+      itemsByTicket[item.kitchen_ticket_id].push({
+        id: item.id,
+        kitchen_ticket_id: item.kitchen_ticket_id,
+        restaurant_order_item_id: item.restaurant_order_item_id,
+        station_id: item.station_id ?? null,
+        item_name: item.item_name,
+        quantity: item.quantity,
+        notes: item.notes ?? null,
+        status: item.status,
+        remake_count: 0,
+        remake_reason: null,
+        started_at: item.started_at ?? null,
+        ready_at: item.ready_at ?? null,
+        completed_at: item.completed_at ?? null,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      });
+    });
   }
 
   type DbHistoryRow = {
@@ -725,6 +788,7 @@ export async function getKitchenTicketHistory(
     order_number: t.restaurant_orders?.order_number,
     order_type: t.restaurant_orders?.order_type,
     table_number: t.restaurant_orders?.restaurant_tables?.table_number ?? null,
+    items: itemsByTicket[t.id] || [],
   }));
 
   return { tickets, count: count || 0 };

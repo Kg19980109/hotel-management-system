@@ -31,7 +31,7 @@ export default function MaintenancePage() {
   const [stats, setStats] = React.useState<MaintenanceKPIs | null>(null);
   const [workOrders, setWorkOrders] = React.useState<MaintenanceWorkOrder[]>([]);
   const [guestRequests, setGuestRequests] = React.useState<StaffGuestServiceRequest[]>([]);
-  const [activeTab, setActiveTab] = React.useState<"orders" | "guest_requests">("orders");
+  const [activeTab, setActiveTab] = React.useState<"orders" | "guest_requests">("guest_requests");
   const [rooms, setRooms] = React.useState<RoomOption[]>([]);
   const [staff, setStaff] = React.useState<StaffOption[]>([]);
   const [isNewModalOpen, setIsNewModalOpen] = React.useState(false);
@@ -327,23 +327,6 @@ export default function MaintenancePage() {
       {/* Operational Navigation Tabs */}
       <div className="stayhub-card p-1.5 flex items-center gap-2 max-w-fit">
         <button
-          onClick={() => setActiveTab("orders")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-            activeTab === "orders"
-              ? "bg-[var(--primary)] text-white shadow-sm"
-              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
-          }`}
-        >
-          <ClipboardList className="w-4 h-4" />
-          <span>Work Orders</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-            activeTab === "orders" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-          }`}>
-            {workOrders.length}
-          </span>
-        </button>
-
-        <button
           onClick={() => setActiveTab("guest_requests")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
             activeTab === "guest_requests"
@@ -361,6 +344,23 @@ export default function MaintenancePage() {
               : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
           }`}>
             {guestRequests.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            activeTab === "orders"
+              ? "bg-[var(--primary)] text-white shadow-sm"
+              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
+          }`}
+        >
+          <ClipboardList className="w-4 h-4" />
+          <span>Work Orders</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+            activeTab === "orders" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          }`}>
+            {workOrders.length}
           </span>
         </button>
       </div>

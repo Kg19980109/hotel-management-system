@@ -66,7 +66,7 @@ export default function HousekeepingPage() {
 
   const [tasks, setTasks] = React.useState<HousekeepingTask[]>([]);
   const [guestRequests, setGuestRequests] = React.useState<StaffGuestServiceRequest[]>([]);
-  const [activeTab, setActiveTab] = React.useState<"tasks" | "guest_requests">("tasks");
+  const [activeTab, setActiveTab] = React.useState<"tasks" | "guest_requests">("guest_requests");
   const [floors, setFloors] = React.useState<FloorOption[]>([]);
   const [rooms, setRooms] = React.useState<RoomOption[]>([]);
   const [staffList, setStaffList] = React.useState<StaffOption[]>([]);
@@ -376,23 +376,6 @@ export default function HousekeepingPage() {
       {/* Operational Navigation Tabs */}
       <div className="stayhub-card p-1.5 flex items-center gap-2 max-w-fit">
         <button
-          onClick={() => setActiveTab("tasks")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-            activeTab === "tasks"
-              ? "bg-[var(--primary)] text-white shadow-sm"
-              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Cleaning Tasks</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-            activeTab === "tasks" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-          }`}>
-            {tasks.length}
-          </span>
-        </button>
-
-        <button
           onClick={() => setActiveTab("guest_requests")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
             activeTab === "guest_requests"
@@ -410,6 +393,23 @@ export default function HousekeepingPage() {
               : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
           }`}>
             {guestRequests.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("tasks")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+            activeTab === "tasks"
+              ? "bg-[var(--primary)] text-white shadow-sm"
+              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Cleaning Tasks</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+            activeTab === "tasks" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          }`}>
+            {tasks.length}
           </span>
         </button>
       </div>

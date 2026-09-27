@@ -46,6 +46,7 @@ import {
   KitchenStation,
   KitchenTicketItem,
   KitchenPriority,
+  KitchenTicketStatus,
   KdsKpiSummary,
 } from "@/lib/kds/types";
 import { getRestaurants } from "@/lib/restaurant/queries";
@@ -53,6 +54,7 @@ import {
   getActiveKitchenTickets,
   getKitchenStations,
   getKdsKpis,
+  getKitchenTicketHistory,
 } from "@/lib/kds/queries";
 import {
   startTicketItemAction,
@@ -77,9 +79,14 @@ export default function KitchenKdsPage() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
   const [stations, setStations] = useState<KitchenStation[]>([]);
   const [selectedStationId, setSelectedStationId] = useState<string>("ALL");
-  const [statusTab, setStatusTab] = useState<"ALL" | "QUEUED" | "IN_PROGRESS" | "READY">("ALL");
+  const [statusTab, setStatusTab] = useState<"ALL" | "QUEUED" | "IN_PROGRESS" | "READY" | "HISTORY">("ALL");
 
   const [tickets, setTickets] = useState<KitchenTicket[]>([]);
+  const [historyTickets, setHistoryTickets] = useState<KitchenTicket[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyStatus, setHistoryStatus] = useState<"ALL" | "COMPLETED" | "CANCELLED">("ALL");
+  const [historyDate, setHistoryDate] = useState<string>("");
+
   const [kpis, setKpis] = useState<KdsKpiSummary>({
     queuedTickets: 0,
     inProgressTickets: 0,
@@ -180,6 +187,32 @@ export default function KitchenKdsPage() {
       console.error("Error fetching live tickets:", err);
     }
   }, [propertyId, selectedRestaurant, selectedStationId, playAlertSound]);
+
+  // Load Kitchen History Tickets
+  const loadHistoryData = useCallback(async () => {
+    if (!propertyId || !selectedRestaurant) return;
+    try {
+      setHistoryLoading(true);
+      const res = await getKitchenTicketHistory(propertyId, {
+        restaurantId: selectedRestaurant.id,
+        status: historyStatus !== "ALL" ? (historyStatus as KitchenTicketStatus) : undefined,
+        date: historyDate || undefined,
+        search: searchQuery.trim() || undefined,
+        limit: 100,
+      });
+      setHistoryTickets(res.tickets);
+    } catch (err) {
+      console.error("Failed to load history tickets:", err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [propertyId, selectedRestaurant, historyStatus, historyDate, searchQuery]);
+
+  useEffect(() => {
+    if (statusTab === "HISTORY") {
+      void loadHistoryData();
+    }
+  }, [statusTab, loadHistoryData]);
 
   useEffect(() => {
     if (!authLoading && propertyId) {
@@ -655,11 +688,23 @@ export default function KitchenKdsPage() {
           >
             Ready / Plated ({kpis.readyTickets})
           </button>
+          <button
+            type="button"
+            onClick={() => setStatusTab("HISTORY")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+              statusTab === "HISTORY"
+                ? "bg-slate-800 text-white shadow-xs"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <History className="h-3.5 w-3.5" />
+            <span>Order History ({kpis.completedTodayTickets})</span>
+          </button>
         </div>
 
         {/* Station Filters & Search */}
         <div className="flex items-center gap-2 flex-wrap">
-          {stations.length > 0 && (
+          {stations.length > 0 && statusTab !== "HISTORY" && (
             <div className="flex items-center gap-1">
               <span className="text-[11px] font-bold text-muted-foreground mr-1">Station:</span>
               <button
@@ -698,8 +743,193 @@ export default function KitchenKdsPage() {
         </div>
       </div>
 
-      {/* ── TICKETS GRID ── */}
-      {filteredTickets.length === 0 ? (
+      {/* ── MAIN VIEW: ACTIVE TICKETS OR ORDER HISTORY ── */}
+      {statusTab === "HISTORY" ? (
+        <div className="space-y-4">
+          {/* History Sub-filter Bar */}
+          <div className="bg-card p-3 rounded-xl border border-border shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-muted-foreground text-[11px]">Filter History:</span>
+              <select
+                value={historyStatus}
+                onChange={(e) => setHistoryStatus(e.target.value as "ALL" | "COMPLETED" | "CANCELLED")}
+                className="text-xs h-8 rounded-lg border border-input bg-background px-3 py-1 font-semibold text-foreground cursor-pointer"
+              >
+                <option value="ALL">All Completed / Cancelled</option>
+                <option value="COMPLETED">Completed Only</option>
+                <option value="CANCELLED">Cancelled Only</option>
+              </select>
+
+              <input
+                type="date"
+                value={historyDate}
+                onChange={(e) => setHistoryDate(e.target.value)}
+                className="text-xs h-8 rounded-lg border border-input bg-background px-3 py-1 font-medium text-foreground cursor-pointer"
+              />
+
+              {(historyStatus !== "ALL" || historyDate || searchQuery) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setHistoryStatus("ALL");
+                    setHistoryDate("");
+                    setSearchQuery("");
+                  }}
+                  className="text-xs h-8 text-muted-foreground hover:text-foreground"
+                >
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadHistoryData}
+              disabled={historyLoading}
+              className="text-xs h-8 font-semibold"
+            >
+              <RefreshCw className={`h-3 w-3 mr-1.5 ${historyLoading ? "animate-spin text-amber-500" : ""}`} />
+              Refresh History
+            </Button>
+          </div>
+
+          {historyLoading ? (
+            <div className="py-16 text-center bg-card rounded-2xl border border-border p-8 shadow-xs">
+              <LoadingState message="Loading completed order history..." />
+            </div>
+          ) : historyTickets.length === 0 ? (
+            <div className="py-16 text-center bg-card rounded-2xl border border-dashed border-border p-8 shadow-xs">
+              <History className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+              <h3 className="text-base font-bold text-foreground">
+                No Order History Records Found
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                Fulfilled or cancelled kitchen tickets for {selectedRestaurant?.name} will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {historyTickets.map((t) => {
+                const isCompleted = t.status === "COMPLETED";
+                const isCancelled = t.status === "CANCELLED";
+                const firedDate = new Date(t.fired_at);
+                const completedDate = t.completed_at ? new Date(t.completed_at) : null;
+                const prepMinutes = completedDate
+                  ? Math.max(1, Math.round((completedDate.getTime() - firedDate.getTime()) / 60000))
+                  : null;
+
+                return (
+                  <div
+                    key={t.id}
+                    className="bg-card rounded-xl border border-border p-4 shadow-xs hover:border-border-hover transition flex flex-col justify-between space-y-3"
+                  >
+                    <div>
+                      {/* Card Header */}
+                      <div className="flex items-center justify-between gap-2 pb-2 border-b border-border/60">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-black text-sm text-foreground bg-muted px-2 py-0.5 rounded-md">
+                            {t.ticket_number}
+                          </span>
+                          <span className="text-xs font-bold text-foreground">
+                            {t.order_number || "Order"}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                            isCompleted
+                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                              : isCancelled
+                              ? "bg-rose-500/10 text-rose-500 border border-rose-500/20"
+                              : "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20"
+                          }`}
+                        >
+                          {t.status}
+                        </span>
+                      </div>
+
+                      {/* Destination / Table / Room Info */}
+                      <div className="mt-2.5 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5 font-bold text-foreground">
+                          {t.order_type === "ROOM_SERVICE" ? (
+                            <>
+                              <BedDouble className="h-3.5 w-3.5 text-amber-500" />
+                              <span>Room {t.table_number || "Guest Room"} (QR Order)</span>
+                            </>
+                          ) : t.order_type === "DINE_IN" ? (
+                            <>
+                              <Utensils className="h-3.5 w-3.5 text-blue-500" />
+                              <span>Table {t.table_number || "Dine In"}</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShoppingBag className="h-3.5 w-3.5 text-emerald-500" />
+                              <span>Takeaway / Pickup</span>
+                            </>
+                          )}
+                        </div>
+                        {prepMinutes !== null && (
+                          <span className="text-[11px] font-mono font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                            ⚡ {prepMinutes}m prep
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Items List */}
+                      <div className="mt-3 space-y-1.5 bg-muted/40 rounded-lg p-2.5 border border-border/40">
+                        {t.items && t.items.length > 0 ? (
+                          t.items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-start justify-between gap-2 text-xs"
+                            >
+                              <div className="flex items-start gap-1.5">
+                                <span className="font-mono font-bold text-amber-500">
+                                  {item.quantity}x
+                                </span>
+                                <div>
+                                  <span className="font-semibold text-foreground">
+                                    {item.item_name}
+                                  </span>
+                                  {item.notes && (
+                                    <p className="text-[10px] text-muted-foreground italic">
+                                      &ldquo;{item.notes}&rdquo;
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              {item.status === "COMPLETED" && (
+                                <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">
+                            Order items fulfilled
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Card Footer Timestamps */}
+                    <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span>
+                        Fired: {firedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      {completedDate && (
+                        <span>
+                          Completed: {completedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : filteredTickets.length === 0 ? (
         <div className="py-20 text-center bg-card rounded-2xl border border-dashed border-border p-8 shadow-xs">
           <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 mx-auto flex items-center justify-center mb-3">
             <ChefHat className="h-7 w-7" />
@@ -713,14 +943,18 @@ export default function KitchenKdsPage() {
               : "All food orders from QR guest ordering and POS billing are currently served and complete."}
           </p>
           <div className="pt-4 flex items-center justify-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setStatusTab("HISTORY")}
+              className="text-xs font-semibold gap-1.5"
+            >
+              <History className="h-3.5 w-3.5" />
+              <span>View Order History</span>
+            </Button>
             <Link href="/pos">
               <Button size="sm" variant="outline" className="text-xs font-semibold">
                 Go to POS Billing
-              </Button>
-            </Link>
-            <Link href="/qr-services">
-              <Button size="sm" variant="outline" className="text-xs font-semibold">
-                View QR Guest Portal
               </Button>
             </Link>
           </div>

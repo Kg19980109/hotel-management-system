@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { 
-  Search, 
-  RotateCcw, 
-  Clock, 
+import {
+  Search,
+  RotateCcw,
+  Clock,
   Eye,
   Sparkles,
   Wrench,
@@ -16,21 +16,32 @@ import {
   BellRing,
   Inbox,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  UserCheck,
+  User,
+  LayoutGrid,
+  List,
+  Flame,
+  Check,
+  Play,
+  Filter,
 } from "lucide-react";
-import { StaffGuestServiceRequest, ServiceRequestStatus } from "@/lib/guest-services/types";
+import {
+  StaffGuestServiceRequest,
+  ServiceRequestStatus,
+} from "@/lib/guest-services/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { KPIWidget } from "@/components/hotel/hotel-cards";
 import { AssignRequestModal } from "./assign-request-modal";
 import { StatusActionModal, StatusActionType } from "./status-action-modal";
+import { cn } from "@/lib/utils";
 
 interface GuestRequestsBoardProps {
   propertyId: string;
   requests: StaffGuestServiceRequest[];
   staffMembers: { id: string; full_name: string; email: string }[];
   onRefresh: () => void;
+  hideTopKpiGrid?: boolean;
 }
 
 export function GuestRequestsBoard({
@@ -38,14 +49,17 @@ export function GuestRequestsBoard({
   requests,
   staffMembers,
   onRefresh,
+  hideTopKpiGrid = false,
 }: GuestRequestsBoardProps) {
   const [search, setSearch] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("ALL");
   const [selectedStatus, setSelectedStatus] = React.useState("ALL");
   const [selectedPriority, setSelectedPriority] = React.useState("ALL");
+  const [viewMode, setViewMode] = React.useState<"table" | "grid">("table");
 
   // Modal States
-  const [assignTarget, setAssignTarget] = React.useState<StaffGuestServiceRequest | null>(null);
+  const [assignTarget, setAssignTarget] =
+    React.useState<StaffGuestServiceRequest | null>(null);
   const [actionTarget, setActionTarget] = React.useState<{
     request: StaffGuestServiceRequest;
     type: StatusActionType;
@@ -54,17 +68,25 @@ export function GuestRequestsBoard({
   // Filtered requests
   const filtered = React.useMemo(() => {
     return requests.filter((r) => {
-      if (selectedCategory !== "ALL" && r.category !== selectedCategory) return false;
+      if (selectedCategory !== "ALL" && r.category !== selectedCategory)
+        return false;
       if (selectedStatus !== "ALL" && r.status !== selectedStatus) return false;
-      if (selectedPriority !== "ALL" && r.priority !== selectedPriority) return false;
+      if (selectedPriority !== "ALL" && r.priority !== selectedPriority)
+        return false;
 
       if (search.trim().length > 0) {
         const s = search.toLowerCase().trim();
         const room = (r.room?.room_number || "").toLowerCase();
-        const guest = `${r.guest?.first_name || ""} ${r.guest?.last_name || ""}`.toLowerCase();
+        const guest =
+          `${r.guest?.first_name || ""} ${r.guest?.last_name || ""}`.toLowerCase();
         const title = (r.title || "").toLowerCase();
         const id = (r.id || "").toLowerCase();
-        if (!room.includes(s) && !guest.includes(s) && !title.includes(s) && !id.includes(s)) {
+        if (
+          !room.includes(s) &&
+          !guest.includes(s) &&
+          !title.includes(s) &&
+          !id.includes(s)
+        ) {
           return false;
         }
       }
@@ -76,116 +98,243 @@ export function GuestRequestsBoard({
   // KPI calculations
   const total = requests.length;
   const submitted = requests.filter((r) => r.status === "SUBMITTED").length;
-  const inProgress = requests.filter((r) => r.status === "IN_PROGRESS" || r.status === "ASSIGNED" || r.status === "ACKNOWLEDGED").length;
+  const inProgress = requests.filter(
+    (r) =>
+      r.status === "IN_PROGRESS" ||
+      r.status === "ASSIGNED" ||
+      r.status === "ACKNOWLEDGED"
+  ).length;
   const completed = requests.filter((r) => r.status === "COMPLETED").length;
 
   const getPriorityBadge = (p: string) => {
     switch (p) {
       case "URGENT":
-        return <Badge variant="danger" className="font-black animate-pulse">URGENT</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs animate-pulse">
+            <Flame className="w-2.5 h-2.5 text-rose-600 fill-rose-500" />
+            URGENT
+          </span>
+        );
       case "HIGH":
-        return <Badge variant="warning" className="font-bold">HIGH</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+            HIGH
+          </span>
+        );
       case "LOW":
-        return <Badge variant="default" className="text-slate-500">LOW</Badge>;
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200">
+            LOW
+          </span>
+        );
       default:
-        return <Badge variant="info">NORMAL</Badge>;
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
+            NORMAL
+          </span>
+        );
     }
   };
 
   const getStatusBadge = (s: ServiceRequestStatus) => {
     switch (s) {
       case "COMPLETED":
-        return <Badge variant="success" className="font-bold">COMPLETED</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+            COMPLETED
+          </span>
+        );
       case "IN_PROGRESS":
-        return <Badge variant="info" className="font-bold">IN PROGRESS</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-pulse" />
+            IN PROGRESS
+          </span>
+        );
       case "ASSIGNED":
-        return <Badge variant="info">ASSIGNED</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-600" />
+            ASSIGNED
+          </span>
+        );
       case "ACKNOWLEDGED":
-        return <Badge variant="warning" className="font-bold">ACKNOWLEDGED</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
+            ACKNOWLEDGED
+          </span>
+        );
       case "CANCELLED":
       case "REJECTED":
-        return <Badge variant="danger">{s}</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+            {s}
+          </span>
+        );
       default:
-        return <Badge variant="pending" className="font-bold text-amber-500">SUBMITTED</Badge>;
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-amber-500 text-white shadow-2xs animate-pulse">
+            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            NEW SUBMISSION
+          </span>
+        );
     }
   };
 
-  const getCategoryIcon = (cat: string) => {
+  const getCategoryInfo = (cat: string) => {
     switch (cat?.toUpperCase()) {
       case "HOUSEKEEPING":
-        return <Sparkles className="w-3.5 h-3.5 text-emerald-500" />;
+        return {
+          icon: Sparkles,
+          bg: "bg-emerald-50 border-emerald-200 text-emerald-700",
+        };
       case "MAINTENANCE":
-        return <Wrench className="w-3.5 h-3.5 text-blue-500" />;
+        return {
+          icon: Wrench,
+          bg: "bg-blue-50 border-blue-200 text-blue-700",
+        };
       case "ROOM_SERVICE":
       case "FOOD":
-        return <Utensils className="w-3.5 h-3.5 text-amber-500" />;
+        return {
+          icon: Utensils,
+          bg: "bg-amber-50 border-amber-200 text-amber-700",
+        };
       case "LAUNDRY":
-        return <Shirt className="w-3.5 h-3.5 text-cyan-500" />;
+        return {
+          icon: Shirt,
+          bg: "bg-cyan-50 border-cyan-200 text-cyan-700",
+        };
       case "TRANSPORT":
-        return <Car className="w-3.5 h-3.5 text-indigo-500" />;
+        return {
+          icon: Car,
+          bg: "bg-indigo-50 border-indigo-200 text-indigo-700",
+        };
       default:
-        return <BellRing className="w-3.5 h-3.5 text-violet-500" />;
+        return {
+          icon: BellRing,
+          bg: "bg-purple-50 border-purple-200 text-purple-700",
+        };
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* 1. Canonical KPI Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPIWidget
-          title="Total Requests"
-          value={total}
-          trendLabel="Hotel-wide logs"
-          color="primary"
-          icon={<Inbox className="w-4 h-4 text-primary" />}
-        />
-        <KPIWidget
-          title="New / Submitted"
-          value={submitted}
-          trendLabel={submitted > 0 ? "Requires triage" : "Acknowledged"}
-          color="warning"
-          icon={<AlertTriangle className="w-4 h-4 text-amber-500" />}
-        />
-        <KPIWidget
-          title="Active / In-Progress"
-          value={inProgress}
-          trendLabel="In operational dispatch"
-          color="info"
-          icon={<Clock className="w-4 h-4 text-blue-500" />}
-        />
-        <KPIWidget
-          title="Completed Today"
-          value={completed}
-          trendLabel="Resolved"
-          color="success"
-          icon={<CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-        />
+    <div className="space-y-4">
+      {/* 1. Sleek Interactive Status Filters Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          {
+            id: "ALL",
+            title: "Total Requests",
+            value: total,
+            sub: "All Tickets",
+            color: "from-indigo-500 to-blue-600",
+            icon: Inbox,
+            iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100",
+          },
+          {
+            id: "SUBMITTED",
+            title: "New / Submitted",
+            value: submitted,
+            sub: submitted > 0 ? "Requires Triage" : "All clear",
+            color: "from-amber-500 to-orange-600",
+            icon: AlertTriangle,
+            iconBg: "bg-amber-50 text-amber-600 border-amber-100",
+          },
+          {
+            id: "IN_PROGRESS",
+            title: "Active / In-Progress",
+            value: inProgress,
+            sub: "In Dispatch",
+            color: "from-blue-500 to-cyan-600",
+            icon: Clock,
+            iconBg: "bg-blue-50 text-blue-600 border-blue-100",
+          },
+          {
+            id: "COMPLETED",
+            title: "Completed Today",
+            value: completed,
+            sub: "Resolved",
+            color: "from-emerald-500 to-teal-600",
+            icon: CheckCircle2,
+            iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100",
+          },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isSelected = selectedStatus === item.id;
+
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() =>
+                setSelectedStatus(isSelected && item.id !== "ALL" ? "ALL" : item.id)
+              }
+              className={cn(
+                "group relative flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200/90 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm overflow-hidden",
+                isSelected
+                  ? "ring-2 ring-indigo-500 border-indigo-400 bg-gradient-to-br from-indigo-50/40 to-white shadow-xs"
+                  : "shadow-2xs"
+              )}
+            >
+              <div
+                className={cn(
+                  "absolute top-0 left-0 right-0 h-1 bg-gradient-to-r",
+                  item.color,
+                  isSelected ? "opacity-100" : "opacity-40 group-hover:opacity-100"
+                )}
+              />
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block font-mono">
+                  {item.title}
+                </span>
+                <span className="text-xl font-black text-slate-900 mt-0.5 block tabular-nums">
+                  {item.value}
+                </span>
+                <span className="text-[10.5px] font-semibold text-slate-500 block mt-0.5">
+                  {item.sub}
+                </span>
+              </div>
+              <div
+                className={cn(
+                  "w-8.5 h-8.5 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs",
+                  item.iconBg
+                )}
+              >
+                <Icon className="w-4 h-4" />
+              </div>
+            </button>
+          );
+        })}
       </div>
 
-      {/* 2. Filter Bar in stayhub-card */}
-      <div className="stayhub-card p-4 space-y-3">
-        <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+      {/* 2. Controls & Search Filter Bar */}
+      <div className="stayhub-card p-3.5">
+        <div className="flex flex-col md:flex-row gap-2.5 items-center justify-between">
+          {/* Search Box */}
           <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search room, guest name, title..."
-              className="pl-9 bg-background/50 h-10 border-border/80 rounded-xl"
+              placeholder="Search room, guest name, ticket title..."
+              className="pl-9 bg-slate-50 border-slate-200 h-9.5 rounded-xl text-xs"
             />
           </div>
 
-          <div className="flex flex-wrap gap-2.5 w-full md:w-auto items-center justify-end">
+          {/* Filters & View Toggle */}
+          <div className="flex flex-wrap gap-2 w-full md:w-auto items-center justify-end">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="h-10 px-3.5 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-foreground transition"
+              className="h-9.5 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-2xs cursor-pointer"
             >
               <option value="ALL">All Categories</option>
               <option value="HOUSEKEEPING">Housekeeping</option>
+              <option value="MAINTENANCE">Maintenance</option>
               <option value="FRONT_DESK">Front Desk</option>
               <option value="CONCIERGE">Concierge</option>
-              <option value="MAINTENANCE">Maintenance</option>
               <option value="LAUNDRY">Laundry</option>
               <option value="SPA">Spa</option>
               <option value="TRANSPORT">Transport</option>
@@ -194,24 +343,9 @@ export function GuestRequestsBoard({
             </select>
 
             <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="h-10 px-3.5 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-foreground transition"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="SUBMITTED">Submitted</option>
-              <option value="ACKNOWLEDGED">Acknowledged</option>
-              <option value="ASSIGNED">Assigned</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
-
-            <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="h-10 px-3.5 rounded-xl border border-border bg-card text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-foreground transition"
+              className="h-9.5 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-2xs cursor-pointer"
             >
               <option value="ALL">All Priorities</option>
               <option value="URGENT">Urgent</option>
@@ -220,143 +354,412 @@ export function GuestRequestsBoard({
               <option value="LOW">Low</option>
             </select>
 
-            <Button variant="outline" size="icon" onClick={onRefresh} title="Refresh Requests" className="h-10 w-10 rounded-xl">
-              <RotateCcw className="w-4 h-4" />
+            {/* View Mode Switcher */}
+            <div className="flex items-center border border-slate-200 rounded-xl p-0.5 bg-slate-100 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={cn(
+                  "p-1.5 rounded-lg transition-all",
+                  viewMode === "table"
+                    ? "bg-white text-slate-900 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-800"
+                )}
+                title="Table View"
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={cn(
+                  "p-1.5 rounded-lg transition-all",
+                  viewMode === "grid"
+                    ? "bg-white text-slate-900 shadow-xs font-bold"
+                    : "text-slate-500 hover:text-slate-800"
+                )}
+                title="Card View"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onRefresh}
+              title="Refresh Requests"
+              className="h-9.5 w-9.5 rounded-xl bg-white border-slate-200"
+            >
+              <RotateCcw className="w-4 h-4 text-slate-600" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* 3. Requests Table in stayhub-card */}
+      {/* 3. Empty State */}
       {filtered.length === 0 ? (
         <div className="stayhub-card p-12 text-center border-dashed space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto text-muted-foreground">
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
             <Clock className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-bold text-foreground">No guest requests match your filters</h3>
-          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Try adjusting your search criteria or clearing department filters to view active hotel tickets.
+          <h3 className="text-base font-extrabold text-slate-900">
+            No guest requests match your filters
+          </h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            Try adjusting your search query or reset status filters to view active hotel tickets.
           </p>
+          {(search || selectedCategory !== "ALL" || selectedStatus !== "ALL" || selectedPriority !== "ALL") && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setSearch("");
+                setSelectedCategory("ALL");
+                setSelectedStatus("ALL");
+                setSelectedPriority("ALL");
+              }}
+              className="text-xs font-bold h-8"
+            >
+              Reset Filters
+            </Button>
+          )}
+        </div>
+      ) : viewMode === "grid" ? (
+        /* ── GRID CARD VIEW ── */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((r) => {
+            const cat = getCategoryInfo(r.category);
+            const CatIcon = cat.icon;
+            const guestName =
+              r.guest ? `${r.guest.first_name || ""} ${r.guest.last_name || ""}`.trim() : "In-House Guest";
+
+            return (
+              <div
+                key={r.id}
+                className="group relative flex flex-col rounded-2xl bg-white border border-slate-200/90 p-4 shadow-2xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 space-y-3"
+              >
+                {/* Header Row: Room Pill + Priority + Category */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 text-white text-xs font-black shadow-2xs">
+                      <BedDouble className="w-3.5 h-3.5 text-amber-400" />
+                      Room {r.room?.room_number || "—"}
+                    </span>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border",
+                        cat.bg
+                      )}
+                    >
+                      <CatIcon className="w-3 h-3" />
+                      <span>{r.category}</span>
+                    </span>
+                  </div>
+
+                  {getPriorityBadge(r.priority)}
+                </div>
+
+                {/* Request Content */}
+                <div className="space-y-1">
+                  <h4 className="text-[13.5px] font-black text-slate-900 leading-snug">
+                    {r.title}
+                  </h4>
+                  {r.description && (
+                    <p className="text-[11.5px] text-slate-500 line-clamp-2 leading-relaxed">
+                      {r.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Guest & Timing Strip */}
+                <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px] shrink-0">
+                      {guestName.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="font-bold text-slate-800 truncate">
+                      {guestName}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[10.5px] text-slate-400 shrink-0 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {new Date(r.requested_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+
+                {/* Status & Assigned Staff Row */}
+                <div className="flex items-center justify-between text-[11.5px] pt-1">
+                  <span className="font-bold text-slate-500">Status:</span>
+                  {getStatusBadge(r.status)}
+                </div>
+
+                {/* Bottom Action Footer */}
+                <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 mt-auto">
+                  {r.status === "SUBMITTED" && (
+                    <Button
+                      size="sm"
+                      className="flex-1 h-8 text-[11px] font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white gap-1 shadow-2xs"
+                      onClick={() =>
+                        setActionTarget({ request: r, type: "ACKNOWLEDGE" })
+                      }
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>Accept Ticket</span>
+                    </Button>
+                  )}
+
+                  {r.status !== "COMPLETED" &&
+                    r.status !== "CANCELLED" &&
+                    r.status !== "REJECTED" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 px-2.5 text-[11px] font-bold rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100"
+                        onClick={() => setAssignTarget(r)}
+                      >
+                        <UserCheck className="w-3 h-3 mr-1" />
+                        {r.assigned_staff
+                          ? r.assigned_staff.full_name.split(" ")[0]
+                          : "Assign"}
+                      </Button>
+                    )}
+
+                  {r.status === "ASSIGNED" && (
+                    <Button
+                      size="sm"
+                      className="flex-1 h-8 text-[11px] font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white gap-1 shadow-2xs"
+                      onClick={() =>
+                        setActionTarget({ request: r, type: "START" })
+                      }
+                    >
+                      <Play className="w-3 h-3" />
+                      <span>Start Work</span>
+                    </Button>
+                  )}
+
+                  {r.status === "IN_PROGRESS" && (
+                    <Button
+                      size="sm"
+                      className="flex-1 h-8 text-[11px] font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1 shadow-2xs"
+                      onClick={() =>
+                        setActionTarget({ request: r, type: "COMPLETE" })
+                      }
+                    >
+                      <Check className="w-3 h-3" />
+                      <span>Mark Complete</span>
+                    </Button>
+                  )}
+
+                  <Link href={`/guest-requests/${r.id}`}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 p-0 rounded-xl border-slate-200 text-slate-600 hover:text-slate-900"
+                      title="View Dossier"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
+        /* ── LUXURY COMMAND TABLE VIEW ── */
         <div className="stayhub-card p-0 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#0B1528]/5 dark:bg-white/5 border-b border-border text-muted-foreground uppercase font-bold tracking-wider text-[10px]">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-500 uppercase font-extrabold tracking-wider text-[10.5px]">
                 <tr>
-                  <th className="py-3.5 px-4">Room</th>
-                  <th className="py-3.5 px-4">Guest</th>
-                  <th className="py-3.5 px-4">Category / Type</th>
-                  <th className="py-3.5 px-4">Request Title & Note</th>
-                  <th className="py-3.5 px-4">Priority</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4">Assigned To</th>
-                  <th className="py-3.5 px-4">Time</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                  <th className="py-3 px-4">Room</th>
+                  <th className="py-3 px-4">Guest</th>
+                  <th className="py-3 px-4">Category</th>
+                  <th className="py-3 px-4">Ticket Details</th>
+                  <th className="py-3 px-4">Priority</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Assigned Staff</th>
+                  <th className="py-3 px-4">Time</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/60">
-                {filtered.map((r) => (
-                  <tr key={r.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3.5 px-4 font-black whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 text-xs">
-                        <BedDouble className="w-3.5 h-3.5" />
-                        Room {r.room?.room_number || "—"}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="font-semibold text-foreground">
-                        {r.guest?.first_name} {r.guest?.last_name}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <div className="p-1 rounded bg-muted/60">
-                          {getCategoryIcon(r.category)}
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map((r) => {
+                  const cat = getCategoryInfo(r.category);
+                  const CatIcon = cat.icon;
+                  const guestName =
+                    r.guest
+                      ? `${r.guest.first_name || ""} ${r.guest.last_name || ""}`.trim()
+                      : "In-House Guest";
+
+                  return (
+                    <tr
+                      key={r.id}
+                      className="hover:bg-slate-50/70 transition-colors group"
+                    >
+                      <td className="py-3 px-4 font-black whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-900 text-white font-extrabold text-[11.5px] shadow-2xs">
+                          <BedDouble className="w-3.5 h-3.5 text-amber-400" />
+                          Room {r.room?.room_number || "—"}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6.5 h-6.5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-[10px] shadow-2xs shrink-0">
+                            {guestName.slice(0, 2).toUpperCase()}
+                          </div>
+                          <span className="font-bold text-slate-900 text-xs">
+                            {guestName}
+                          </span>
                         </div>
-                        <div className="space-y-0.5">
-                          <span className="font-semibold text-foreground block text-xs">{r.category}</span>
-                          <span className="text-[10px] text-muted-foreground block">{r.request_type}</span>
+                      </td>
+
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={cn(
+                              "p-1 rounded-lg border flex items-center justify-center",
+                              cat.bg
+                            )}
+                          >
+                            <CatIcon className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <span className="font-bold text-slate-800 block text-xs">
+                              {r.category}
+                            </span>
+                            {r.request_type && (
+                              <span className="text-[10px] text-slate-400 block font-medium">
+                                {r.request_type}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 max-w-xs">
-                      <p className="font-bold text-foreground text-xs line-clamp-1">{r.title}</p>
-                      {r.description && (
-                        <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">{r.description}</p>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {getPriorityBadge(r.priority)}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {getStatusBadge(r.status)}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {r.assigned_staff ? (
-                        <span className="font-medium text-foreground">{r.assigned_staff.full_name}</span>
-                      ) : r.assigned_department ? (
-                        <span className="text-muted-foreground italic text-xs">Dept: {r.assigned_department}</span>
-                      ) : (
-                        <span className="text-muted-foreground/80 italic text-xs">Unassigned</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-muted-foreground font-mono text-[11px]">
-                      {new Date(r.requested_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </td>
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-1.5">
-                      {r.status === "SUBMITTED" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/30 font-bold"
-                          onClick={() => setActionTarget({ request: r, type: "ACKNOWLEDGE" })}
-                        >
-                          Accept
-                        </Button>
-                      )}
+                      </td>
 
-                      {r.status !== "COMPLETED" && r.status !== "CANCELLED" && r.status !== "REJECTED" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs font-semibold"
-                          onClick={() => setAssignTarget(r)}
-                        >
-                          Assign
-                        </Button>
-                      )}
+                      <td className="py-3 px-4 max-w-xs">
+                        <p className="font-extrabold text-slate-900 text-xs line-clamp-1">
+                          {r.title}
+                        </p>
+                        {r.description && (
+                          <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                            {r.description}
+                          </p>
+                        )}
+                      </td>
 
-                      {r.status === "ASSIGNED" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 border-blue-500/30 font-semibold"
-                          onClick={() => setActionTarget({ request: r, type: "START" })}
-                        >
-                          Start
-                        </Button>
-                      )}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {getPriorityBadge(r.priority)}
+                      </td>
 
-                      {r.status === "IN_PROGRESS" && (
-                        <Button
-                          size="sm"
-                          variant="success"
-                          className="h-7 text-xs font-bold"
-                          onClick={() => setActionTarget({ request: r, type: "COMPLETE" })}
-                        >
-                          Complete
-                        </Button>
-                      )}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {getStatusBadge(r.status)}
+                      </td>
 
-                      <Link href={`/guest-requests/${r.id}`}>
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="View Dossier">
-                          <Eye className="w-3.5 h-3.5 text-muted-foreground" />
-                        </Button>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        {r.assigned_staff ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[9.5px] font-bold">
+                              {r.assigned_staff.full_name.slice(0, 1)}
+                            </div>
+                            <span className="font-semibold text-slate-800 text-xs">
+                              {r.assigned_staff.full_name}
+                            </span>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setAssignTarget(r)}
+                            className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold hover:underline flex items-center gap-1"
+                          >
+                            <User className="w-3 h-3" />
+                            <span>Assign Staff</span>
+                          </button>
+                        )}
+                      </td>
+
+                      <td className="py-3 px-4 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                        {new Date(r.requested_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+
+                      <td className="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                        {r.status === "SUBMITTED" && (
+                          <Button
+                            size="sm"
+                            className="h-7 px-2.5 text-[11px] bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-2xs"
+                            onClick={() =>
+                              setActionTarget({
+                                request: r,
+                                type: "ACKNOWLEDGE",
+                              })
+                            }
+                          >
+                            Accept
+                          </Button>
+                        )}
+
+                        {r.status !== "COMPLETED" &&
+                          r.status !== "CANCELLED" &&
+                          r.status !== "REJECTED" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2.5 text-[11px] font-bold rounded-lg border-slate-200 text-slate-700"
+                              onClick={() => setAssignTarget(r)}
+                            >
+                              Assign
+                            </Button>
+                          )}
+
+                        {r.status === "ASSIGNED" && (
+                          <Button
+                            size="sm"
+                            className="h-7 px-2.5 text-[11px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-2xs"
+                            onClick={() =>
+                              setActionTarget({ request: r, type: "START" })
+                            }
+                          >
+                            Start
+                          </Button>
+                        )}
+
+                        {r.status === "IN_PROGRESS" && (
+                          <Button
+                            size="sm"
+                            className="h-7 px-2.5 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-2xs"
+                            onClick={() =>
+                              setActionTarget({
+                                request: r,
+                                type: "COMPLETE",
+                              })
+                            }
+                          >
+                            Complete
+                          </Button>
+                        )}
+
+                        <Link href={`/guest-requests/${r.id}`}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 w-7 p-0 text-slate-400 hover:text-slate-800"
+                            title="View Dossier"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

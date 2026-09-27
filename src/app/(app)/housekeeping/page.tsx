@@ -32,6 +32,7 @@ import {
   Sparkles,
   BellRing,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface FloorOption {
   id: string;
@@ -374,41 +375,53 @@ export default function HousekeepingPage() {
       <HousekeepingKPIGrid stats={stats} loading={loading && tasks.length === 0} />
 
       {/* Operational Navigation Tabs */}
-      <div className="stayhub-card p-1.5 flex items-center gap-2 max-w-fit">
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs max-w-fit">
         <button
+          type="button"
           onClick={() => setActiveTab("guest_requests")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2",
             activeTab === "guest_requests"
-              ? "bg-amber-500 text-slate-950 shadow-sm"
-              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
-          }`}
+              ? "bg-slate-900 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          )}
         >
-          <BellRing className="w-4 h-4" />
+          <BellRing className="w-4 h-4 text-amber-400" />
           <span>Guest QR Requests</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-            activeTab === "guest_requests"
-              ? "bg-slate-950/20 text-slate-950 font-bold"
-              : pendingGuestRequests > 0
-              ? "bg-amber-500 text-slate-950 font-bold animate-pulse"
-              : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-          }`}>
+          <span
+            className={cn(
+              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
+              activeTab === "guest_requests"
+                ? "bg-white/20 text-white"
+                : pendingGuestRequests > 0
+                ? "bg-rose-500 text-white animate-pulse"
+                : "bg-slate-100 text-slate-700"
+            )}
+          >
             {guestRequests.length}
           </span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab("tasks")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2",
             activeTab === "tasks"
-              ? "bg-[var(--primary)] text-white shadow-sm"
-              : "text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-slate-100/60 dark:hover:bg-slate-800/60"
-          }`}
+              ? "bg-slate-900 text-white shadow-sm"
+              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+          )}
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 text-emerald-400" />
           <span>Cleaning Tasks</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-            activeTab === "tasks" ? "bg-white/20 text-white" : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-          }`}>
+          <span
+            className={cn(
+              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
+              activeTab === "tasks"
+                ? "bg-white/20 text-white"
+                : "bg-slate-100 text-slate-700"
+            )}
+          >
             {tasks.length}
           </span>
         </button>

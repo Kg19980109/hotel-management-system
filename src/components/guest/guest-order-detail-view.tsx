@@ -34,19 +34,20 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
   // Real-time subscription to restaurant_orders & kitchen_tickets for instant stage updates
   React.useEffect(() => {
     const supabase = createClient();
+    const orderId = initialOrder.id;
     const channel = supabase
-      .channel(`stayhub:guest-order:${order.id}`)
+      .channel(`stayhub:guest-order:${orderId}`)
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
           table: "restaurant_orders",
-          filter: `id=eq.${order.id}`,
+          filter: `id=eq.${orderId}`,
         },
         (payload) => {
           const updated = payload.new as { status?: string };
-          if (updated.status && updated.status !== order.status) {
+          if (updated?.status) {
             setOrder((prev: GuestOrderDetail) => ({ ...prev, status: updated.status || prev.status }));
             setLastUpdateNotice(`Order status updated to ${updated.status}`);
             setTimeout(() => setLastUpdateNotice(null), 4000);
@@ -60,11 +61,11 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
           event: "*",
           schema: "public",
           table: "kitchen_tickets",
-          filter: `restaurant_order_id=eq.${order.id}`,
+          filter: `restaurant_order_id=eq.${orderId}`,
         },
         (payload) => {
           const updated = payload.new as { status?: string };
-          if (updated?.status && updated.status !== order.kds_status) {
+          if (updated?.status) {
             setOrder((prev: GuestOrderDetail) => ({ ...prev, kds_status: updated.status }));
             setLastUpdateNotice(`Kitchen update: Ticket is ${updated.status}`);
             setTimeout(() => setLastUpdateNotice(null), 4000);
@@ -74,7 +75,6 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
-          // Reconnected or established: refresh server state
           router.refresh();
         }
       });
@@ -87,30 +87,41 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
     window.addEventListener("online", handleReconnectSync);
     document.addEventListener("visibilitychange", handleReconnectSync);
 
-    // Heartbeat sync fallback every 15s while order is active (visible tab only)
-    let heartbeatTimer: NodeJS.Timeout | null = null;
-    if (order.status !== "COMPLETED" && order.status !== "SERVED" && order.status !== "CANCELLED") {
-      heartbeatTimer = setInterval(() => {
-        if (document.visibilityState !== "visible") return;
-        router.refresh();
-      }, 15000);
-    }
+    // Fast active polling fallback (every 3s while cooking/preparing) for instant feedback
+    const heartbeatTimer = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      router.refresh();
+    }, 3000);
 
     return () => {
       void supabase.removeChannel(channel);
       window.removeEventListener("online", handleReconnectSync);
       document.removeEventListener("visibilitychange", handleReconnectSync);
-      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      clearInterval(heartbeatTimer);
     };
-  }, [order.id, order.status, order.kds_status, router]);
+  }, [initialOrder.id, router]);
 
   // Determine stage progression: 1 = Placed, 2 = Preparing, 3 = Ready, 4 = Delivered
   let stage = 1;
-  if (order.status === "PREPARING" || order.kds_status === "IN_PROGRESS") {
+  const currentOrderStatus = order.status?.toUpperCase() || "";
+  const currentKdsStatus = order.kds_status?.toUpperCase() || "";
+
+  if (
+    currentOrderStatus === "PREPARING" ||
+    currentOrderStatus === "IN_PROGRESS" ||
+    currentKdsStatus === "IN_PROGRESS"
+  ) {
     stage = 2;
-  } else if (order.status === "READY" || order.kds_status === "READY") {
+  } else if (
+    currentOrderStatus === "READY" ||
+    currentKdsStatus === "READY"
+  ) {
     stage = 3;
-  } else if (order.status === "COMPLETED" || order.status === "SERVED" || order.kds_status === "COMPLETED") {
+  } else if (
+    currentOrderStatus === "COMPLETED" ||
+    currentOrderStatus === "SERVED" ||
+    currentKdsStatus === "COMPLETED"
+  ) {
     stage = 4;
   }
 

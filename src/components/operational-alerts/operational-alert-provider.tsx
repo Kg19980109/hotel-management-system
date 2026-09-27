@@ -358,55 +358,74 @@ export function OperationalAlertProvider({
         if (eventType === "INSERT" || eventType === "UPDATE") {
           // If active order waiting for acceptance
           if (order && (order.status === "OPEN" || order.status === "CONFIRMED") && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
-            let roomNumber = "—";
-            let guestName = "Guest";
-            let itemsSummary = "";
-
-            try {
-              const { data: detail } = await supabase
-                .from("restaurant_orders")
-                .select(`
-                  room:rooms(room_number),
-                  table:restaurant_tables(table_number),
-                  guest:guests(first_name, last_name),
-                  order_items:restaurant_order_items(item_name, quantity)
-                `)
-                .eq("id", order.id)
-                .single();
-
-              if (detail) {
-                const r = detail.room as unknown as { room_number?: string };
-                const t = detail.table as unknown as { table_number?: string };
-                if (r?.room_number) roomNumber = r.room_number;
-                else if (t?.table_number) roomNumber = `Table ${t.table_number}`;
-
-                const g = detail.guest as unknown as { first_name?: string; last_name?: string };
-                if (g) guestName = `${g.first_name || ""} ${g.last_name || ""}`.trim();
-
-                const items = (detail.order_items as unknown as Array<{ item_name: string; quantity: number }> || []);
-                if (items.length > 0) {
-                  itemsSummary = items.map((i) => `${i.quantity}x ${i.item_name}`).join(", ");
-                }
-              }
-            } catch {
-              // fallback
-            }
-
+            // 1. INSTANT DISPATCH: Fire alert immediately so buzzer & popup appear with 0ms delay
             operationalAlertManager.addOrUpdateAlert({
               id: order.id,
               type: "FOOD_ORDER",
               category: order.order_type === "DINE_IN" ? "DINING" : "ROOM_SERVICE",
               department: "RESTAURANT",
-              roomNumber,
-              guestName: guestName || "Guest",
-              title: `Food Order #${order.order_number}`,
-              description: itemsSummary ? `${itemsSummary} • ₹${order.total_amount}` : (order.notes || `Total: ₹${order.total_amount}`),
+              roomNumber: "—",
+              guestName: "Guest",
+              title: `Food Order #${order.order_number || order.id.slice(0, 8)}`,
+              description: order.notes ? `${order.notes} • ₹${order.total_amount || 0}` : `Total: ₹${order.total_amount || 0}`,
               priority: "HIGH",
               receivedAt: Date.now(),
               propertyId: order.property_id,
               status: order.status,
             });
             setIsModalMinimized(false);
+
+            // 2. ASYNC ENRICHMENT: Fetch room, guest name, and items in background and update alert
+            void (async () => {
+              try {
+                const { data: detail } = await supabase
+                  .from("restaurant_orders")
+                  .select(`
+                    room:rooms(room_number),
+                    table:restaurant_tables(table_number),
+                    guest:guests(first_name, last_name),
+                    order_items:restaurant_order_items(item_name, quantity)
+                  `)
+                  .eq("id", order.id)
+                  .single();
+
+                if (detail) {
+                  let roomNumber = "—";
+                  let guestName = "Guest";
+                  let itemsSummary = "";
+
+                  const r = detail.room as unknown as { room_number?: string };
+                  const t = detail.table as unknown as { table_number?: string };
+                  if (r?.room_number) roomNumber = r.room_number;
+                  else if (t?.table_number) roomNumber = `Table ${t.table_number}`;
+
+                  const g = detail.guest as unknown as { first_name?: string; last_name?: string };
+                  if (g) guestName = `${g.first_name || ""} ${g.last_name || ""}`.trim();
+
+                  const items = (detail.order_items as unknown as Array<{ item_name: string; quantity: number }> || []);
+                  if (items.length > 0) {
+                    itemsSummary = items.map((i) => `${i.quantity}x ${i.item_name}`).join(", ");
+                  }
+
+                  operationalAlertManager.addOrUpdateAlert({
+                    id: order.id,
+                    type: "FOOD_ORDER",
+                    category: order.order_type === "DINE_IN" ? "DINING" : "ROOM_SERVICE",
+                    department: "RESTAURANT",
+                    roomNumber,
+                    guestName: guestName || "Guest",
+                    title: `Food Order #${order.order_number}`,
+                    description: itemsSummary ? `${itemsSummary} • ₹${order.total_amount}` : (order.notes || `Total: ₹${order.total_amount}`),
+                    priority: "HIGH",
+                    receivedAt: Date.now(),
+                    propertyId: order.property_id,
+                    status: order.status,
+                  });
+                }
+              } catch {
+                // Keep initial alert on error
+              }
+            })();
           } else if (
             order &&
             (order.status === "PREPARING" ||

@@ -261,8 +261,15 @@ export default function RoomsPage() {
         </div>
       </div>
 
-      {/* ── KPI GRID ── */}
-      <RoomKpiGrid stats={stats} loading={loading && !stats} />
+      {/* ── KPI GRID (Interactive Filter Cards) ── */}
+      <RoomKpiGrid
+        stats={stats}
+        loading={loading && !stats}
+        selectedStatus={filters.status || "ALL"}
+        onSelectStatus={(status) =>
+          setFilters((prev) => ({ ...prev, status: status as any, page: 1 }))
+        }
+      />
 
       {/* ── FILTER BAR ── */}
       <div className="stayhub-card p-4">

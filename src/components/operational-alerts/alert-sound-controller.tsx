@@ -24,7 +24,7 @@ export function AlertSoundController() {
 
   return (
     <div className="relative flex items-center gap-2">
-      {/* 1. Connection Status Dot / Badge */}
+      {/* 1. Connection Status Dot / Badge (Only when reconnecting) */}
       {connectionStatus === "RECONNECTING" && (
         <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#D4AF37]/10 text-[#E5C158] border border-[#D4AF37]/30 animate-pulse">
           <RefreshCw className="w-3 h-3 animate-spin text-[#E5C158]" />
@@ -60,27 +60,15 @@ export function AlertSoundController() {
         title={soundEnabled ? "Audible alerts ON (Click to mute)" : "Audible alerts MUTED (Click to enable)"}
         className={`p-2 rounded-xl transition border ${
           soundEnabled
-            ? "bg-card text-foreground hover:bg-muted border-border/80 shadow-xs"
-            : "bg-muted/60 text-muted-foreground border-transparent hover:bg-muted"
+            ? "bg-slate-100 hover:bg-slate-200/80 text-slate-800 border-slate-200/90 shadow-2xs"
+            : "bg-slate-50 text-slate-400 border-slate-200/60 hover:bg-slate-100"
         }`}
       >
         {soundEnabled ? (
-          <Volume2 className="w-4 h-4 text-emerald-500" />
+          <Volume2 className="w-4 h-4 text-emerald-600" />
         ) : (
-          <VolumeX className="w-4 h-4 text-muted-foreground/70" />
+          <VolumeX className="w-4 h-4 text-slate-400" />
         )}
-      </button>
-
-      {/* 4. Test Alert Chime Button */}
-      <button
-        onClick={() => {
-          void unlockAudio();
-          operationalAlertManager.playTestSound();
-        }}
-        title="Test Soothing Alert Chime"
-        className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 transition"
-      >
-        <span>Test Chime</span>
       </button>
     </div>
   );

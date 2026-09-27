@@ -99,7 +99,7 @@ export function GlobalSearch() {
   };
 
   return (
-    <div className="relative w-full max-w-md" ref={containerRef}>
+    <div className="relative w-full max-w-sm sm:max-w-md" ref={containerRef}>
       <div className="relative flex items-center">
         <SearchInput
           ref={inputRef}
@@ -109,14 +109,14 @@ export function GlobalSearch() {
             if (!isOpen) setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          placeholder="Search guests, bookings, rooms, invoices..."
-          className="pr-12 text-[13px] bg-[var(--secondary)]"
+          placeholder="Search guests, rooms, bookings..."
+          className="pr-11 text-xs sm:text-[13px] bg-slate-50/90 border-slate-200/90 hover:border-slate-300 focus:bg-white rounded-xl h-9.5 transition-all shadow-2xs"
           aria-expanded={isOpen}
           aria-autocomplete="list"
           aria-label="Global search"
         />
         <div className="absolute right-2.5 pointer-events-none hidden sm:flex items-center gap-0.5">
-          <kbd className="text-[10px] font-medium text-[var(--foreground-muted)] bg-white border border-[var(--border)] px-1.5 py-0.5 rounded shadow-xs">
+          <kbd className="text-[10px] font-bold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded-md shadow-2xs">
             ⌘K
           </kbd>
         </div>

@@ -68,23 +68,22 @@ export function PropertySelector({
           aria-haspopup="listbox"
           aria-label={`Selected property: ${activeName}`}
           className={cn(
-            "flex items-center gap-2 px-2.5 py-1.5 rounded-[var(--radius)] text-left",
-            "border border-[var(--border)] hover:bg-[var(--secondary)] transition-colors",
-            isOpen && "bg-[var(--secondary)] ring-2 ring-[var(--ring)]"
+            "flex items-center gap-2 px-2.5 py-1 rounded-xl text-left bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs transition-all duration-150",
+            isOpen && "bg-slate-50 ring-2 ring-indigo-500/20 border-indigo-400"
           )}
         >
-          <div className="h-6 w-6 rounded-[var(--radius-sm)] bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+          <div className="h-6.5 w-6.5 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-[10px] font-black shrink-0 shadow-2xs">
             {activeInitials}
           </div>
-          <div className="hidden md:block max-w-[150px]">
-            <p className="text-[13px] font-semibold text-[var(--foreground)] truncate leading-tight">
+          <div className="hidden md:block max-w-[160px]">
+            <p className="text-xs font-bold text-slate-800 truncate leading-tight">
               {activeName}
             </p>
-            <p className="text-[11px] text-[var(--foreground-muted)] truncate leading-tight">
+            <p className="text-[10.5px] font-medium text-slate-400 truncate leading-tight mt-0.5">
               {activeLocation}
             </p>
           </div>
-          <ChevronDown className="h-3.5 w-3.5 text-[var(--foreground-muted)] shrink-0 ml-1" />
+          <ChevronDown className="h-3.5 w-3.5 text-slate-400 shrink-0 ml-0.5" />
         </button>
 
         {isOpen && (

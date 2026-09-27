@@ -63,22 +63,22 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
         aria-haspopup="menu"
         aria-label="User profile menu"
         className={cn(
-          "flex items-center gap-2.5 rounded-[var(--radius)] px-2 py-1.5 hover:bg-[var(--secondary)] transition-colors text-left",
-          isOpen && "bg-[var(--secondary)]"
+          "flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-100/80 transition-all duration-150 text-left border border-transparent hover:border-slate-200/80",
+          isOpen && "bg-slate-100 border-slate-200"
         )}
       >
         <Avatar name={userName} size="sm" />
         <div className="text-left hidden sm:block">
-          <p className="text-[13px] font-semibold text-[var(--foreground)] leading-tight">
+          <p className="text-xs font-bold text-slate-800 leading-tight">
             {userName}
           </p>
-          <p className="text-[11px] text-[var(--foreground-muted)] leading-tight">
+          <p className="text-[10.5px] font-medium text-slate-400 leading-tight mt-0.5">
             {userRole}
           </p>
         </div>
         <ChevronDown
           className={cn(
-            "text-[var(--foreground-subtle)] transition-transform duration-200 hidden sm:block h-3.5 w-3.5",
+            "text-slate-400 transition-transform duration-200 hidden sm:block h-3.5 w-3.5",
             isOpen && "rotate-180"
           )}
         />

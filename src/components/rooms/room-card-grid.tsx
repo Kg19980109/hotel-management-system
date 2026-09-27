@@ -53,9 +53,9 @@ const STATUS_THEMES: Record<RoomOperationalStatus, StatusTheme> = {
     accentGradient: "from-emerald-400 via-teal-400 to-emerald-500",
     headerBg: "bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900",
     glowBorder: "group-hover:border-emerald-400/60 group-hover:shadow-[0_12px_30px_-6px_rgba(16,185,129,0.2)]",
-    badgeBg: "bg-emerald-500/20",
+    badgeBg: "bg-emerald-500/25",
     badgeText: "text-emerald-300",
-    badgeBorder: "border-emerald-400/40",
+    badgeBorder: "border-emerald-400/50",
     pulseDot: "bg-emerald-400",
     iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100",
     iconText: "text-emerald-600",
@@ -67,23 +67,23 @@ const STATUS_THEMES: Record<RoomOperationalStatus, StatusTheme> = {
     accentGradient: "from-indigo-400 via-purple-400 to-violet-500",
     headerBg: "bg-gradient-to-r from-indigo-950 via-purple-950 to-slate-900",
     glowBorder: "group-hover:border-purple-400/60 group-hover:shadow-[0_12px_30px_-6px_rgba(147,51,234,0.2)]",
-    badgeBg: "bg-purple-500/20",
+    badgeBg: "bg-purple-500/25",
     badgeText: "text-purple-200",
-    badgeBorder: "border-purple-400/40",
+    badgeBorder: "border-purple-400/50",
     pulseDot: "bg-purple-400",
     iconBg: "bg-purple-50 text-purple-600 border-purple-100",
     iconText: "text-purple-600",
     icon: BedDouble,
   },
   DIRTY: {
-    label: "Needs Cleaning",
+    label: "Needs Clean",
     subLabel: "Housekeeping Due",
     accentGradient: "from-amber-400 via-orange-400 to-amber-500",
     headerBg: "bg-gradient-to-r from-amber-950 via-orange-950 to-slate-900",
     glowBorder: "group-hover:border-amber-400/60 group-hover:shadow-[0_12px_30px_-6px_rgba(245,158,11,0.2)]",
-    badgeBg: "bg-amber-500/20",
+    badgeBg: "bg-amber-500/25",
     badgeText: "text-amber-300",
-    badgeBorder: "border-amber-400/40",
+    badgeBorder: "border-amber-400/50",
     pulseDot: "bg-amber-400",
     iconBg: "bg-amber-50 text-amber-600 border-amber-100",
     iconText: "text-amber-600",
@@ -95,9 +95,9 @@ const STATUS_THEMES: Record<RoomOperationalStatus, StatusTheme> = {
     accentGradient: "from-sky-400 via-cyan-400 to-blue-500",
     headerBg: "bg-gradient-to-r from-sky-950 via-cyan-950 to-slate-900",
     glowBorder: "group-hover:border-sky-400/60 group-hover:shadow-[0_12px_30px_-6px_rgba(14,165,233,0.2)]",
-    badgeBg: "bg-sky-500/20",
+    badgeBg: "bg-sky-500/25",
     badgeText: "text-sky-300",
-    badgeBorder: "border-sky-400/40",
+    badgeBorder: "border-sky-400/50",
     pulseDot: "bg-sky-400",
     iconBg: "bg-sky-50 text-sky-600 border-sky-100",
     iconText: "text-sky-600",
@@ -109,9 +109,9 @@ const STATUS_THEMES: Record<RoomOperationalStatus, StatusTheme> = {
     accentGradient: "from-teal-400 via-emerald-400 to-teal-500",
     headerBg: "bg-gradient-to-r from-teal-950 via-emerald-950 to-slate-900",
     glowBorder: "group-hover:border-teal-400/60 group-hover:shadow-[0_12px_30px_-6px_rgba(20,184,166,0.2)]",
-    badgeBg: "bg-teal-500/20",
+    badgeBg: "bg-teal-500/25",
     badgeText: "text-teal-300",
-    badgeBorder: "border-teal-400/40",
+    badgeBorder: "border-teal-400/50",
     pulseDot: "bg-teal-400",
     iconBg: "bg-teal-50 text-teal-600 border-teal-100",
     iconText: "text-teal-600",
@@ -123,9 +123,9 @@ const STATUS_THEMES: Record<RoomOperationalStatus, StatusTheme> = {
     accentGradient: "from-rose-400 via-red-400 to-rose-500",
     headerBg: "bg-gradient-to-r from-rose-950 via-red-950 to-slate-900",
     glowBorder: "group-hover:border-rose-400/60 group-hover:shadow-[0_12px_30px_-6px_rgba(244,63,94,0.2)]",
-    badgeBg: "bg-rose-500/20",
+    badgeBg: "bg-rose-500/25",
     badgeText: "text-rose-300",
-    badgeBorder: "border-rose-400/40",
+    badgeBorder: "border-rose-400/50",
     pulseDot: "bg-rose-400",
     iconBg: "bg-rose-50 text-rose-600 border-rose-100",
     iconText: "text-rose-600",
@@ -137,9 +137,9 @@ const STATUS_THEMES: Record<RoomOperationalStatus, StatusTheme> = {
     accentGradient: "from-slate-400 via-zinc-400 to-slate-500",
     headerBg: "bg-gradient-to-r from-slate-900 via-zinc-900 to-slate-950",
     glowBorder: "group-hover:border-slate-400/60 group-hover:shadow-[0_12px_30px_-6px_rgba(100,116,139,0.2)]",
-    badgeBg: "bg-slate-500/20",
+    badgeBg: "bg-slate-500/25",
     badgeText: "text-slate-300",
-    badgeBorder: "border-slate-400/40",
+    badgeBorder: "border-slate-400/50",
     pulseDot: "bg-slate-400",
     iconBg: "bg-slate-50 text-slate-600 border-slate-100",
     iconText: "text-slate-600",
@@ -188,7 +188,7 @@ export function RoomCardGrid({
             />
 
             {/* ── CARD HEADER (Luxury Status Themed Bar) ── */}
-            <div className={cn("relative p-4 overflow-hidden text-white shrink-0", theme.headerBg)}>
+            <div className={cn("relative p-3.5 sm:p-4 overflow-hidden text-white shrink-0", theme.headerBg)}>
               {/* Subtle ambient light gradient blob */}
               <div
                 className={cn(
@@ -197,40 +197,30 @@ export function RoomCardGrid({
                 )}
               />
 
-              <div className="relative z-10 flex items-start justify-between gap-2">
-                {/* Room Identifier */}
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="px-1.5 py-0.2 rounded-md bg-white/15 text-[9.5px] font-black tracking-widest uppercase text-white/90 backdrop-blur-xs">
+              <div className="relative z-10 space-y-2">
+                {/* Top Row: Room Tag & Name + Status Badge */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/15 text-[9.5px] font-black tracking-widest uppercase text-white/90 shrink-0 backdrop-blur-xs">
                       ROOM
                     </span>
                     {room.room_name && (
-                      <span className="text-[11px] font-semibold text-white/70 truncate max-w-[110px]">
+                      <span className="text-[11px] font-bold text-white/75 truncate" title={room.room_name}>
                         {room.room_name}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-3xl font-black text-white tracking-tight leading-none">
-                      {room.room_number}
-                    </span>
-                  </div>
-                  <p className="text-[11.5px] font-bold text-white/80 truncate mt-1 max-w-[150px]">
-                    {typeName}
-                  </p>
-                </div>
 
-                {/* Status Badges on Right */}
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  {/* Status Badge with guaranteed visibility */}
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-black border backdrop-blur-md shadow-xs",
+                      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border backdrop-blur-md shadow-xs shrink-0 whitespace-nowrap",
                       theme.badgeBg,
                       theme.badgeText,
                       theme.badgeBorder
                     )}
                   >
-                    <span className="relative flex h-2 w-2">
+                    <span className="relative flex h-2 w-2 shrink-0">
                       <span
                         className={cn(
                           "animate-ping absolute inline-flex h-full w-full rounded-full opacity-75",
@@ -246,12 +236,24 @@ export function RoomCardGrid({
                     </span>
                     <span>{theme.label}</span>
                   </span>
+                </div>
+
+                {/* Big Room Number & Room Type + Pending Requests */}
+                <div className="flex items-end justify-between gap-2 pt-0.5">
+                  <div className="min-w-0">
+                    <span className="text-3xl font-black text-white tracking-tight leading-none block">
+                      {room.room_number}
+                    </span>
+                    <p className="text-[11.5px] font-semibold text-white/80 truncate mt-1 leading-tight" title={typeName}>
+                      {typeName}
+                    </p>
+                  </div>
 
                   {/* Pending QR Requests Pill */}
                   {hasPendingRequests && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs animate-bounce">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-black bg-rose-500 text-white shadow-xs animate-bounce shrink-0 whitespace-nowrap">
                       <BellRing className="w-2.5 h-2.5" />
-                      <span>{activeRequests.length} Req Pending</span>
+                      <span>{activeRequests.length} Req</span>
                     </span>
                   )}
                 </div>

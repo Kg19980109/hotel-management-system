@@ -215,12 +215,15 @@ class OperationalAlertManager {
     if (existing) {
       // If status changed to ACKNOWLEDGED, COMPLETED, or CANCELLED, remove from unacknowledged alert queue
       if (
-        alert.status === "ACKNOWLEDGED" ||
-        alert.status === "ASSIGNED" ||
+        alert.status === "PREPARING" ||
         alert.status === "IN_PROGRESS" ||
+        alert.status === "READY" ||
+        alert.status === "SERVED" ||
         alert.status === "COMPLETED" ||
         alert.status === "CANCELLED" ||
-        alert.status === "REJECTED"
+        alert.status === "REJECTED" ||
+        alert.status === "ACKNOWLEDGED" ||
+        alert.status === "ASSIGNED"
       ) {
         this.removeAlert(alert.id, true);
         return;
@@ -229,7 +232,13 @@ class OperationalAlertManager {
       this.alerts.set(alert.id, { ...existing, ...alert });
     } else {
       // Only unacknowledged/new requests enter the buzzer alert queue
-      if (alert.status === "SUBMITTED" || alert.status === "CONFIRMED" || alert.status === "NEW") {
+      if (
+        alert.status === "SUBMITTED" ||
+        alert.status === "CONFIRMED" ||
+        alert.status === "OPEN" ||
+        alert.status === "PENDING" ||
+        alert.status === "NEW"
+      ) {
         this.alerts.set(alert.id, alert);
         this.startBuzzerLoop();
       }

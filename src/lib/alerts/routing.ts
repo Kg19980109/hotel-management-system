@@ -82,6 +82,11 @@ export function isRequestRelevantForRole(
 
     case "RESTAURANT_STAFF":
     case "KITCHEN_STAFF":
+    case "CHEF":
+    case "COOK":
+    case "WAITER":
+    case "RESTAURANT":
+    case "KITCHEN":
       return (
         normalizedCategory === "ROOM_SERVICE" ||
         normalizedCategory === "FOOD" ||

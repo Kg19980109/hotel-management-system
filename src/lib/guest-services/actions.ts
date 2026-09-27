@@ -248,10 +248,10 @@ export async function staffAcceptOperationalAlertAction(
         console.error("KDS firing error on accept:", error);
       }
 
-      // Update order status if it was OPEN/PENDING
+      // Update order status to PREPARING
       await supabase
         .from("restaurant_orders")
-        .update({ status: "CONFIRMED" })
+        .update({ status: "PREPARING" })
         .eq("id", alertId)
         .eq("property_id", propertyId);
 

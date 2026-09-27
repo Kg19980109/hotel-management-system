@@ -245,13 +245,28 @@ export function OperationalAlertProvider({
       void syncOpenRequests(propertyId, currentRole);
     }, 30000);
 
-    // Channel dedicated to this property's operational events
-    const channelName = `stayhub:operational-alerts:${propertyId}:${Math.random().toString(36).slice(2, 7)}`;
+    // Stable channel dedicated to this property's operational events
+    const channelName = `stayhub:operational-alerts:${propertyId}`;
     const channel = supabase.channel(channelName, {
       config: {
-        broadcast: { ack: true },
+        broadcast: { ack: false, self: false },
       },
     });
+
+    // 0. Listen for Instant Real-Time Broadcasts (< 50ms direct socket dispatch)
+    channel.on(
+      "broadcast",
+      { event: "OPERATIONAL_ALERT" },
+      (payload) => {
+        const alert = payload?.payload as OperationalAlert;
+        if (alert && alert.propertyId === propertyId) {
+          if (isRequestRelevantForRole(currentRole, alert.category)) {
+            operationalAlertManager.addOrUpdateAlert(alert);
+            setIsModalMinimized(false);
+          }
+        }
+      }
+    );
 
     // 1. Listen for changes on guest_service_requests
     channel.on(
@@ -272,32 +287,14 @@ export function OperationalAlertProvider({
         if (eventType === "INSERT") {
           // New service request arrived
           if (newRec.status === "SUBMITTED" && isRequestRelevantForRole(currentRole, newRec.category)) {
-            let roomNumber = "—";
-            let guestName = "Guest";
-            try {
-              const { data: detail } = await supabase
-                .from("guest_service_requests")
-                .select("room:rooms(room_number), guest:guests(first_name, last_name)")
-                .eq("id", newRec.id)
-                .single();
-
-              if (detail) {
-                const r = detail.room as unknown as { room_number?: string };
-                if (r?.room_number) roomNumber = r.room_number;
-                const g = detail.guest as unknown as { first_name?: string; last_name?: string };
-                if (g) guestName = `${g.first_name || ""} ${g.last_name || ""}`.trim();
-              }
-            } catch {
-              // fallback
-            }
-
+            // 1. INSTANT ZERO-LATENCY DISPATCH: Fire popup & audio buzzer immediately with 0ms delay
             operationalAlertManager.addOrUpdateAlert({
               id: newRec.id,
               type: "SERVICE_REQUEST",
               category: newRec.category,
               department: getDepartmentForCategory(newRec.category),
-              roomNumber,
-              guestName: guestName || "Guest",
+              roomNumber: "—",
+              guestName: "Guest",
               title: newRec.title,
               description: newRec.description,
               priority: (newRec.priority as AlertPriority) || "NORMAL",
@@ -306,6 +303,43 @@ export function OperationalAlertProvider({
               status: newRec.status,
             });
             setIsModalMinimized(false);
+
+            // 2. ASYNC BACKGROUND ENRICHMENT: Fetch room and guest name in background without blocking alert
+            void (async () => {
+              try {
+                const { data: detail } = await supabase
+                  .from("guest_service_requests")
+                  .select("room:rooms(room_number), guest:guests(first_name, last_name)")
+                  .eq("id", newRec.id)
+                  .single();
+
+                if (detail) {
+                  let roomNumber = "—";
+                  let guestName = "Guest";
+                  const r = detail.room as unknown as { room_number?: string };
+                  if (r?.room_number) roomNumber = r.room_number;
+                  const g = detail.guest as unknown as { first_name?: string; last_name?: string };
+                  if (g) guestName = `${g.first_name || ""} ${g.last_name || ""}`.trim();
+
+                  operationalAlertManager.addOrUpdateAlert({
+                    id: newRec.id,
+                    type: "SERVICE_REQUEST",
+                    category: newRec.category,
+                    department: getDepartmentForCategory(newRec.category),
+                    roomNumber,
+                    guestName: guestName || "Guest",
+                    title: newRec.title,
+                    description: newRec.description,
+                    priority: (newRec.priority as AlertPriority) || "NORMAL",
+                    receivedAt: Date.now(),
+                    propertyId: newRec.property_id,
+                    status: newRec.status,
+                  });
+                }
+              } catch {
+                // fallback remains intact
+              }
+            })();
           }
         } else if (eventType === "UPDATE") {
           if (
@@ -364,7 +398,7 @@ export function OperationalAlertProvider({
               order.status === "NEW");
 
           if (isPending && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
-            // 1. INSTANT DISPATCH: Fire alert immediately so buzzer & popup appear with 0ms delay
+            // 1. INSTANT ZERO-LATENCY DISPATCH: Fire alert immediately so buzzer & popup appear with 0ms delay
             operationalAlertManager.addOrUpdateAlert({
               id: order.id,
               type: "FOOD_ORDER",
@@ -445,6 +479,37 @@ export function OperationalAlertProvider({
           }
         } else if (eventType === "DELETE") {
           operationalAlertManager.removeAlert(payload.old?.id);
+        }
+      }
+    );
+
+    // 3. Listen for changes on kitchen_tickets (Secondary instantaneous trigger)
+    channel.on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "kitchen_tickets",
+        filter: `property_id=eq.${propertyId}`,
+      },
+      (payload) => {
+        const ticket = payload.new;
+        if (ticket && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
+          operationalAlertManager.addOrUpdateAlert({
+            id: ticket.order_id || ticket.id,
+            type: "FOOD_ORDER",
+            category: "ROOM_SERVICE",
+            department: "RESTAURANT",
+            roomNumber: "—",
+            guestName: "Guest",
+            title: `Kitchen Ticket #${ticket.ticket_number || ticket.order_number}`,
+            description: `Live KDS Ticket Dispatched • Priority: ${ticket.priority || "NORMAL"}`,
+            priority: ticket.priority === "URGENT" ? "URGENT" : "HIGH",
+            receivedAt: Date.now(),
+            propertyId: ticket.property_id,
+            status: "CONFIRMED",
+          });
+          setIsModalMinimized(false);
         }
       }
     );

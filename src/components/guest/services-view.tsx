@@ -22,6 +22,8 @@ import {
 import { ServiceRequestCategory, ServiceRequestPriority } from "@/lib/guest-services/types";
 import { createGuestServiceRequestAction } from "@/lib/guest-services/actions";
 import { GuestVerifiedSessionContext } from "@/lib/guest-portal/types";
+import { createClient } from "@/lib/supabase/client";
+import { getDepartmentForCategory } from "@/lib/alerts/routing";
 
 interface ServicesViewProps {
   session?: GuestVerifiedSessionContext | null;
@@ -278,6 +280,36 @@ export function ServicesView({ session }: ServicesViewProps) {
     if (!res.success || !res.requestId) {
       setErrorMsg(res.error || "Failed to submit request. Please try again.");
       return;
+    }
+
+    // Direct sub-50ms Realtime WebSocket Broadcast to staff screens (Front desk, Housekeeping, Maintenance)
+    const targetPropId = res.propertyId || session?.property_id;
+    if (targetPropId) {
+      try {
+        const supabase = createClient();
+        const alertChannel = supabase.channel(`stayhub:operational-alerts:${targetPropId}`);
+        const finalCategory = res.category || selectedCat.id;
+        void alertChannel.send({
+          type: "broadcast",
+          event: "OPERATIONAL_ALERT",
+          payload: {
+            id: res.requestId,
+            type: "SERVICE_REQUEST",
+            category: finalCategory,
+            department: getDepartmentForCategory(finalCategory),
+            roomNumber: res.roomNumber || session?.room_number || "—",
+            guestName: res.guestName || (session?.guest_first_name ? `${session.guest_first_name} ${session.guest_last_name || ""}`.trim() : "Guest"),
+            title: res.title || title,
+            description: res.description || description.trim() || undefined,
+            priority: res.priority || priority || "NORMAL",
+            receivedAt: Date.now(),
+            propertyId: targetPropId,
+            status: "SUBMITTED",
+          },
+        });
+      } catch (broadcastErr) {
+        console.warn("Realtime broadcast trigger:", broadcastErr);
+      }
     }
 
     setSuccessNotice({ id: res.requestId, title: res.title || title });

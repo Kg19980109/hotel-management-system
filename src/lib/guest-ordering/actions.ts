@@ -74,5 +74,8 @@ export async function placeGuestFoodOrderAction(input: CreateGuestFoodOrderInput
     totalAmount: data.total_amount,
     currency: data.currency,
     restaurantName: data.restaurant_name,
+    propertyId: data.property_id,
+    roomNumber: data.room_number,
+    guestName: data.guest_name,
   };
 }

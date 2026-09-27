@@ -27,6 +27,7 @@ import {
 import { useCart } from "./cart-context";
 import { placeGuestFoodOrderAction } from "@/lib/guest-ordering/actions";
 import { GuestVerifiedSessionContext } from "@/lib/guest-portal/types";
+import { createClient } from "@/lib/supabase/client";
 
 interface CartViewProps {
   session?: GuestVerifiedSessionContext | null;
@@ -100,12 +101,42 @@ export function CartView({ session }: CartViewProps) {
       return;
     }
 
+    // Direct sub-50ms Realtime WebSocket Broadcast to staff & KDS screens
+    const targetPropId = res.propertyId || session?.property_id;
+    if (targetPropId) {
+      try {
+        const supabase = createClient();
+        const alertChannel = supabase.channel(`stayhub:operational-alerts:${targetPropId}`);
+        const itemsSummary = orderItemsSnapshot.map((i) => `${i.quantity}x ${i.name}`).join(", ");
+        void alertChannel.send({
+          type: "broadcast",
+          event: "OPERATIONAL_ALERT",
+          payload: {
+            id: res.orderId,
+            type: "FOOD_ORDER",
+            category: "ROOM_SERVICE",
+            department: "RESTAURANT",
+            roomNumber: res.roomNumber || session?.room_number || "—",
+            guestName: res.guestName || (session?.guest_first_name ? `${session.guest_first_name} ${session.guest_last_name || ""}`.trim() : "Guest"),
+            title: `Food Order #${res.orderNumber || "RS-ORDER"}`,
+            description: itemsSummary ? `${itemsSummary} • ₹${res.totalAmount || totalSnapshot}` : `Total: ₹${res.totalAmount || totalSnapshot}`,
+            priority: "HIGH",
+            receivedAt: Date.now(),
+            propertyId: targetPropId,
+            status: "CONFIRMED",
+          },
+        });
+      } catch (broadcastErr) {
+        console.warn("Realtime broadcast trigger:", broadcastErr);
+      }
+    }
+
     clearCart();
     setSuccessOrder({
       orderId: res.orderId,
       orderNumber: res.orderNumber || "RS-ORDER",
       restaurantName: restNameSnapshot,
-      roomNumber: session?.room_number,
+      roomNumber: res.roomNumber || session?.room_number,
       items: orderItemsSnapshot,
       subtotal: subtotalSnapshot,
       tax: taxSnapshot,

@@ -108,8 +108,14 @@ export async function createGuestServiceRequestAction(
   return {
     success: true,
     requestId: data.request_id,
+    propertyId: data.property_id,
+    roomNumber: data.room_number,
+    guestName: data.guest_name,
     title: data.title,
     status: data.status,
+    category: data.category,
+    description: data.description,
+    priority: data.priority,
   };
 }
 

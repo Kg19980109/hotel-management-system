@@ -137,7 +137,7 @@ export async function fetchNotificationsAction(
           category: "PAYMENT",
           eventType: "PAYMENT_RECEIVED",
           title: "Payment Processed",
-          message: "Invoice #INV-2026-089 paid in full via UPI ($450.00).",
+          message: "Invoice #INV-2026-089 paid in full via UPI (₹450.00).",
           priority: "NORMAL",
           status: "SENT",
           channels: ["IN_APP", "EMAIL"],

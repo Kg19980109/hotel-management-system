@@ -50,6 +50,7 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
   }
 
   const currency = folioContext.currency || "INR";
+  const currSym = currency === "INR" ? "₹" : `${currency} `;
   const balanceDue = folioContext.balance_due;
   const isSettled = balanceDue <= 0;
 
@@ -100,7 +101,7 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
           Current Balance Due
         </span>
         <p className={`text-3xl font-black ${isSettled ? "text-emerald-400" : "text-amber-400"}`}>
-          {currency} {balanceDue.toFixed(2)}
+          {currSym}{balanceDue.toFixed(2)}
         </p>
         <div className="flex items-center justify-center gap-1.5 text-xs">
           {isSettled ? (
@@ -147,12 +148,12 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
                 </div>
 
                 <div className="text-right">
-                  <p className="text-xs font-extrabold text-white">
-                    {currency} {Number(charge.total_amount).toFixed(2)}
+                  <p className="text-xs font-extrabold text-white font-mono">
+                    {currSym}{Number(charge.total_amount).toFixed(2)}
                   </p>
                   {Number(charge.tax_amount) > 0 && (
-                    <p className="text-[10px] text-slate-500">
-                      Incl. {currency} {Number(charge.tax_amount).toFixed(2)} Tax
+                    <p className="text-[10px] text-slate-500 font-mono">
+                      Incl. {currSym}{Number(charge.tax_amount).toFixed(2)} Tax
                     </p>
                   )}
                 </div>
@@ -187,8 +188,8 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
                   </div>
                 </div>
 
-                <p className="text-xs font-black text-emerald-400">
-                  - {currency} {Number(payment.amount).toFixed(2)}
+                <p className="text-xs font-black text-emerald-400 font-mono">
+                  - {currSym}{Number(payment.amount).toFixed(2)}
                 </p>
               </div>
             ))}
@@ -197,22 +198,22 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
       )}
 
       {/* Summary Totals */}
-      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
+      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs font-mono">
         <div className="flex items-center justify-between text-slate-400">
-          <span>Charges Subtotal</span>
-          <span>{currency} {folioContext.charges_subtotal.toFixed(2)}</span>
+          <span className="font-sans">Charges Subtotal</span>
+          <span>{currSym}{folioContext.charges_subtotal.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between text-slate-400">
-          <span>Applicable Taxes (GST)</span>
-          <span>{currency} {folioContext.taxes_total.toFixed(2)}</span>
+          <span className="font-sans">Applicable Taxes (GST)</span>
+          <span>{currSym}{folioContext.taxes_total.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between text-slate-400">
-          <span>Total Payments</span>
-          <span className="text-emerald-400">- {currency} {folioContext.net_payments.toFixed(2)}</span>
+          <span className="font-sans">Total Payments</span>
+          <span className="text-emerald-400">- {currSym}{folioContext.net_payments.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between text-sm font-black text-white pt-2 border-t border-slate-800">
-          <span>Total Balance</span>
-          <span className="text-amber-400">{currency} {balanceDue.toFixed(2)}</span>
+          <span className="font-sans">Total Balance</span>
+          <span className="text-amber-400">{currSym}{balanceDue.toFixed(2)}</span>
         </div>
       </div>
     </div>

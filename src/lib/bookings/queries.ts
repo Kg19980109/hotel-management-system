@@ -523,3 +523,67 @@ export async function fetchCalendarBookings(
       };
     });
 }
+
+/**
+ * Fetch all reservations overlapping a specific date range for monthly calendar view
+ */
+export async function fetchMonthReservations(
+  supabase: SupabaseClient,
+  propertyId: string,
+  startDate: string,
+  endDate: string
+): Promise<Reservation[]> {
+  const { data, error } = await supabase
+    .from("reservations")
+    .select(
+      `
+      id, property_id, confirmation_number, status, booking_source,
+      booked_at, check_in_date, check_out_date, adults, children,
+      total_amount, currency, primary_guest_id, created_at,
+      primary_guest:guests(id, first_name, last_name, email, phone),
+      reservation_rooms(
+        id, room_type_id, room_id, check_in_date, check_out_date,
+        is_cancelled, adults, children, nightly_rate, total_amount, currency,
+        room_type:room_types(name, code),
+        room:rooms(room_number, room_name),
+        stays:stays(id, status, actual_check_in_at, actual_check_out_at, room_id)
+      )
+    `
+    )
+    .eq("property_id", propertyId)
+    .lte("check_in_date", endDate)
+    .gte("check_out_date", startDate)
+    .order("check_in_date", { ascending: true })
+    .limit(300);
+
+  if (error) {
+    console.error("fetchMonthReservations error:", error);
+    return [];
+  }
+
+  const rawRows = (data as unknown as RawReservationRow[]) || [];
+  return rawRows.map((r) => {
+    const checkIn = new Date(r.check_in_date);
+    const checkOut = new Date(r.check_out_date);
+    const nights = Math.max(1, Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000));
+
+    return {
+      ...r,
+      total_amount: Number(r.total_amount),
+      nights,
+      rooms: (r.reservation_rooms || []).map((rr) => {
+        const stayRecord = rr.stays && rr.stays.length > 0 ? rr.stays[0] : null;
+        return {
+          ...rr,
+          nightly_rate: Number(rr.nightly_rate),
+          total_amount: Number(rr.total_amount),
+          room_type_name: rr.room_type?.name,
+          room_type_code: rr.room_type?.code,
+          room_number: rr.room?.room_number,
+          room_name: rr.room?.room_name,
+          stay: stayRecord,
+        };
+      }),
+    };
+  });
+}

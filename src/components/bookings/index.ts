@@ -10,3 +10,4 @@ export * from "./cancel-booking-modal";
 export * from "./status-change-modal";
 export * from "./assign-room-modal";
 export * from "./booking-calendar-view";
+export * from "./booking-monthly-calendar";

@@ -17,6 +17,7 @@ interface ActionResponse<T = unknown> {
 
 interface SessionAuthResult {
   userId: string;
+  profileId: string;
   roleCode: string;
 }
 
@@ -70,7 +71,20 @@ async function authenticateFrontDeskSession(
     };
   }
 
-  return { auth: { userId: user.id, roleCode } };
+  // Resolve profile ID
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .or(`auth_user_id.eq.${user.id},id.eq.${user.id}`)
+    .maybeSingle();
+
+  return { 
+    auth: { 
+      userId: user.id, 
+      profileId: profile?.id || user.id, 
+      roleCode 
+    } 
+  };
 }
 
 /**
@@ -95,6 +109,7 @@ export async function checkInStayAction(
       p_children: input.children || null,
       p_notes: input.notes || null,
       p_is_early: input.isEarly || false,
+      p_performed_by: authRes.auth?.userId || null,
     });
 
     if (error) {
@@ -137,6 +152,7 @@ export async function checkOutStayAction(
       p_stay_id: input.stayId,
       p_property_id: input.propertyId,
       p_allow_unpaid_override: input.allowUnpaidOverride || false,
+      p_performed_by: authRes.auth?.userId || null,
     });
 
     if (error) {

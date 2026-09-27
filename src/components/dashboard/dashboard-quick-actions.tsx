@@ -10,6 +10,7 @@ import {
   UserPlus,
   BedDouble,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
 
 export function DashboardQuickActions() {
@@ -28,43 +29,52 @@ export function DashboardQuickActions() {
 
   return (
     <div className="relative inline-flex items-center gap-2" ref={menuRef}>
-      {/* Primary Action */}
+      {/* Primary Action — Luxury Indigo + Gold Gradient */}
       <Link href="/bookings/new">
-        <Button variant="primary" size="sm" className="shadow-sm">
-          <Plus className="h-4 w-4 mr-1.5" />
-          New Booking
+        <Button
+          size="sm"
+          className="h-10 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-[#5146E5] to-[#6366F1] hover:from-[#4338CA] hover:to-[#4F46E5] shadow-lg shadow-indigo-950/40 border border-indigo-400/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+        >
+          <Plus className="h-4 w-4 mr-1.5 text-white" />
+          <span>New Booking</span>
         </Button>
       </Link>
 
-      {/* Quick Actions Dropdown */}
+      {/* Quick Actions Dropdown — Refined Glass */}
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-haspopup="menu"
-        className="px-2.5"
+        className="h-10 px-3.5 rounded-xl text-white/90 bg-white/10 hover:bg-white/15 hover:text-white border border-white/15 backdrop-blur-md transition-all shadow-sm"
       >
-        Actions
-        <ChevronDown className="h-3.5 w-3.5 ml-1 text-[var(--foreground-muted)]" />
+        <span>Actions</span>
+        <ChevronDown className={`h-3.5 w-3.5 ml-1.5 text-white/60 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
       </Button>
 
       {isOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-full mt-2 w-52 rounded-[var(--radius-lg)] bg-[var(--surface)] border border-[var(--border)] shadow-lg py-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute right-0 top-full mt-2 w-56 rounded-2xl bg-[#0D1933]/95 backdrop-blur-xl border border-white/15 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+          style={{
+            boxShadow: "0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(214,168,90,0.2)",
+          }}
         >
-          <div className="px-3 py-1 text-[11px] font-semibold text-[var(--foreground-subtle)] uppercase tracking-wider">
-            Quick Operations
+          <div className="px-3.5 py-1.5 text-[10px] font-bold text-[#E8CD8A] uppercase tracking-[0.14em] flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+            <span>Concierge Operations</span>
           </div>
 
           <Link
             href="/front-desk"
             role="menuitem"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors"
           >
-            <LogIn className="h-4 w-4 text-[var(--success)]" />
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+              <LogIn className="h-3.5 w-3.5" />
+            </div>
             <span>Check In Guest</span>
           </Link>
 
@@ -72,21 +82,25 @@ export function DashboardQuickActions() {
             href="/front-desk"
             role="menuitem"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors"
           >
-            <LogOut className="h-4 w-4 text-[var(--warning)]" />
+            <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+              <LogOut className="h-3.5 w-3.5" />
+            </div>
             <span>Check Out Guest</span>
           </Link>
 
-          <div className="my-1 border-t border-[var(--border)]" />
+          <div className="my-1.5 border-t border-white/10" />
 
           <Link
             href="/guests"
             role="menuitem"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors"
           >
-            <UserPlus className="h-4 w-4 text-[var(--info)]" />
+            <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30">
+              <UserPlus className="h-3.5 w-3.5" />
+            </div>
             <span>Add New Guest</span>
           </Link>
 
@@ -94,10 +108,12 @@ export function DashboardQuickActions() {
             href="/rooms"
             role="menuitem"
             onClick={() => setIsOpen(false)}
-            className="flex items-center gap-2.5 px-3 py-2 text-[13px] text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors"
           >
-            <BedDouble className="h-4 w-4 text-[var(--primary)]" />
-            <span>View Rooms & Inventory</span>
+            <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+              <BedDouble className="h-3.5 w-3.5" />
+            </div>
+            <span>View Rooms &amp; Inventory</span>
           </Link>
         </div>
       )}

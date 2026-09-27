@@ -228,65 +228,76 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
 
   return (
     <div
-      className="rounded-[var(--radius-xl)] border relative overflow-hidden"
+      className="rounded-[24px] border relative overflow-hidden transition-all duration-300 shadow-2xl"
       style={{
-        background: "linear-gradient(155deg, #08111F 0%, #0D1830 60%, #0F1635 100%)",
+        background: "linear-gradient(145deg, #091224 0%, #0E1B38 50%, #12224A 100%)",
         borderColor: pendingRequests.length > 0
-          ? "rgba(224,82,82,0.25)"
-          : "rgba(255,255,255,0.08)",
+          ? "rgba(214, 168, 90, 0.30)"
+          : "rgba(255, 255, 255, 0.12)",
         boxShadow: pendingRequests.length > 0
-          ? "0 0 0 1px rgba(224,82,82,0.12), 0 12px 32px rgba(13,24,48,0.30)"
-          : "0 12px 32px rgba(13,24,48,0.30)",
+          ? "0 20px 40px -15px rgba(7, 13, 27, 0.6), 0 0 0 1px rgba(214, 168, 90, 0.2)"
+          : "0 20px 40px -15px rgba(7, 13, 27, 0.5)",
       }}
     >
-      {/* Ambient glow when urgent/active */}
-      {pendingRequests.length > 0 && (
-        <div
-          className="absolute -top-12 -right-12 h-40 w-40 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(224,82,82,0.12) 0%, transparent 70%)" }}
-        />
-      )}
+      {/* Top subtle golden shimmer line */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[1.5px]"
+        style={{
+          background: "linear-gradient(90deg, transparent 0%, rgba(214,168,90,0.6) 50%, transparent 100%)",
+        }}
+      />
 
-      <div className="relative z-10 p-5">
+      {/* Ambient background glows */}
+      <div
+        className="absolute -top-16 -right-16 h-48 w-48 rounded-full pointer-events-none blur-3xl opacity-25"
+        style={{ background: "radial-gradient(circle, #D4AF37 0%, transparent 70%)" }}
+      />
+      <div
+        className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full pointer-events-none blur-3xl opacity-20"
+        style={{ background: "radial-gradient(circle, #5146E5 0%, transparent 70%)" }}
+      />
+
+      <div className="relative z-10 p-6">
         {/* Widget Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            {/* Bell icon with pulse ring */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-3.5">
+            {/* Bell icon with glowing pulse */}
             <div className="relative">
               <div
-                className="p-2.5 rounded-[var(--radius-md)] border"
+                className="w-11 h-11 rounded-2xl flex items-center justify-center border shadow-lg backdrop-blur-md transition-all"
                 style={{
-                  background: "rgba(255,255,255,0.08)",
-                  borderColor: "rgba(255,255,255,0.12)",
-                  color: pendingRequests.length > 0 ? "var(--warning)" : "rgba(255,255,255,0.40)",
+                  background: pendingRequests.length > 0 ? "rgba(214, 168, 90, 0.18)" : "rgba(255, 255, 255, 0.08)",
+                  borderColor: pendingRequests.length > 0 ? "rgba(214, 168, 90, 0.40)" : "rgba(255, 255, 255, 0.15)",
+                  color: pendingRequests.length > 0 ? "#E8CD8A" : "rgba(255, 255, 255, 0.60)",
                 }}
               >
-                <BellRing className="w-4 h-4" />
+                <BellRing className={`w-5 h-5 ${pendingRequests.length > 0 ? "animate-bounce" : ""}`} />
               </div>
               {pendingRequests.length > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: "var(--danger)" }} />
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5" style={{ background: "var(--danger)" }} />
+                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500 shadow-sm shadow-rose-950" />
                 </span>
               )}
             </div>
 
             <div>
               <div className="flex items-center gap-2.5">
-                <h3 className="text-[14.5px] font-bold text-white leading-tight">
+                <h3 className="text-[16px] font-extrabold text-white tracking-tight flex items-center gap-2">
                   Live Guest QR Requests
                 </h3>
-                {pendingRequests.length > 0 && (
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[10.5px] font-bold text-white"
-                    style={{ background: "var(--danger)" }}
-                  >
+                {pendingRequests.length > 0 ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black text-white bg-gradient-to-r from-rose-500 to-red-600 shadow-sm shadow-rose-950/60 animate-pulse">
                     {pendingRequests.length} Active
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-emerald-300 bg-emerald-950/60 border border-emerald-500/30">
+                    All Clear
                   </span>
                 )}
               </div>
-              <p className="text-[11.5px] text-white/40 mt-0.5">
-                Real-time in-room guest requests · Housekeeping, Maintenance &amp; Dining
+              <p className="text-[12px] text-white/50 mt-0.5">
+                Real-time concierge dispatch · Housekeeping, Maintenance &amp; Dining
               </p>
             </div>
           </div>
@@ -295,10 +306,9 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
             <Button
               variant="ghost"
               size="sm"
-              className="text-[11.5px] gap-1.5 font-semibold"
-              style={{ color: "rgba(255,255,255,0.40)" }}
+              className="h-9 px-3.5 rounded-xl text-[12px] font-bold text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md transition gap-1.5 self-start sm:self-auto"
             >
-              View All ({pendingRequests.length})
+              <span>View All ({pendingRequests.length})</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </Link>
@@ -307,24 +317,27 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
         {/* Empty state */}
         {recentList.length === 0 ? (
           <div
-            className="p-5 rounded-[var(--radius-lg)] text-center space-y-2 border"
-            style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.08)" }}
+            className="p-8 rounded-2xl text-center space-y-3 border backdrop-blur-md"
+            style={{ background: "rgba(255, 255, 255, 0.03)", borderColor: "rgba(255, 255, 255, 0.08)" }}
           >
             <div
-              className="w-10 h-10 rounded-[var(--radius-xl)] mx-auto flex items-center justify-center"
-              style={{ background: "rgba(22,163,106,0.18)", color: "var(--success)" }}
+              className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center border shadow-inner"
+              style={{
+                background: "rgba(22, 163, 106, 0.18)",
+                borderColor: "rgba(22, 163, 106, 0.35)",
+                color: "#34D399",
+              }}
             >
-              <CheckCircle2 className="w-5 h-5" />
+              <CheckCircle2 className="w-6 h-6" />
             </div>
-            <h4 className="text-[13.5px] font-semibold text-white/80">No Active Guest Requests</h4>
-            <p className="text-[11.5px] text-white/35 max-w-xs mx-auto leading-relaxed">
-              All in-room requests from guest QR scans have been completed.
+            <h4 className="text-[15px] font-bold text-white/90">No Active Guest Requests</h4>
+            <p className="text-[12.5px] text-white/45 max-w-sm mx-auto leading-relaxed">
+              All in-room QR requests have been serviced. New guest requests will chime here in real time.
             </p>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {recentList.map((req) => {
-              const isSubmitting = req.status === "SUBMITTED";
               const guestName = req.guest
                 ? `${req.guest.first_name || ""} ${req.guest.last_name || ""}`.trim()
                 : "In-Room Guest";
@@ -334,56 +347,56 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
               return (
                 <div
                   key={req.id}
-                  className={cn(
-                    "rounded-[var(--radius-lg)] border-l-[3px] p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group transition-colors"
-                  )}
+                  className="rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group transition-all duration-200"
                   style={{
-                    background: "rgba(255,255,255,0.05)",
-                    borderLeftColor: priorityCfg.borderColor,
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderLeft: `3px solid ${priorityCfg.borderColor}`,
+                    background: "rgba(255, 255, 255, 0.04)",
+                    borderColor: "rgba(255, 255, 255, 0.09)",
+                    borderLeft: `4px solid ${priorityCfg.borderColor}`,
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)")}
                 >
                   {/* Left: details */}
-                  <div className="flex items-start gap-3.5">
-                    {/* Priority dot + room */}
-                    <div className="flex flex-col items-center gap-1.5 shrink-0 pt-0.5">
-                      <div className={priorityCfg.dot} />
+                  <div className="flex items-start gap-3.5 min-w-0">
+                    {/* Room Badge Capsule */}
+                    <div className="flex flex-col items-center gap-1 shrink-0 pt-0.5">
                       <div
-                        className="px-2.5 py-1.5 rounded-[var(--radius-md)] text-center min-w-[44px]"
+                        className="px-3 py-1.5 rounded-xl text-center min-w-[50px] shadow-sm border"
                         style={{
-                          background: "rgba(214,168,90,0.12)",
-                          border: "1px solid rgba(214,168,90,0.20)",
+                          background: "linear-gradient(135deg, rgba(214,168,90,0.2) 0%, rgba(214,168,90,0.08) 100%)",
+                          borderColor: "rgba(214,168,90,0.35)",
                         }}
                       >
-                        <span className="block text-[8.5px] uppercase font-bold tracking-widest" style={{ color: "rgba(214,168,90,0.60)" }}>
+                        <span className="block text-[8px] uppercase font-black tracking-widest text-[#E8CD8A]/70">
                           ROOM
                         </span>
-                        <span className="text-[15px] font-black" style={{ color: "var(--brand-gold)" }}>
+                        <span className="text-[16px] font-black text-[#E8CD8A] leading-none">
                           {req.room?.room_number || "—"}
                         </span>
                       </div>
                     </div>
 
-                    <div className="space-y-1 min-w-0">
+                    <div className="space-y-1.5 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-bold text-[14px] text-white/90 leading-tight group-hover:text-white transition-colors line-clamp-1">
+                        <span className="font-extrabold text-[14.5px] text-white tracking-tight group-hover:text-amber-200 transition-colors line-clamp-1">
                           {req.title}
                         </span>
+
                         <Badge variant={priorityCfg.badge} showDot={false} size="sm">
                           {priorityCfg.label}
                         </Badge>
+
                         <Badge variant={statusCfg.badge} showDot={false} size="sm">
                           {statusCfg.label}
                         </Badge>
+
                         <span
-                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border"
+                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border backdrop-blur-sm"
                           style={{
-                            color: "rgba(172,148,255,0.80)",
-                            background: "rgba(108,92,231,0.18)",
-                            borderColor: "rgba(108,92,231,0.25)",
+                            color: "#C7D2FE",
+                            background: "rgba(99, 102, 241, 0.18)",
+                            borderColor: "rgba(99, 102, 241, 0.35)",
                           }}
                         >
                           {getCategoryIcon(req.category)}
@@ -391,42 +404,42 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-[12px]" style={{ color: "rgba(255,255,255,0.40)" }}>
-                        <span className="flex items-center gap-1.5 font-medium" style={{ color: "rgba(255,255,255,0.60)" }}>
-                          <Users className="w-3.5 h-3.5" />
+                      <div className="flex flex-wrap items-center gap-2 text-[12px] text-white/50">
+                        <span className="flex items-center gap-1.5 font-semibold text-white/80">
+                          <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
                           {guestName}
                         </span>
                         {req.assigned_staff?.full_name && (
                           <>
-                            <span>·</span>
-                            <span className="font-semibold" style={{ color: "rgba(255,255,255,0.70)" }}>
+                            <span className="text-white/20">·</span>
+                            <span className="font-medium text-white/70">
                               Assigned: {req.assigned_staff.full_name}
                             </span>
                           </>
                         )}
-                        <span>·</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
+                        <span className="text-white/20">·</span>
+                        <span className="flex items-center gap-1 text-white/60">
+                          <Clock className="w-3 h-3 text-white/40" />
                           {formatElapsed(req.created_at)}
                         </span>
                         {req.description && (
                           <>
-                            <span>·</span>
-                            <span className="line-clamp-1 italic max-w-[180px]">{req.description}</span>
+                            <span className="text-white/20">·</span>
+                            <span className="line-clamp-1 italic text-white/60 max-w-[200px]">{req.description}</span>
                           </>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Right: actions & quick status update */}
+                  {/* Right: Actions & status update */}
                   <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto shrink-0">
                     {/* Status Dropdown */}
                     <select
                       value={req.status}
                       disabled={updatingId === req.id}
                       onChange={(e) => handleUpdateStatus(req.id, e.target.value)}
-                      className="h-8 text-[11px] font-bold rounded-lg px-2 bg-slate-900 border border-white/10 text-white/90 focus:outline-none focus:border-amber-400 cursor-pointer"
+                      className="h-8.5 text-[11.5px] font-bold rounded-xl px-2.5 bg-slate-900/90 border border-white/20 text-white focus:outline-none focus:border-amber-400 cursor-pointer shadow-sm"
                       title="Quick Change Request Status"
                     >
                       <option value="SUBMITTED">New / Submitted</option>
@@ -440,15 +453,9 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                     {req.status === "SUBMITTED" && (
                       <Button
                         size="sm"
-                        variant="outline"
                         disabled={updatingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, "ACKNOWLEDGED")}
-                        className="h-8 text-[11.5px] font-bold gap-1.5"
-                        style={{
-                          background: "rgba(214,168,90,0.12)",
-                          borderColor: "rgba(214,168,90,0.25)",
-                          color: "var(--brand-gold)",
-                        }}
+                        className="h-8.5 px-3 text-[11.5px] font-bold rounded-xl gap-1.5 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#E8CD8A] border border-[#D4AF37]/40 shadow-sm"
                       >
                         {updatingId === req.id ? (
                           <>
@@ -457,7 +464,7 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                           </>
                         ) : (
                           <>
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-3.5 h-3.5 text-[#E8CD8A]" />
                             <span>Accept</span>
                           </>
                         )}
@@ -467,10 +474,9 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                     {(req.status === "ACKNOWLEDGED" || req.status === "ASSIGNED") && (
                       <Button
                         size="sm"
-                        variant="outline"
                         disabled={updatingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, "IN_PROGRESS")}
-                        className="h-8 text-[11.5px] font-bold gap-1.5 border-indigo-500/30 text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20"
+                        className="h-8.5 px-3 text-[11.5px] font-bold rounded-xl gap-1.5 border border-indigo-400/30 text-indigo-300 bg-indigo-500/20 hover:bg-indigo-500/30 shadow-sm"
                       >
                         {updatingId === req.id ? (
                           <>
@@ -489,10 +495,9 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                     {req.status === "IN_PROGRESS" && (
                       <Button
                         size="sm"
-                        variant="outline"
                         disabled={updatingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, "COMPLETED")}
-                        className="h-8 text-[11.5px] font-bold gap-1.5 border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+                        className="h-8.5 px-3 text-[11.5px] font-bold rounded-xl gap-1.5 border border-emerald-400/30 text-emerald-300 bg-emerald-500/20 hover:bg-emerald-500/30 shadow-sm"
                       >
                         {updatingId === req.id ? (
                           <>
@@ -512,14 +517,10 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 text-[11.5px] font-semibold gap-1.5"
-                        style={{
-                          color: "rgba(255,255,255,0.50)",
-                          border: "1px solid rgba(255,255,255,0.10)",
-                        }}
+                        className="h-8.5 px-3 rounded-xl text-[11.5px] font-bold text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 gap-1.5 shadow-xs"
                       >
                         <span>Details</span>
-                        <ArrowRight className="w-3 h-3" />
+                        <ArrowRight className="w-3 h-3 text-white/50" />
                       </Button>
                     </Link>
                   </div>

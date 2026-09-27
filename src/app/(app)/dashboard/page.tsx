@@ -107,12 +107,12 @@ export default function DashboardPage() {
         <DashboardKpiGrid metrics={null} loading={true} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="stayhub-card p-5 h-64 animate-pulse bg-slate-100" />
-            <div className="stayhub-card p-5 h-64 animate-pulse bg-slate-100" />
+            <div className="rounded-2xl p-6 h-64 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
+            <div className="rounded-2xl p-6 h-64 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
           </div>
           <div className="space-y-6">
-            <div className="stayhub-card p-5 h-48 animate-pulse bg-slate-100" />
-            <div className="stayhub-card p-5 h-48 animate-pulse bg-slate-100" />
+            <div className="rounded-2xl p-6 h-48 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
+            <div className="rounded-2xl p-6 h-48 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
           </div>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
               router.push("/onboarding");
             },
           }}
-          className="stayhub-card p-10 max-w-lg mx-auto"
+          className="rounded-2xl bg-white border border-slate-200 p-10 max-w-lg mx-auto shadow-sm"
         />
       </div>
     );
@@ -147,7 +147,7 @@ export default function DashboardPage() {
           title="Dashboard Unavailable"
           description={error}
           onRetry={() => loadData(true)}
-          className="stayhub-card p-10 max-w-lg mx-auto"
+          className="rounded-2xl bg-white border border-slate-200 p-10 max-w-lg mx-auto shadow-sm"
         />
       </div>
     );
@@ -173,9 +173,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 relative -mt-4 -mx-6 px-6 pt-4">
-      {/* Hero Background — pure CSS gradient (removed remote Unsplash image
-          that blocked LCP on mobile and cost ~500KB per load) */}
-      <div className="absolute top-0 left-0 w-full h-[240px] z-0 pointer-events-none bg-gradient-to-b from-indigo-50/60 via-background/40 to-background" />
+      {/* Hero Ambient Background — Soft warm luxury glow */}
+      <div
+        className="absolute top-0 left-0 w-full h-[320px] z-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at top left, rgba(81, 70, 229, 0.08) 0%, rgba(214, 168, 90, 0.04) 40%, transparent 75%)",
+        }}
+      />
 
       <div className="relative z-10 space-y-6">
         {/* 1. Header with Property Context, Timezone Date & Quick Actions */}

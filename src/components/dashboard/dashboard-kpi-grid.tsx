@@ -10,12 +10,140 @@ import {
   CalendarX,
   Users,
   TrendingUp,
+  Sparkles,
 } from "lucide-react";
-import { KPIWidget } from "@/components/hotel/hotel-cards";
+import { cn } from "@/lib/utils";
 
 interface DashboardKpiGridProps {
   metrics: DashboardMetrics | null;
   loading?: boolean;
+}
+
+interface LuxuryStatCardProps {
+  title: string;
+  value: string;
+  subValue?: string;
+  statusLabel: string;
+  icon: React.ReactNode;
+  theme: "indigo" | "sky" | "emerald" | "amber" | "gold" | "rose";
+  loading?: boolean;
+}
+
+const themeStyles = {
+  indigo: {
+    topBar: "from-indigo-500 via-indigo-400 to-indigo-600",
+    iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100",
+    glow: "rgba(99, 102, 241, 0.08)",
+    badgeBg: "bg-indigo-50/80 text-indigo-700 border-indigo-200/60",
+    hoverBorder: "hover:border-indigo-300",
+  },
+  sky: {
+    topBar: "from-sky-500 via-sky-400 to-sky-600",
+    iconBg: "bg-sky-50 text-sky-600 border-sky-100",
+    glow: "rgba(14, 165, 233, 0.08)",
+    badgeBg: "bg-sky-50/80 text-sky-700 border-sky-200/60",
+    hoverBorder: "hover:border-sky-300",
+  },
+  emerald: {
+    topBar: "from-emerald-500 via-emerald-400 to-teal-600",
+    iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    glow: "rgba(16, 185, 129, 0.08)",
+    badgeBg: "bg-emerald-50/80 text-emerald-700 border-emerald-200/60",
+    hoverBorder: "hover:border-emerald-300",
+  },
+  amber: {
+    topBar: "from-amber-500 via-amber-400 to-orange-500",
+    iconBg: "bg-amber-50 text-amber-600 border-amber-100",
+    glow: "rgba(245, 158, 11, 0.08)",
+    badgeBg: "bg-amber-50/80 text-amber-700 border-amber-200/60",
+    hoverBorder: "hover:border-amber-300",
+  },
+  gold: {
+    topBar: "from-[#D4AF37] via-[#E8CD8A] to-[#B48811]",
+    iconBg: "bg-amber-50/80 text-[#B48811] border-amber-200/80",
+    glow: "rgba(212, 175, 55, 0.12)",
+    badgeBg: "bg-amber-50 text-[#854d0e] border-amber-200",
+    hoverBorder: "hover:border-amber-300",
+  },
+  rose: {
+    topBar: "from-rose-500 via-rose-400 to-pink-600",
+    iconBg: "bg-rose-50 text-rose-600 border-rose-100",
+    glow: "rgba(244, 63, 94, 0.08)",
+    badgeBg: "bg-rose-50/80 text-rose-700 border-rose-200/60",
+    hoverBorder: "hover:border-rose-300",
+  },
+};
+
+function LuxuryStatCard({
+  title,
+  value,
+  statusLabel,
+  icon,
+  theme,
+  loading,
+}: LuxuryStatCardProps) {
+  const t = themeStyles[theme];
+
+  if (loading) {
+    return (
+      <div className="relative rounded-2xl bg-white p-5 border border-slate-200/80 shadow-sm animate-pulse space-y-3.5">
+        <div className="flex justify-between items-start">
+          <div className="h-3 w-20 bg-slate-200 rounded-md" />
+          <div className="h-9 w-9 bg-slate-200 rounded-xl" />
+        </div>
+        <div className="h-7 w-24 bg-slate-200 rounded-md" />
+        <div className="h-3.5 w-32 bg-slate-100 rounded-md" />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "group relative overflow-hidden rounded-2xl bg-white p-5 border border-slate-200/80",
+        "shadow-[0_2px_12px_rgba(15,23,42,0.04)] hover:shadow-[0_12px_30px_-6px_rgba(15,23,42,0.12)]",
+        "transition-all duration-300 hover:-translate-y-1",
+        t.hoverBorder
+      )}
+      style={{
+        backgroundImage: `radial-gradient(circle at top right, ${t.glow}, transparent 60%)`,
+      }}
+    >
+      {/* Top accent radiant bar */}
+      <div
+        className={cn("absolute top-0 left-0 right-0 h-[3.5px] bg-gradient-to-r", t.topBar)}
+      />
+
+      {/* Header Row: Title & Glowing Icon Container */}
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <span className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-slate-500">
+          {title}
+        </span>
+        <div
+          className={cn(
+            "w-9 h-9 rounded-xl flex items-center justify-center border shadow-xs transition-transform duration-300 group-hover:scale-110",
+            t.iconBg
+          )}
+        >
+          {icon}
+        </div>
+      </div>
+
+      {/* Primary Value */}
+      <div className="mb-2">
+        <span className="text-[26px] sm:text-[28px] font-black tracking-tight text-slate-900 tabular-nums leading-none">
+          {value}
+        </span>
+      </div>
+
+      {/* Status Trend / Detail Pill */}
+      <div className="pt-1 border-t border-slate-100 flex items-center gap-1.5">
+        <p className="text-[11.5px] font-medium text-slate-500 truncate leading-snug">
+          {statusLabel}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export function DashboardKpiGrid({ metrics, loading }: DashboardKpiGridProps) {
@@ -23,7 +151,15 @@ export function DashboardKpiGrid({ metrics, loading }: DashboardKpiGridProps) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {Array.from({ length: 6 }).map((_, i) => (
-          <KPIWidget key={i} title="Loading..." value="---" loading={true} />
+          <LuxuryStatCard
+            key={i}
+            title="Loading..."
+            value="---"
+            statusLabel="Fetching live data"
+            icon={<Sparkles className="h-4 w-4" />}
+            theme="indigo"
+            loading={true}
+          />
         ))}
       </div>
     );
@@ -35,73 +171,73 @@ export function DashboardKpiGrid({ metrics, loading }: DashboardKpiGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       {/* 1. Occupancy */}
-      <KPIWidget
+      <LuxuryStatCard
         title="Occupancy"
         value={formatPercentage(metrics.occupancyRate)}
-        icon={<BedDouble className="h-5 w-5" />}
-        trendLabel={
+        icon={<BedDouble className="h-4 w-4" />}
+        statusLabel={
           isInventoryConfigured
-            ? `${metrics.totalRooms - metrics.availableRooms} of ${metrics.totalRooms} rooms occupied`
-            : "No inventory configured yet"
+            ? `${metrics.totalRooms - metrics.availableRooms} of ${metrics.totalRooms} rooms active`
+            : "Setup rooms to calculate"
         }
-        color="primary"
+        theme="indigo"
       />
 
       {/* 2. Available Rooms */}
-      <KPIWidget
-        title="Available Rooms"
+      <LuxuryStatCard
+        title="Available"
         value={metrics.availableRooms.toString()}
-        icon={<DoorOpen className="h-5 w-5" />}
-        trendLabel={
+        icon={<DoorOpen className="h-4 w-4" />}
+        statusLabel={
           isInventoryConfigured
             ? `${metrics.availableRooms} rooms vacant & clean`
-            : "Setup rooms to track inventory"
+            : "No inventory configured"
         }
-        color="info"
+        theme="sky"
       />
 
       {/* 3. Arrivals Today */}
-      <KPIWidget
-        title="Today's Arrivals"
+      <LuxuryStatCard
+        title="Arrivals"
         value={metrics.arrivalsToday.toString()}
-        icon={<CalendarCheck className="h-5 w-5" />}
-        trendLabel={
+        icon={<CalendarCheck className="h-4 w-4" />}
+        statusLabel={
           metrics.arrivalsPending > 0
             ? `${metrics.arrivalsPending} pending check-in`
-            : "No check-ins scheduled"
+            : "All arrivals completed"
         }
-        color="success"
+        theme="emerald"
       />
 
       {/* 4. Departures Today */}
-      <KPIWidget
-        title="Today's Departures"
+      <LuxuryStatCard
+        title="Departures"
         value={metrics.departuresToday.toString()}
-        icon={<CalendarX className="h-5 w-5" />}
-        trendLabel={
+        icon={<CalendarX className="h-4 w-4" />}
+        statusLabel={
           metrics.departuresPending > 0
             ? `${metrics.departuresPending} pending check-out`
-            : "No check-outs scheduled"
+            : "No check-outs today"
         }
-        color="warning"
+        theme="amber"
       />
 
       {/* 5. In-House Guests */}
-      <KPIWidget
-        title="In-House Guests"
+      <LuxuryStatCard
+        title="In-House"
         value={metrics.inHouseGuests.toString()}
-        icon={<Users className="h-5 w-5" />}
-        trendLabel="Active registered guests"
-        color="accent"
+        icon={<Users className="h-4 w-4" />}
+        statusLabel="Active registered guests"
+        theme="gold"
       />
 
       {/* 6. Today's Revenue */}
-      <KPIWidget
-        title="Today's Revenue"
+      <LuxuryStatCard
+        title="Revenue"
         value={formatCurrency(metrics.todayRevenue, currency)}
-        icon={<TrendingUp className="h-5 w-5" />}
-        trendLabel="Billing module not yet enabled"
-        color="success"
+        icon={<TrendingUp className="h-4 w-4" />}
+        statusLabel={metrics.todayRevenue > 0 ? "Live billed today" : "Folios & POS ready"}
+        theme="emerald"
       />
     </div>
   );

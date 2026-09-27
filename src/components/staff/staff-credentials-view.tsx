@@ -1,5 +1,9 @@
 "use client";
 
+// ============================================================
+// STAYHUB STAFF CREDENTIALS & PORTAL ACCESS CONSOLE
+// ============================================================
+
 import * as React from "react";
 import { StaffMember } from "@/lib/staff/types";
 import { resetStaffPasswordAction } from "@/lib/staff/actions";
@@ -11,11 +15,13 @@ import {
   Check,
   Eye,
   EyeOff,
-  ShieldAlert,
   ExternalLink,
   RotateCcw,
   Loader2,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface StaffCredentialsViewProps {
   propertyId: string;
@@ -52,7 +58,7 @@ export function StaffCredentialsView({
     const res = await resetStaffPasswordAction(propertyId, staff.email, defaultPassword);
     setResettingId(null);
     if (res.success) {
-      setMessage(`Successfully set default password for ${staff.first_name} (${staff.email}) to "${defaultPassword}"`);
+      setMessage(`Successfully reset password for ${staff.first_name} (${staff.email}) to "${defaultPassword}"`);
       setTimeout(() => setMessage(null), 5000);
     } else {
       setMessage(res.error || "Failed to reset password.");
@@ -62,14 +68,20 @@ export function StaffCredentialsView({
   return (
     <div className="space-y-6">
       {/* Super Admin Notice Card */}
-      <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200 flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <KeyRound className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-          <div className="text-xs space-y-1">
-            <p className="font-bold text-sm">Super Admin & Hotel Owner Access Credentials Console</p>
-            <p className="text-muted-foreground">
-              Employees can sign in to the StayHub Staff Portal using their registered hotel email and the initial temporary password below.
-              You can copy these credentials to hand them over to on-duty staff.
+      <div className="p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <KeyRound className="w-5 h-5" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-black text-foreground text-sm flex items-center gap-2">
+              <span>Hotel Staff Authentication & Passcodes Console</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                Admin Console
+              </span>
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
+              Employees can sign in to the StayHub Staff Portal using their registered hotel email address and default temporary password. You can copy credentials with 1 tap to hand them over to on-duty staff.
             </p>
           </div>
         </div>
@@ -77,53 +89,53 @@ export function StaffCredentialsView({
           href="/login"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shrink-0 shadow-sm transition"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shrink-0 shadow-xs transition"
         >
-          <span>Staff Login Portal</span>
+          <span>Open Login Portal</span>
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
       </div>
 
       {message && (
-        <div className="p-3 text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-500" />
-          <span>{message}</span>
+        <div className="p-3.5 text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center gap-2 animate-in fade-in">
+          <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+          <span className="font-bold">{message}</span>
         </div>
       )}
 
       {/* Credentials Table */}
-      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-2xl border bg-card shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-muted/50 border-b text-muted-foreground uppercase font-bold tracking-wider">
-              <tr>
+            <thead>
+              <tr className="border-b bg-muted/50 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 <th className="py-3 px-4">Staff Member</th>
                 <th className="py-3 px-4">Department / Designation</th>
                 <th className="py-3 px-4">Portal Login ID (Email)</th>
                 <th className="py-3 px-4">Active Password</th>
-                <th className="py-3 px-4">Account Status</th>
+                <th className="py-3 px-4 text-center">Account Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-border">
               {staffList.map((staff) => {
                 const isVisible = !!showPassword[staff.id];
                 const isCopied = copiedId === staff.id;
                 const isResetting = resettingId === staff.id;
 
                 return (
-                  <tr key={staff.id} className="hover:bg-muted/30 transition">
-                    <td className="py-3 px-4 whitespace-nowrap">
+                  <tr key={staff.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-foreground">
+                        <span className="font-bold text-foreground text-xs">
                           {staff.first_name} {staff.last_name}
                         </span>
-                        <code className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded font-mono">
+                        <code className="text-[10px] text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded font-mono font-bold border border-amber-500/20">
                           {staff.employee_code}
                         </code>
                       </div>
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="space-y-0.5">
                         <span className="font-semibold text-foreground block">
                           {staff.department?.name || "Operations"}
@@ -133,18 +145,18 @@ export function StaffCredentialsView({
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       {staff.email ? (
-                        <code className="font-mono text-xs font-bold text-foreground select-all">
+                        <code className="font-mono text-xs font-bold text-foreground select-all bg-muted/40 px-2 py-0.5 rounded">
                           {staff.email}
                         </code>
                       ) : (
                         <span className="text-muted-foreground italic">No email assigned</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <code className="font-mono text-xs bg-muted/60 px-2 py-1 rounded border border-[var(--border)]">
+                        <code className="font-mono text-xs bg-muted/60 px-2.5 py-1 rounded-lg border border-border font-bold">
                           {isVisible ? defaultPassword : "••••••••••••"}
                         </code>
                         <button
@@ -156,22 +168,29 @@ export function StaffCredentialsView({
                         </button>
                       </div>
                     </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <Badge variant={staff.is_active ? "success" : "default"} className="text-[10px]">
-                        {staff.is_active ? "Active Auth Account" : "Inactive"}
-                      </Badge>
+                    <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border",
+                          staff.is_active
+                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                            : "bg-muted text-muted-foreground border-border"
+                        )}
+                      >
+                        {staff.is_active ? "Active Login" : "Disabled"}
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-1.5">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-7 text-xs font-semibold gap-1"
+                        className="h-7 text-xs font-bold gap-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500 hover:text-slate-950"
                         onClick={() => handleCopyCredentials(staff)}
                       >
                         {isCopied ? (
                           <>
                             <Check className="w-3.5 h-3.5 text-emerald-500" />
-                            <span className="text-emerald-600">Copied!</span>
+                            <span className="text-emerald-600 font-bold">Copied!</span>
                           </>
                         ) : (
                           <>
@@ -187,7 +206,7 @@ export function StaffCredentialsView({
                         disabled={isResetting || !staff.email}
                         className="h-7 text-xs text-muted-foreground hover:text-foreground"
                         onClick={() => handleResetPassword(staff)}
-                        title="Reset password to StayHub@2026"
+                        title="Reset password to default (StayHub@2026)"
                       >
                         {isResetting ? (
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />

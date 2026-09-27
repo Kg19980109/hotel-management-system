@@ -1,10 +1,15 @@
 "use client";
 
+// ============================================================
+// STAYHUB ROLE-BASED ACCESS CONTROL (RBAC) MATRIX
+// ============================================================
+
 import * as React from "react";
-import { Check, X, Shield, Search, Info } from "lucide-react";
+import { Check, X, Shield, Search, Info, ShieldCheck, Lock, Sparkles, ChevronRight } from "lucide-react";
 import { ROLE_CAPABILITIES, MODULE_PERMISSIONS } from "@/lib/staff/permissions-data";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 export function RolePermissionMatrix() {
   const [activeTab, setActiveTab] = React.useState<"by_role" | "by_module">("by_role");
@@ -31,41 +36,56 @@ export function RolePermissionMatrix() {
 
   return (
     <div className="space-y-6">
-      {/* Informational banner */}
-      <div className="p-4 rounded-xl border border-sky-500/20 bg-sky-500/5 text-sky-900 dark:text-sky-200 flex items-start gap-3">
-        <Info className="w-5 h-5 text-sky-500 shrink-0 mt-0.5" />
-        <div className="text-xs space-y-1">
-          <p className="font-semibold text-sm">Role-Based Access Control (RBAC) Governance</p>
-          <p className="text-muted-foreground">
-            Staff roles grant precise operational permissions across front desk, housekeeping, KDS kitchen orders, maintenance work orders, and billing folios. Financial payroll is managed in a separate compliance ledger.
+      {/* Informational Governance Banner */}
+      <div className="p-5 rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-500/10 via-sky-500/5 to-transparent text-foreground flex items-start gap-3.5 shadow-xs">
+        <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+          <ShieldCheck className="w-5 h-5" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="font-black text-sm flex items-center gap-2">
+            <span>Role-Based Access Control (RBAC) Governance</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/20 text-sky-600 dark:text-sky-400">
+              Active Security Layer
+            </span>
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-3xl leading-relaxed">
+            Staff designations grant strict operational access across front desk stays, housekeeping task assignments, KDS kitchen orders, maintenance work orders, and billing folios.
           </p>
         </div>
       </div>
 
       {/* Sub-tabs: By Role vs By Module Matrix */}
-      <div className="flex border-b border-[var(--border)] gap-6 text-sm">
+      <div className="flex flex-wrap items-center gap-1.5 bg-muted/40 p-1 rounded-xl w-fit">
         <button
+          type="button"
           onClick={() => setActiveTab("by_role")}
-          className={`pb-3 font-semibold transition border-b-2 ${
+          className={cn(
+            "px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5",
             activeTab === "by_role"
-              ? "border-amber-500 text-amber-500"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+              ? "bg-card text-foreground shadow-xs font-black border"
+              : "text-muted-foreground hover:text-foreground"
+          )}
         >
-          Staff Roles & Responsibilities
+          <Shield className="w-3.5 h-3.5 text-amber-500" />
+          <span>Staff Roles & Responsibilities</span>
         </button>
+
         <button
+          type="button"
           onClick={() => setActiveTab("by_module")}
-          className={`pb-3 font-semibold transition border-b-2 ${
+          className={cn(
+            "px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5",
             activeTab === "by_module"
-              ? "border-amber-500 text-amber-500"
-              : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+              ? "bg-card text-foreground shadow-xs font-black border"
+              : "text-muted-foreground hover:text-foreground"
+          )}
         >
-          Operational Permissions Matrix
+          <Lock className="w-3.5 h-3.5 text-indigo-500" />
+          <span>Operational Permissions Matrix</span>
         </button>
       </div>
 
+      {/* TAB 1: By Role Deep Dive */}
       {activeTab === "by_role" && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Roles Selector Sidebar */}
@@ -80,17 +100,23 @@ export function RolePermissionMatrix() {
                   <button
                     key={role.roleCode}
                     onClick={() => setSelectedRoleCode(role.roleCode)}
-                    className={`w-full text-left p-3 rounded-xl border transition flex items-center justify-between ${
+                    className={cn(
+                      "w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between group",
                       isSelected
-                        ? "bg-amber-500/10 border-amber-500 text-amber-500 shadow-sm"
-                        : "bg-card hover:bg-muted/50 border-[var(--border)] text-foreground"
-                    }`}
+                        ? "bg-amber-500/15 border-amber-500 text-foreground shadow-xs"
+                        : "bg-card hover:bg-muted/40 border-border text-muted-foreground hover:text-foreground"
+                    )}
                   >
                     <div>
-                      <p className="font-bold text-sm">{role.roleName}</p>
+                      <p className={cn("font-black text-sm", isSelected ? "text-amber-600 dark:text-amber-400" : "text-foreground")}>
+                        {role.roleName}
+                      </p>
                       <p className="text-[11px] text-muted-foreground">{role.department}</p>
                     </div>
-                    <Badge variant={isSelected ? "warning" : "default"} className="text-[10px]">
+                    <Badge
+                      variant={isSelected ? "warning" : "default"}
+                      className="text-[10px] font-mono font-bold"
+                    >
                       {role.roleCode}
                     </Badge>
                   </button>
@@ -101,36 +127,37 @@ export function RolePermissionMatrix() {
 
           {/* Role Capabilities Details */}
           <div className="md:col-span-8 space-y-6">
-            <div className="p-6 rounded-xl border bg-card shadow-sm space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-4">
+            <div className="p-6 rounded-2xl border bg-card shadow-xs space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
                 <div>
-                  <h3 className="text-xl font-bold flex items-center gap-2">
+                  <h3 className="text-lg font-black flex items-center gap-2 text-foreground">
                     <Shield className="w-5 h-5 text-amber-500" />
-                    {currentRole.roleName}
+                    <span>{currentRole.roleName}</span>
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Department: <span className="font-semibold text-foreground">{currentRole.department}</span> • Code: <code className="text-amber-500">{currentRole.roleCode}</code>
+                    Department: <span className="font-bold text-foreground">{currentRole.department}</span> • Security Code: <code className="text-amber-600 dark:text-amber-400 font-bold font-mono">{currentRole.roleCode}</code>
                   </p>
                 </div>
-                <Badge variant="info" className="text-xs font-bold px-3 py-1">
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                   Active Security Profile
-                </Badge>
+                </span>
               </div>
 
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {currentRole.summary}
               </p>
 
               {/* What this role CAN do */}
               <div className="space-y-3 pt-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-                  <Check className="w-4 h-4" /> What Staff in this Role CAN Do
+                <h4 className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+                  <Check className="w-4 h-4" />
+                  <span>Authorized Capabilities & Actions ({currentRole.canDo.length})</span>
                 </h4>
                 <div className="grid grid-cols-1 gap-2">
                   {currentRole.canDo.map((item, idx) => (
                     <div
                       key={idx}
-                      className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-xs text-foreground flex items-start gap-2.5"
+                      className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs text-foreground flex items-start gap-2.5 font-medium"
                     >
                       <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                       <span>{item}</span>
@@ -142,14 +169,15 @@ export function RolePermissionMatrix() {
               {/* What this role CANNOT do */}
               {currentRole.cannotDo.length > 0 && (
                 <div className="space-y-3 pt-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                    <X className="w-4 h-4" /> Restricted / Prohibited Actions
+                  <h4 className="text-xs font-black uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                    <X className="w-4 h-4" />
+                    <span>Restricted / Prohibited Boundaries ({currentRole.cannotDo.length})</span>
                   </h4>
                   <div className="grid grid-cols-1 gap-2">
                     {currentRole.cannotDo.map((item, idx) => (
                       <div
                         key={idx}
-                        className="p-3 rounded-lg bg-rose-500/5 border border-rose-500/20 text-xs text-foreground flex items-start gap-2.5"
+                        className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/20 text-xs text-foreground flex items-start gap-2.5 font-medium"
                       >
                         <X className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                         <span>{item}</span>
@@ -163,53 +191,54 @@ export function RolePermissionMatrix() {
         </div>
       )}
 
+      {/* TAB 2: By Module Feature Matrix */}
       {activeTab === "by_module" && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl border bg-card">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl border bg-card shadow-xs">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchModule}
                 onChange={(e) => setSearchModule(e.target.value)}
                 placeholder="Search module or operational feature..."
-                className="pl-9"
+                className="pl-9 h-9 text-xs"
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Showing {filteredModules.length} operational features
+            <p className="text-xs text-muted-foreground font-medium">
+              Showing <span className="font-bold text-foreground">{filteredModules.length}</span> operational features
             </p>
           </div>
 
-          <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+          <div className="rounded-2xl border bg-card shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-muted/50 border-b text-muted-foreground uppercase font-bold tracking-wider">
-                  <tr>
+                <thead>
+                  <tr className="border-b bg-muted/50 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                     <th className="py-3 px-4">Operational Module</th>
                     <th className="py-3 px-4">Action / Feature</th>
                     <th className="py-3 px-4">Description</th>
                     <th className="py-3 px-4">Authorized Roles</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-border">
                   {filteredModules.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-muted/30 transition">
-                      <td className="py-3 px-4 font-bold whitespace-nowrap text-amber-600 dark:text-amber-400">
+                    <tr key={idx} className="hover:bg-muted/20 transition-colors">
+                      <td className="py-3.5 px-4 font-black whitespace-nowrap text-amber-600 dark:text-amber-400 text-xs">
                         {item.module}
                       </td>
-                      <td className="py-3 px-4 font-semibold text-foreground whitespace-nowrap">
+                      <td className="py-3.5 px-4 font-bold text-foreground whitespace-nowrap text-xs">
                         {item.feature}
                       </td>
-                      <td className="py-3 px-4 text-muted-foreground max-w-sm">
+                      <td className="py-3.5 px-4 text-muted-foreground max-w-sm text-xs leading-relaxed">
                         {item.description}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         <div className="flex flex-wrap gap-1">
                           {item.allowedRoles.map((role) => (
                             <Badge
                               key={role}
                               variant={role.includes("ADMIN") || role.includes("OWNER") ? "warning" : "default"}
-                              className="text-[10px]"
+                              className="text-[10px] font-mono"
                             >
                               {role}
                             </Badge>

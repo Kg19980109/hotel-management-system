@@ -105,6 +105,7 @@ export async function queryRoomInventorySummary(
 
 /**
  * Query today's expected arrivals from real reservations.
+ * Correctly excludes guests who have already been checked in or assigned to a stay.
  */
 export async function queryTodayArrivals(
   supabase: SupabaseClient,
@@ -126,13 +127,17 @@ export async function queryTodayArrivals(
         reservation_rooms(
           room:rooms(room_number),
           room_type:room_types(name)
+        ),
+        stays(
+          id,
+          status
         )
       `)
       .eq("property_id", propertyId)
       .eq("check_in_date", todayStr)
       .in("status", ["CONFIRMED", "PENDING"])
       .order("created_at", { ascending: true })
-      .limit(10);
+      .limit(20);
 
     if (error || !data) {
       return [];
@@ -147,11 +152,21 @@ export async function queryTodayArrivals(
         room?: { room_number: string };
         room_type?: { name: string };
       }>;
+      stays?: Array<{
+        id: string;
+        status: string;
+      }>;
     }
 
     const rows = data as unknown as ResArrivalRow[];
 
-    return rows.map((b) => {
+    // Exclude any reservation that already has an active checked-in stay
+    const unCheckedInArrivals = rows.filter((r) => {
+      const isAlreadyCheckedIn = r.stays?.some((s) => s.status === "CHECKED_IN");
+      return !isAlreadyCheckedIn;
+    });
+
+    return unCheckedInArrivals.map((b) => {
       const g = b.primary_guest;
       const guestName = g ? `${g.first_name} ${g.last_name}`.trim() : "Guest";
       const roomNum = b.reservation_rooms?.[0]?.room?.room_number || "Unassigned";
@@ -285,17 +300,103 @@ export async function queryOperationalAttention(
   return items;
 }
 
+const formatTimeAgo = (iso?: string | null) => {
+  if (!iso) return "Recently";
+  const sec = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (sec < 60) return "Just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+};
+
 /**
  * Query recent operational activity.
- * Returns empty list until activity/audit log table exists in future phases.
+ * Returns recent check-ins, check-outs, and service requests.
  */
 export async function queryRecentActivity(
   supabase: SupabaseClient,
   propertyId: string
 ): Promise<ActivityItem[]> {
-  void supabase;
-  void propertyId;
-  return [];
+  try {
+    const activities: ActivityItem[] = [];
+
+    // 1. Stays (Check-ins & check-outs)
+    const { data: stays } = await supabase
+      .from("stays")
+      .select("id, status, actual_check_in, actual_check_out, updated_at, room:rooms(room_number), guest:guests(first_name, last_name)")
+      .eq("property_id", propertyId)
+      .order("updated_at", { ascending: false })
+      .limit(4);
+
+    if (stays) {
+      for (const s of stays as unknown as Array<{
+        id: string;
+        status: string;
+        actual_check_in?: string;
+        actual_check_out?: string;
+        updated_at?: string;
+        room?: { room_number: string };
+        guest?: { first_name: string; last_name: string };
+      }>) {
+        const guestName = s.guest ? `${s.guest.first_name || ""} ${s.guest.last_name || ""}`.trim() : "Guest";
+        const roomNum = s.room?.room_number ? `Room ${s.room.room_number}` : "Room";
+        if (s.status === "CHECKED_IN") {
+          activities.push({
+            id: `stay-in-${s.id}`,
+            title: `Check-In · ${roomNum}`,
+            description: `${guestName} assigned & checked in`,
+            actor: "Front Desk",
+            timestamp: formatTimeAgo(s.actual_check_in || s.updated_at),
+            type: "room",
+          });
+        } else if (s.status === "CHECKED_OUT") {
+          activities.push({
+            id: `stay-out-${s.id}`,
+            title: `Check-Out · ${roomNum}`,
+            description: `${guestName} completed checkout`,
+            actor: "Front Desk",
+            timestamp: formatTimeAgo(s.actual_check_out || s.updated_at),
+            type: "room",
+          });
+        }
+      }
+    }
+
+    // 2. Recent Guest Requests
+    const { data: reqs } = await supabase
+      .from("guest_service_requests")
+      .select("id, title, status, created_at, room:rooms(room_number)")
+      .eq("property_id", propertyId)
+      .order("created_at", { ascending: false })
+      .limit(4);
+
+    if (reqs) {
+      for (const r of reqs as unknown as Array<{
+        id: string;
+        title: string;
+        status: string;
+        created_at: string;
+        room?: { room_number: string };
+      }>) {
+        const roomNum = r.room?.room_number ? `Room ${r.room.room_number}` : "In-Room";
+        activities.push({
+          id: `req-${r.id}`,
+          title: `Request · ${roomNum}`,
+          description: `${r.title} (${r.status})`,
+          actor: "Guest",
+          timestamp: formatTimeAgo(r.created_at),
+          type: "guest",
+        });
+      }
+    }
+
+    return activities.slice(0, 5);
+  } catch {
+    return [];
+  }
 }
 
 /**

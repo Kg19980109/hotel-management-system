@@ -228,15 +228,15 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
 
   return (
     <div
-      className="rounded-[24px] border relative overflow-hidden transition-all duration-300 shadow-2xl"
+      className="rounded-2xl border relative overflow-hidden transition-all duration-300 shadow-xl"
       style={{
         background: "linear-gradient(145deg, #091224 0%, #0E1B38 50%, #12224A 100%)",
         borderColor: pendingRequests.length > 0
-          ? "rgba(214, 168, 90, 0.30)"
+          ? "rgba(214, 168, 90, 0.35)"
           : "rgba(255, 255, 255, 0.12)",
         boxShadow: pendingRequests.length > 0
-          ? "0 20px 40px -15px rgba(7, 13, 27, 0.6), 0 0 0 1px rgba(214, 168, 90, 0.2)"
-          : "0 20px 40px -15px rgba(7, 13, 27, 0.5)",
+          ? "0 12px 30px -10px rgba(7, 13, 27, 0.5), 0 0 0 1px rgba(214, 168, 90, 0.2)"
+          : "0 12px 30px -10px rgba(7, 13, 27, 0.4)",
       }}
     >
       {/* Top subtle golden shimmer line */}
@@ -249,54 +249,54 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
 
       {/* Ambient background glows */}
       <div
-        className="absolute -top-16 -right-16 h-48 w-48 rounded-full pointer-events-none blur-3xl opacity-25"
+        className="absolute -top-12 -right-12 h-36 w-36 rounded-full pointer-events-none blur-2xl opacity-25"
         style={{ background: "radial-gradient(circle, #D4AF37 0%, transparent 70%)" }}
       />
       <div
-        className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full pointer-events-none blur-3xl opacity-20"
+        className="absolute -bottom-12 -left-12 h-36 w-36 rounded-full pointer-events-none blur-2xl opacity-20"
         style={{ background: "radial-gradient(circle, #5146E5 0%, transparent 70%)" }}
       />
 
-      <div className="relative z-10 p-6">
+      <div className="relative z-10 p-4 sm:p-4.5">
         {/* Widget Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-          <div className="flex items-center gap-3.5">
+        <div className="flex items-center justify-between gap-3 mb-3.5">
+          <div className="flex items-center gap-3">
             {/* Bell icon with glowing pulse */}
             <div className="relative">
               <div
-                className="w-11 h-11 rounded-2xl flex items-center justify-center border shadow-lg backdrop-blur-md transition-all"
+                className="w-9 h-9 rounded-xl flex items-center justify-center border shadow-md backdrop-blur-md transition-all"
                 style={{
-                  background: pendingRequests.length > 0 ? "rgba(214, 168, 90, 0.18)" : "rgba(255, 255, 255, 0.08)",
-                  borderColor: pendingRequests.length > 0 ? "rgba(214, 168, 90, 0.40)" : "rgba(255, 255, 255, 0.15)",
+                  background: pendingRequests.length > 0 ? "rgba(214, 168, 90, 0.2)" : "rgba(255, 255, 255, 0.08)",
+                  borderColor: pendingRequests.length > 0 ? "rgba(214, 168, 90, 0.45)" : "rgba(255, 255, 255, 0.15)",
                   color: pendingRequests.length > 0 ? "#E8CD8A" : "rgba(255, 255, 255, 0.60)",
                 }}
               >
-                <BellRing className={`w-5 h-5 ${pendingRequests.length > 0 ? "animate-bounce" : ""}`} />
+                <BellRing className={`w-4 h-4 ${pendingRequests.length > 0 ? "animate-bounce" : ""}`} />
               </div>
               {pendingRequests.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500 shadow-sm shadow-rose-950" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500 shadow-sm shadow-rose-950" />
                 </span>
               )}
             </div>
 
             <div>
-              <div className="flex items-center gap-2.5">
-                <h3 className="text-[16px] font-extrabold text-white tracking-tight flex items-center gap-2">
-                  Live Guest QR Requests
+              <div className="flex items-center gap-2">
+                <h3 className="text-[14.5px] font-black text-white tracking-tight flex items-center gap-2">
+                  Live In-Room Requests
                 </h3>
                 {pendingRequests.length > 0 ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black text-white bg-gradient-to-r from-rose-500 to-red-600 shadow-sm shadow-rose-950/60 animate-pulse">
+                  <span className="px-2 py-0.2 rounded-full text-[10.5px] font-black text-white bg-gradient-to-r from-rose-500 to-red-600 shadow-xs shadow-rose-950/60 animate-pulse">
                     {pendingRequests.length} Active
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-emerald-300 bg-emerald-950/60 border border-emerald-500/30">
+                  <span className="px-2 py-0.2 rounded-full text-[10.5px] font-bold text-emerald-300 bg-emerald-950/60 border border-emerald-500/30">
                     All Clear
                   </span>
                 )}
               </div>
-              <p className="text-[12px] text-white/50 mt-0.5">
+              <p className="text-[11px] text-white/50">
                 Real-time concierge dispatch · Housekeeping, Maintenance &amp; Dining
               </p>
             </div>
@@ -306,10 +306,10 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 px-3.5 rounded-xl text-[12px] font-bold text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md transition gap-1.5 self-start sm:self-auto"
+              className="h-7.5 px-2.5 rounded-lg text-[11px] font-bold text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md transition gap-1"
             >
               <span>View All ({pendingRequests.length})</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
             </Button>
           </Link>
         </div>
@@ -317,26 +317,26 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
         {/* Empty state */}
         {recentList.length === 0 ? (
           <div
-            className="p-8 rounded-2xl text-center space-y-3 border backdrop-blur-md"
+            className="py-5 px-4 rounded-xl text-center space-y-1.5 border backdrop-blur-md"
             style={{ background: "rgba(255, 255, 255, 0.03)", borderColor: "rgba(255, 255, 255, 0.08)" }}
           >
             <div
-              className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center border shadow-inner"
+              className="w-9 h-9 rounded-xl mx-auto flex items-center justify-center border shadow-inner"
               style={{
                 background: "rgba(22, 163, 106, 0.18)",
                 borderColor: "rgba(22, 163, 106, 0.35)",
                 color: "#34D399",
               }}
             >
-              <CheckCircle2 className="w-6 h-6" />
+              <CheckCircle2 className="w-4.5 h-4.5" />
             </div>
-            <h4 className="text-[15px] font-bold text-white/90">No Active Guest Requests</h4>
-            <p className="text-[12.5px] text-white/45 max-w-sm mx-auto leading-relaxed">
-              All in-room QR requests have been serviced. New guest requests will chime here in real time.
+            <h4 className="text-[13.5px] font-bold text-white/90">No Active Guest Requests</h4>
+            <p className="text-[11.5px] text-white/45 max-w-sm mx-auto leading-relaxed">
+              All in-room QR requests have been serviced. New requests stream in real time.
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
             {recentList.map((req) => {
               const guestName = req.guest
                 ? `${req.guest.first_name || ""} ${req.guest.last_name || ""}`.trim()
@@ -347,52 +347,50 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
               return (
                 <div
                   key={req.id}
-                  className="rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group transition-all duration-200"
+                  className="rounded-xl border p-2.5 sm:p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 group transition-all duration-150"
                   style={{
                     background: "rgba(255, 255, 255, 0.04)",
                     borderColor: "rgba(255, 255, 255, 0.09)",
-                    borderLeft: `4px solid ${priorityCfg.borderColor}`,
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    borderLeft: `3.5px solid ${priorityCfg.borderColor}`,
+                    boxShadow: "0 2px 10px rgba(0,0,0,0.12)",
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)")}
                 >
                   {/* Left: details */}
-                  <div className="flex items-start gap-3.5 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     {/* Room Badge Capsule */}
-                    <div className="flex flex-col items-center gap-1 shrink-0 pt-0.5">
-                      <div
-                        className="px-3 py-1.5 rounded-xl text-center min-w-[50px] shadow-sm border"
-                        style={{
-                          background: "linear-gradient(135deg, rgba(214,168,90,0.2) 0%, rgba(214,168,90,0.08) 100%)",
-                          borderColor: "rgba(214,168,90,0.35)",
-                        }}
-                      >
-                        <span className="block text-[8px] uppercase font-black tracking-widest text-[#E8CD8A]/70">
-                          ROOM
-                        </span>
-                        <span className="text-[16px] font-black text-[#E8CD8A] leading-none">
-                          {req.room?.room_number || "—"}
-                        </span>
-                      </div>
+                    <div
+                      className="px-2 py-1 rounded-lg text-center min-w-[42px] shadow-2xs border shrink-0"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(214,168,90,0.2) 0%, rgba(214,168,90,0.08) 100%)",
+                        borderColor: "rgba(214,168,90,0.35)",
+                      }}
+                    >
+                      <span className="block text-[7.5px] uppercase font-black tracking-widest text-[#E8CD8A]/70">
+                        ROOM
+                      </span>
+                      <span className="text-[13px] font-black text-[#E8CD8A] leading-none">
+                        {req.room?.room_number || "—"}
+                      </span>
                     </div>
 
-                    <div className="space-y-1.5 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-extrabold text-[14.5px] text-white tracking-tight group-hover:text-amber-200 transition-colors line-clamp-1">
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-extrabold text-[13px] text-white tracking-tight group-hover:text-amber-200 transition-colors line-clamp-1">
                           {req.title}
                         </span>
 
-                        <Badge variant={priorityCfg.badge} showDot={false} size="sm">
+                        <Badge variant={priorityCfg.badge} showDot={false} size="sm" className="text-[9.5px] py-0 px-1.5">
                           {priorityCfg.label}
                         </Badge>
 
-                        <Badge variant={statusCfg.badge} showDot={false} size="sm">
+                        <Badge variant={statusCfg.badge} showDot={false} size="sm" className="text-[9.5px] py-0 px-1.5">
                           {statusCfg.label}
                         </Badge>
 
                         <span
-                          className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border backdrop-blur-sm"
+                          className="inline-flex items-center gap-1 text-[9.5px] font-bold px-2 py-0 rounded-full uppercase tracking-wider border backdrop-blur-sm"
                           style={{
                             color: "#C7D2FE",
                             background: "rgba(99, 102, 241, 0.18)",
@@ -404,16 +402,16 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 text-[12px] text-white/50">
-                        <span className="flex items-center gap-1.5 font-semibold text-white/80">
-                          <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-white/50">
+                        <span className="flex items-center gap-1 font-semibold text-white/80">
+                          <Users className="w-3 h-3 text-[#D4AF37]" />
                           {guestName}
                         </span>
                         {req.assigned_staff?.full_name && (
                           <>
                             <span className="text-white/20">·</span>
                             <span className="font-medium text-white/70">
-                              Assigned: {req.assigned_staff.full_name}
+                              {req.assigned_staff.full_name}
                             </span>
                           </>
                         )}
@@ -422,49 +420,37 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                           <Clock className="w-3 h-3 text-white/40" />
                           {formatElapsed(req.created_at)}
                         </span>
-                        {req.description && (
-                          <>
-                            <span className="text-white/20">·</span>
-                            <span className="line-clamp-1 italic text-white/60 max-w-[200px]">{req.description}</span>
-                          </>
-                        )}
                       </div>
                     </div>
                   </div>
 
                   {/* Right: Actions & status update */}
-                  <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto shrink-0">
-                    {/* Status Dropdown */}
+                  <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
                     <select
                       value={req.status}
                       disabled={updatingId === req.id}
                       onChange={(e) => handleUpdateStatus(req.id, e.target.value)}
-                      className="h-8.5 text-[11.5px] font-bold rounded-xl px-2.5 bg-slate-900/90 border border-white/20 text-white focus:outline-none focus:border-amber-400 cursor-pointer shadow-sm"
-                      title="Quick Change Request Status"
+                      className="h-7 text-[11px] font-bold rounded-lg px-2 bg-slate-900/90 border border-white/20 text-white focus:outline-none focus:border-amber-400 cursor-pointer shadow-2xs"
                     >
-                      <option value="SUBMITTED">New / Submitted</option>
+                      <option value="SUBMITTED">New</option>
                       <option value="ACKNOWLEDGED">Acknowledged</option>
                       <option value="IN_PROGRESS">In Progress</option>
                       <option value="COMPLETED">Completed</option>
                       <option value="CANCELLED">Cancelled</option>
                     </select>
 
-                    {/* Quick Smart Action Button */}
                     {req.status === "SUBMITTED" && (
                       <Button
                         size="sm"
                         disabled={updatingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, "ACKNOWLEDGED")}
-                        className="h-8.5 px-3 text-[11.5px] font-bold rounded-xl gap-1.5 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#E8CD8A] border border-[#D4AF37]/40 shadow-sm"
+                        className="h-7 px-2.5 text-[11px] font-bold rounded-lg gap-1 bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#E8CD8A] border border-[#D4AF37]/40 shadow-2xs"
                       >
                         {updatingId === req.id ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Updating...</span>
-                          </>
+                          <Loader2 className="w-3 h-3 animate-spin" />
                         ) : (
                           <>
-                            <Check className="w-3.5 h-3.5 text-[#E8CD8A]" />
+                            <Check className="w-3 h-3 text-[#E8CD8A]" />
                             <span>Accept</span>
                           </>
                         )}
@@ -476,17 +462,14 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                         size="sm"
                         disabled={updatingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, "IN_PROGRESS")}
-                        className="h-8.5 px-3 text-[11.5px] font-bold rounded-xl gap-1.5 border border-indigo-400/30 text-indigo-300 bg-indigo-500/20 hover:bg-indigo-500/30 shadow-sm"
+                        className="h-7 px-2.5 text-[11px] font-bold rounded-lg gap-1 border border-indigo-400/30 text-indigo-300 bg-indigo-500/20 hover:bg-indigo-500/30 shadow-2xs"
                       >
                         {updatingId === req.id ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Updating...</span>
-                          </>
+                          <Loader2 className="w-3 h-3 animate-spin" />
                         ) : (
                           <>
-                            <Play className="w-3.5 h-3.5" />
-                            <span>Start Work</span>
+                            <Play className="w-3 h-3" />
+                            <span>Start</span>
                           </>
                         )}
                       </Button>
@@ -497,17 +480,14 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                         size="sm"
                         disabled={updatingId === req.id}
                         onClick={() => handleUpdateStatus(req.id, "COMPLETED")}
-                        className="h-8.5 px-3 text-[11.5px] font-bold rounded-xl gap-1.5 border border-emerald-400/30 text-emerald-300 bg-emerald-500/20 hover:bg-emerald-500/30 shadow-sm"
+                        className="h-7 px-2.5 text-[11px] font-bold rounded-lg gap-1 border border-emerald-400/30 text-emerald-300 bg-emerald-500/20 hover:bg-emerald-500/30 shadow-2xs"
                       >
                         {updatingId === req.id ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Updating...</span>
-                          </>
+                          <Loader2 className="w-3 h-3 animate-spin" />
                         ) : (
                           <>
-                            <CheckCheck className="w-3.5 h-3.5" />
-                            <span>Complete</span>
+                            <CheckCheck className="w-3 h-3" />
+                            <span>Done</span>
                           </>
                         )}
                       </Button>
@@ -517,10 +497,10 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8.5 px-3 rounded-xl text-[11.5px] font-bold text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 gap-1.5 shadow-xs"
+                        className="h-7 px-2.5 rounded-lg text-[11px] font-bold text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 gap-1 shadow-2xs"
                       >
                         <span>Details</span>
-                        <ArrowRight className="w-3 h-3 text-white/50" />
+                        <ArrowRight className="w-2.5 h-2.5 text-white/50" />
                       </Button>
                     </Link>
                   </div>

@@ -376,6 +376,7 @@ export async function assignRoomAndCheckInGuestAction(
     }
 
     revalidatePath("/front-desk");
+    revalidatePath("/dashboard");
     revalidatePath("/bookings");
     revalidatePath("/rooms");
     revalidatePath("/guests");

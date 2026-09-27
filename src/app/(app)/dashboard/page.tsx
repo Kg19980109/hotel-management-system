@@ -172,16 +172,16 @@ export default function DashboardPage() {
   const recentActivity = dashboardData?.recentActivity || [];
 
   return (
-    <div className="space-y-6 relative -mt-4 -mx-6 px-6 pt-4">
+    <div className="space-y-4 relative -mt-3 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-3">
       {/* Hero Ambient Background — Soft warm luxury glow */}
       <div
-        className="absolute top-0 left-0 w-full h-[320px] z-0 pointer-events-none"
+        className="absolute top-0 left-0 w-full h-[260px] z-0 pointer-events-none"
         style={{
           background: "radial-gradient(ellipse at top left, rgba(81, 70, 229, 0.08) 0%, rgba(214, 168, 90, 0.04) 40%, transparent 75%)",
         }}
       />
 
-      <div className="relative z-10 space-y-6">
+      <div className="relative z-10 space-y-3.5">
         {/* 1. Header with Property Context, Timezone Date & Quick Actions */}
         <DashboardHeader
           property={propertyInfo}
@@ -194,9 +194,9 @@ export default function DashboardPage() {
       </div>
 
       {/* 3. Main Operational Layout (2 cols left, 1 col right on Desktop) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-10">
         {/* Left Column (Span 2): Live In-Room Guest QR Requests + Arrivals/Departures + Revenue & Occupancy */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           <DashboardGuestRequests propertyId={currentProperty.property_id} />
 
           <TodayArrivalsDepartures
@@ -213,7 +213,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column: Physical Room Inventory Status, Operational Attention, Recent Activity & AI Preview */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <RoomStatusOverview
             summary={roomStatus}
             loading={dataLoading && !dashboardData}

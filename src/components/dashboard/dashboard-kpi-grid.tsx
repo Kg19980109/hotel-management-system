@@ -86,13 +86,13 @@ function LuxuryStatCard({
 
   if (loading) {
     return (
-      <div className="relative rounded-2xl bg-white p-5 border border-slate-200/80 shadow-sm animate-pulse space-y-3.5">
+      <div className="relative rounded-xl bg-white p-3.5 border border-slate-200/80 shadow-xs animate-pulse space-y-2.5">
         <div className="flex justify-between items-start">
-          <div className="h-3 w-20 bg-slate-200 rounded-md" />
-          <div className="h-9 w-9 bg-slate-200 rounded-xl" />
+          <div className="h-3 w-16 bg-slate-200 rounded-md" />
+          <div className="h-7 w-7 bg-slate-200 rounded-lg" />
         </div>
-        <div className="h-7 w-24 bg-slate-200 rounded-md" />
-        <div className="h-3.5 w-32 bg-slate-100 rounded-md" />
+        <div className="h-6 w-20 bg-slate-200 rounded-md" />
+        <div className="h-3 w-28 bg-slate-100 rounded-md" />
       </div>
     );
   }
@@ -100,28 +100,28 @@ function LuxuryStatCard({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-2xl bg-white p-5 border border-slate-200/80",
-        "shadow-[0_2px_12px_rgba(15,23,42,0.04)] hover:shadow-[0_12px_30px_-6px_rgba(15,23,42,0.12)]",
-        "transition-all duration-300 hover:-translate-y-1",
+        "group relative overflow-hidden rounded-xl bg-white p-3.5 border border-slate-200/80",
+        "shadow-[0_1px_4px_rgba(15,23,42,0.03)] hover:shadow-[0_6px_20px_-4px_rgba(15,23,42,0.08)]",
+        "transition-all duration-200 hover:-translate-y-0.5",
         t.hoverBorder
       )}
       style={{
-        backgroundImage: `radial-gradient(circle at top right, ${t.glow}, transparent 60%)`,
+        backgroundImage: `radial-gradient(circle at top right, ${t.glow}, transparent 55%)`,
       }}
     >
       {/* Top accent radiant bar */}
       <div
-        className={cn("absolute top-0 left-0 right-0 h-[3.5px] bg-gradient-to-r", t.topBar)}
+        className={cn("absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r", t.topBar)}
       />
 
       {/* Header Row: Title & Glowing Icon Container */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <span className="text-[11px] font-extrabold uppercase tracking-[0.12em] text-slate-500">
+      <div className="flex items-center justify-between gap-1.5 mb-2">
+        <span className="text-[10.5px] font-black uppercase tracking-[0.1em] text-slate-500 truncate">
           {title}
         </span>
         <div
           className={cn(
-            "w-9 h-9 rounded-xl flex items-center justify-center border shadow-xs transition-transform duration-300 group-hover:scale-110",
+            "w-7.5 h-7.5 rounded-lg flex items-center justify-center border shadow-2xs transition-transform duration-200 group-hover:scale-105 shrink-0",
             t.iconBg
           )}
         >
@@ -130,15 +130,15 @@ function LuxuryStatCard({
       </div>
 
       {/* Primary Value */}
-      <div className="mb-2">
-        <span className="text-[26px] sm:text-[28px] font-black tracking-tight text-slate-900 tabular-nums leading-none">
+      <div className="mb-1.5">
+        <span className="text-[21px] sm:text-[23px] font-black tracking-tight text-slate-900 tabular-nums leading-none">
           {value}
         </span>
       </div>
 
       {/* Status Trend / Detail Pill */}
-      <div className="pt-1 border-t border-slate-100 flex items-center gap-1.5">
-        <p className="text-[11.5px] font-medium text-slate-500 truncate leading-snug">
+      <div className="pt-1.5 border-t border-slate-100 flex items-center gap-1">
+        <p className="text-[10.5px] font-semibold text-slate-500 truncate leading-snug">
           {statusLabel}
         </p>
       </div>

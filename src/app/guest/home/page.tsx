@@ -27,9 +27,7 @@ export default async function GuestHomePage() {
   const sessionCookie = cookieStore.get("stayhub_guest_session");
 
   // Fetch real database restaurants for this property
-  const restaurants = session?.property_id 
-    ? await getGuestRestaurants(session.property_id) 
-    : [];
+  const restaurants = await getGuestRestaurants(session?.property_id);
 
   // Check for any active in-progress food orders
   const orders = isVerifiedStay && sessionCookie?.value 

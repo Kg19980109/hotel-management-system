@@ -11,15 +11,19 @@ import {
  * Fetch active restaurants for a property available for guest dining
  */
 export async function getGuestRestaurants(
-  propertyId: string
+  propertyId?: string
 ): Promise<GuestRestaurant[]> {
   const supabase = createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("restaurants")
     .select("id, property_id, name, code, cuisine_type, description, is_active, currency, opening_time, closing_time")
-    .eq("property_id", propertyId)
-    .eq("is_active", true)
-    .order("name", { ascending: true });
+    .eq("is_active", true);
+
+  if (propertyId) {
+    query = query.eq("property_id", propertyId);
+  }
+
+  const { data, error } = await query.order("name", { ascending: true });
 
   if (error || !data) {
     return [];
@@ -64,10 +68,33 @@ export async function getGuestRestaurantMenu(
     .eq("is_active", true)
     .order("display_order", { ascending: true });
 
-  const categoriesWithItems: GuestMenuCategory[] = (categories || []).map((cat) => ({
+  const activeCategories = categories || [];
+  const activeItems = items || [];
+
+  let categoriesWithItems: GuestMenuCategory[] = activeCategories.map((cat) => ({
     ...cat,
-    items: (items || []).filter((item) => item.category_id === cat.id),
+    items: activeItems.filter((item) => item.category_id === cat.id),
   }));
+
+  // If there are items not assigned to any category or if no categories exist
+  const categorizedItemIds = new Set(
+    categoriesWithItems.flatMap((c) => (c.items || []).map((i) => i.id))
+  );
+  const uncategorizedItems = activeItems.filter(
+    (item) => !categorizedItemIds.has(item.id)
+  );
+
+  if (uncategorizedItems.length > 0) {
+    categoriesWithItems.push({
+      id: "uncategorized",
+      restaurant_id: restaurantId,
+      name: "Chef's Specials & All Items",
+      description: "Signature selections and daily specialties",
+      display_order: 999,
+      is_active: true,
+      items: uncategorizedItems,
+    });
+  }
 
   return {
     restaurant: restaurant as GuestRestaurant,

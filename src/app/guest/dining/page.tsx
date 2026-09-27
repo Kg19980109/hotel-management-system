@@ -13,9 +13,7 @@ export default async function GuestDiningPage() {
   const session = await getActiveGuestSession();
   const isVerifiedStay = session?.session_type === "VERIFIED_STAY";
 
-  const restaurants = session?.property_id
-    ? await getGuestRestaurants(session.property_id)
-    : [];
+  const restaurants = await getGuestRestaurants(session?.property_id);
 
   return (
     <div className="p-4 space-y-5">

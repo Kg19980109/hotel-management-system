@@ -27,12 +27,13 @@ export async function getRestaurants(
   let query = supabase
     .from("restaurants")
     .select("*")
-    .eq("property_id", propertyId)
-    .order("name", { ascending: true });
+    .eq("property_id", propertyId);
 
   if (!includeInactive) {
     query = query.eq("is_active", true);
   }
+
+  query = query.order("is_active", { ascending: false }).order("created_at", { ascending: true });
 
   const { data, error } = await query;
   if (error) {

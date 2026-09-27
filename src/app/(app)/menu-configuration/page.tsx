@@ -48,7 +48,7 @@ export default function RestaurantMenuPage() {
       setLoading(true);
       setError(null);
 
-      const rests = await getRestaurants(propertyId, true);
+      const rests = await getRestaurants(propertyId, false);
       setRestaurants(rests);
 
       if (rests.length > 0) {

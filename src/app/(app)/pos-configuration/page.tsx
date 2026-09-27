@@ -108,7 +108,7 @@ export default function PosConfigurationPage() {
       setLoading(true);
       setError(null);
 
-      const rests = await getRestaurants(propertyId, true);
+      const rests = await getRestaurants(propertyId, false);
       if (rests.length > 0) {
         const activeRest = rests[0];
         setRestaurant(activeRest);

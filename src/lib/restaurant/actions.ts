@@ -308,12 +308,79 @@ export async function deactivateTableAction(
 }
 
 /**
+ * Helper to resolve the single active restaurant for a property (or auto-create if missing)
+ */
+async function resolveActiveRestaurantId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  propertyId: string,
+  providedRestaurantId?: string
+): Promise<string> {
+  if (providedRestaurantId) {
+    const { data: existing } = await supabase
+      .from("restaurants")
+      .select("id")
+      .eq("id", providedRestaurantId)
+      .eq("property_id", propertyId)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (existing?.id) return existing.id;
+  }
+
+  // Try to find the primary active restaurant for this property
+  const { data: activeRest } = await supabase
+    .from("restaurants")
+    .select("id")
+    .eq("property_id", propertyId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (activeRest?.id) return activeRest.id;
+
+  // If none exists, create the primary unified outlet
+  const { data: newRest } = await supabase
+    .from("restaurants")
+    .insert({
+      property_id: propertyId,
+      name: "In-Room Dining & POS Billing",
+      code: "REST-MAIN",
+      description: "Unified In-Room Dining & Hotel POS Catalog",
+      currency: "INR",
+      is_active: true,
+    })
+    .select("id")
+    .single();
+
+  return newRest?.id || providedRestaurantId || "";
+}
+
+/**
+ * Revalidates all routes that consume the unified menu & POS catalog
+ */
+function revalidateAllMenuPaths() {
+  try {
+    revalidatePath("/menu-configuration");
+    revalidatePath("/pos-configuration");
+    revalidatePath("/pos");
+    revalidatePath("/restaurant/menu");
+    revalidatePath("/restaurant/pos");
+    revalidatePath("/guest/dining");
+    revalidatePath("/guest/home");
+    revalidatePath("/kitchen");
+  } catch (e) {
+    console.error("Revalidation notice:", e);
+  }
+}
+
+/**
  * 6. Create menu category
  */
 export async function createCategoryAction(
   propertyId: string,
   input: {
-    restaurant_id: string;
+    restaurant_id?: string;
     name: string;
     description?: string;
     display_order?: number;
@@ -326,14 +393,18 @@ export async function createCategoryAction(
   if (authError || !auth) return { success: false, error: authError };
 
   if (!input.name?.trim()) return { success: false, error: "Category name is required." };
-  if (!input.restaurant_id) return { success: false, error: "Restaurant ID is required." };
 
   const supabase = await createClient();
+  const targetRestaurantId = await resolveActiveRestaurantId(supabase, propertyId, input.restaurant_id);
+
+  if (!targetRestaurantId) {
+    return { success: false, error: "Failed to resolve active restaurant outlet for this property." };
+  }
 
   const { data, error } = await supabase
     .from("menu_categories")
     .insert({
-      restaurant_id: input.restaurant_id,
+      restaurant_id: targetRestaurantId,
       name: input.name.trim(),
       description: input.description?.trim() || null,
       display_order: input.display_order ?? 0,
@@ -345,10 +416,7 @@ export async function createCategoryAction(
     return { success: false, error: error.message };
   }
 
-  revalidatePath("/restaurant/menu");
-  revalidatePath("/restaurant/pos");
-  revalidatePath("/pos-configuration");
-  revalidatePath("/pos");
+  revalidateAllMenuPaths();
   return { success: true, data: { id: data.id } };
 }
 
@@ -394,8 +462,7 @@ export async function updateCategoryAction(
     return { success: false, error: error.message };
   }
 
-  revalidatePath("/restaurant/menu");
-  revalidatePath("/restaurant/pos");
+  revalidateAllMenuPaths();
   return { success: true };
 }
 
@@ -438,8 +505,7 @@ export async function deactivateCategoryAction(
     return { success: false, error: error.message };
   }
 
-  revalidatePath("/restaurant/menu");
-  revalidatePath("/restaurant/pos");
+  revalidateAllMenuPaths();
   return { success: true };
 }
 
@@ -449,7 +515,7 @@ export async function deactivateCategoryAction(
 export async function createMenuItemAction(
   propertyId: string,
   input: {
-    restaurant_id: string;
+    restaurant_id?: string;
     category_id: string;
     name: string;
     short_name?: string;
@@ -471,15 +537,19 @@ export async function createMenuItemAction(
   if (input.price == null || isNaN(input.price) || input.price < 0) {
     return { success: false, error: "Valid price >= 0 is required." };
   }
-  if (!input.restaurant_id) return { success: false, error: "Restaurant ID is required." };
   if (!input.category_id) return { success: false, error: "Category ID is required." };
 
   const supabase = await createClient();
+  const targetRestaurantId = await resolveActiveRestaurantId(supabase, propertyId, input.restaurant_id);
+
+  if (!targetRestaurantId) {
+    return { success: false, error: "Failed to resolve active restaurant outlet for this property." };
+  }
 
   const { data, error } = await supabase
     .from("menu_items")
     .insert({
-      restaurant_id: input.restaurant_id,
+      restaurant_id: targetRestaurantId,
       category_id: input.category_id,
       name: input.name.trim(),
       short_name: input.short_name?.trim() || null,
@@ -497,10 +567,7 @@ export async function createMenuItemAction(
     return { success: false, error: error.message };
   }
 
-  revalidatePath("/restaurant/menu");
-  revalidatePath("/restaurant/pos");
-  revalidatePath("/pos-configuration");
-  revalidatePath("/pos");
+  revalidateAllMenuPaths();
   return { success: true, data: { id: data.id } };
 }
 
@@ -552,10 +619,7 @@ export async function updateMenuItemAction(
     return { success: false, error: error.message };
   }
 
-  revalidatePath("/restaurant/menu");
-  revalidatePath("/restaurant/pos");
-  revalidatePath("/pos-configuration");
-  revalidatePath("/pos");
+  revalidateAllMenuPaths();
   return { success: true };
 }
 
@@ -584,10 +648,7 @@ export async function toggleMenuItemAvailabilityAction(
     return { success: false, error: error.message };
   }
 
-  revalidatePath("/restaurant/menu");
-  revalidatePath("/restaurant/pos");
-  revalidatePath("/pos-configuration");
-  revalidatePath("/pos");
+  revalidateAllMenuPaths();
   return { success: true };
 }
 
@@ -615,10 +676,7 @@ export async function deactivateMenuItemAction(
     return { success: false, error: error.message };
   }
 
-  revalidatePath("/restaurant/menu");
-  revalidatePath("/restaurant/pos");
-  revalidatePath("/pos-configuration");
-  revalidatePath("/pos");
+  revalidateAllMenuPaths();
   return { success: true };
 }
 

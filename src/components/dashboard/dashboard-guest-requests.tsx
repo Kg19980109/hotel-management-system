@@ -4,7 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getStaffGuestServiceRequests } from "@/lib/guest-services/queries";
-import { staffAcknowledgeGuestRequestAction } from "@/lib/guest-services/actions";
+import { 
+  staffAcknowledgeGuestRequestAction,
+  staffStartGuestRequestAction,
+  staffCompleteGuestRequestAction,
+  staffCancelGuestRequestAction,
+} from "@/lib/guest-services/actions";
 import { StaffGuestServiceRequest } from "@/lib/guest-services/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +25,9 @@ import {
   Loader2,
   Check,
   Users,
+  Play,
+  CheckCheck,
+  XCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -90,6 +98,8 @@ const getStatusConfig = (s: string) => {
       return { label: "ASSIGNED", badge: "info" as const };
     case "IN_PROGRESS":
       return { label: "IN PROGRESS", badge: "info" as const };
+    case "COMPLETED":
+      return { label: "COMPLETED", badge: "success" as const };
     case "CANCELLED":
       return { label: "CANCELLED", badge: "danger" as const };
     case "REJECTED":
@@ -102,7 +112,7 @@ const getStatusConfig = (s: string) => {
 export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsProps) {
   const [requests, setRequests] = React.useState<StaffGuestServiceRequest[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [acknowledgingId, setAcknowledgingId] = React.useState<string | null>(null);
+  const [updatingId, setUpdatingId] = React.useState<string | null>(null);
 
   const loadRequests = React.useCallback(async () => {
     if (!propertyId) return;
@@ -120,15 +130,13 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
     void loadRequests();
   }, [loadRequests]);
 
-  // Real-time listener (primary). 30s visible-only backup poll replaces
-  // the old 4s aggressive poll that kept mobile radios awake.
+  // Real-time listener
   React.useEffect(() => {
     if (!propertyId) return;
     const supabase = createClient();
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let cancelled = false;
 
-    // Authenticate realtime socket so staff RLS passes (was missing → silent no-events)
     void supabase.auth.getSession().then(({ data: { session } }) => {
       if (cancelled) return;
       if (session?.access_token) supabase.realtime.setAuth(session.access_token);
@@ -162,13 +170,23 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
     };
   }, [propertyId, loadRequests]);
 
-  const handleAcknowledge = async (requestId: string) => {
-    setAcknowledgingId(requestId);
+  const handleUpdateStatus = async (requestId: string, newStatus: string) => {
+    setUpdatingId(requestId);
     try {
-      const res = await staffAcknowledgeGuestRequestAction(propertyId, requestId);
-      if (res.success) await loadRequests();
+      if (newStatus === "ACKNOWLEDGED") {
+        await staffAcknowledgeGuestRequestAction(propertyId, requestId);
+      } else if (newStatus === "IN_PROGRESS") {
+        await staffStartGuestRequestAction(propertyId, requestId);
+      } else if (newStatus === "COMPLETED") {
+        await staffCompleteGuestRequestAction(propertyId, requestId, "Completed by staff");
+      } else if (newStatus === "CANCELLED") {
+        await staffCancelGuestRequestAction(propertyId, requestId, "Cancelled from dashboard");
+      }
+      await loadRequests();
+    } catch (err) {
+      console.error("Failed to update status from dashboard:", err);
     } finally {
-      setAcknowledgingId(null);
+      setUpdatingId(null);
     }
   };
 
@@ -401,14 +419,30 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                     </div>
                   </div>
 
-                  {/* Right: actions */}
-                  <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                    {isSubmitting && (
+                  {/* Right: actions & quick status update */}
+                  <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto shrink-0">
+                    {/* Status Dropdown */}
+                    <select
+                      value={req.status}
+                      disabled={updatingId === req.id}
+                      onChange={(e) => handleUpdateStatus(req.id, e.target.value)}
+                      className="h-8 text-[11px] font-bold rounded-lg px-2 bg-slate-900 border border-white/10 text-white/90 focus:outline-none focus:border-amber-400 cursor-pointer"
+                      title="Quick Change Request Status"
+                    >
+                      <option value="SUBMITTED">New / Submitted</option>
+                      <option value="ACKNOWLEDGED">Acknowledged</option>
+                      <option value="IN_PROGRESS">In Progress</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="CANCELLED">Cancelled</option>
+                    </select>
+
+                    {/* Quick Smart Action Button */}
+                    {req.status === "SUBMITTED" && (
                       <Button
                         size="sm"
                         variant="outline"
-                        disabled={acknowledgingId === req.id}
-                        onClick={() => handleAcknowledge(req.id)}
+                        disabled={updatingId === req.id}
+                        onClick={() => handleUpdateStatus(req.id, "ACKNOWLEDGED")}
                         className="h-8 text-[11.5px] font-bold gap-1.5"
                         style={{
                           background: "rgba(214,168,90,0.12)",
@@ -416,10 +450,10 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                           color: "var(--brand-gold)",
                         }}
                       >
-                        {acknowledgingId === req.id ? (
+                        {updatingId === req.id ? (
                           <>
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Accepting...</span>
+                            <span>Updating...</span>
                           </>
                         ) : (
                           <>
@@ -429,6 +463,51 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                         )}
                       </Button>
                     )}
+
+                    {(req.status === "ACKNOWLEDGED" || req.status === "ASSIGNED") && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={updatingId === req.id}
+                        onClick={() => handleUpdateStatus(req.id, "IN_PROGRESS")}
+                        className="h-8 text-[11.5px] font-bold gap-1.5 border-indigo-500/30 text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20"
+                      >
+                        {updatingId === req.id ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Updating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5" />
+                            <span>Start Work</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+
+                    {req.status === "IN_PROGRESS" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={updatingId === req.id}
+                        onClick={() => handleUpdateStatus(req.id, "COMPLETED")}
+                        className="h-8 text-[11.5px] font-bold gap-1.5 border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
+                      >
+                        {updatingId === req.id ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>Updating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCheck className="w-3.5 h-3.5" />
+                            <span>Complete</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+
                     <Link href={`/guest-requests/${req.id}`}>
                       <Button
                         size="sm"

@@ -181,7 +181,7 @@ export function OperationalAlertProvider({
           order_items:restaurant_order_items(item_name, quantity)
         `)
         .eq("property_id", propId)
-        .in("status", ["OPEN", "CONFIRMED"])
+        .eq("status", "OPEN")
         .gte("created_at", twoHoursAgo)
         .order("created_at", { ascending: false })
         .limit(10);
@@ -357,7 +357,7 @@ export function OperationalAlertProvider({
 
         if (eventType === "INSERT" || eventType === "UPDATE") {
           // If active order waiting for acceptance
-          if (order && (order.status === "OPEN" || order.status === "CONFIRMED") && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
+          if (order && order.status === "OPEN" && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
             // 1. INSTANT DISPATCH: Fire alert immediately so buzzer & popup appear with 0ms delay
             operationalAlertManager.addOrUpdateAlert({
               id: order.id,
@@ -428,7 +428,8 @@ export function OperationalAlertProvider({
             })();
           } else if (
             order &&
-            (order.status === "PREPARING" ||
+            (order.status === "CONFIRMED" ||
+              order.status === "PREPARING" ||
               order.status === "READY" ||
               order.status === "SERVED" ||
               order.status === "COMPLETED" ||

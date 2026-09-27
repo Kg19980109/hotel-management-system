@@ -71,7 +71,7 @@ export async function getGuestRestaurantMenu(
   const activeCategories = categories || [];
   const activeItems = items || [];
 
-  let categoriesWithItems: GuestMenuCategory[] = activeCategories.map((cat) => ({
+  const categoriesWithItems: GuestMenuCategory[] = activeCategories.map((cat) => ({
     ...cat,
     items: activeItems.filter((item) => item.category_id === cat.id),
   }));

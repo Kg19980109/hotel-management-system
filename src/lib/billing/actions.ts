@@ -58,7 +58,16 @@ async function checkStaffBillingAuth(
     };
   }
 
-  return { user: { userId: user.id, roleCode } };
+  // Resolve profiles.id (to satisfy foreign keys referencing profiles table)
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .or(`auth_user_id.eq.${user.id},id.eq.${user.id}`)
+    .maybeSingle();
+
+  const profileId = profile?.id || user.id;
+
+  return { user: { userId: profileId, roleCode } };
 }
 
 /**

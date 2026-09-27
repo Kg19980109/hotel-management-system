@@ -468,3 +468,281 @@ BEGIN
     );
 END;
 $$;
+
+-- ============================================================
+-- Fix profile resolution in record_folio_payment
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.record_folio_payment(
+    p_folio_id uuid,
+    p_property_id uuid,
+    p_payment_method character varying,
+    p_amount numeric,
+    p_notes text DEFAULT NULL::text,
+    p_performed_by uuid DEFAULT NULL::uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+    v_folio RECORD;
+    v_balance_info JSONB;
+    v_payment_ref VARCHAR(50);
+    v_payment RECORD;
+    v_profile_id UUID := NULL;
+BEGIN
+    -- Resolve profile id from auth_user_id or id
+    IF p_performed_by IS NOT NULL THEN
+        SELECT id INTO v_profile_id
+        FROM public.profiles
+        WHERE auth_user_id = p_performed_by OR id = p_performed_by
+        LIMIT 1;
+    END IF;
+
+    IF v_profile_id IS NULL AND auth.uid() IS NOT NULL THEN
+        SELECT id INTO v_profile_id
+        FROM public.profiles
+        WHERE auth_user_id = auth.uid() OR id = auth.uid()
+        LIMIT 1;
+    END IF;
+
+    SELECT * INTO v_folio
+    FROM public.guest_folios
+    WHERE id = p_folio_id AND property_id = p_property_id;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Folio not found');
+    END IF;
+
+    IF v_folio.status IN ('CLOSED', 'VOID') THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Cannot record payment for a closed or voided folio');
+    END IF;
+
+    IF p_amount <= 0 THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Payment amount must be greater than zero');
+    END IF;
+
+    v_payment_ref := public.generate_payment_reference();
+
+    INSERT INTO public.folio_payments (
+        property_id,
+        folio_id,
+        stay_id,
+        guest_id,
+        payment_reference,
+        payment_method,
+        amount,
+        currency,
+        status,
+        paid_at,
+        received_by,
+        notes
+    ) VALUES (
+        p_property_id,
+        p_folio_id,
+        v_folio.stay_id,
+        v_folio.guest_id,
+        v_payment_ref,
+        p_payment_method,
+        ROUND(p_amount, 2),
+        v_folio.currency,
+        'COMPLETED',
+        now(),
+        v_profile_id,
+        p_notes
+    ) RETURNING * INTO v_payment;
+
+    -- Recalculate balance
+    v_balance_info := public.get_folio_balance(p_folio_id, p_property_id);
+
+    -- If balance is now <= 0, mark folio as SETTLED
+    IF (v_balance_info->>'balance_due')::numeric <= 0 THEN
+        UPDATE public.guest_folios
+        SET status = 'SETTLED', updated_at = now(), updated_by = v_profile_id
+        WHERE id = p_folio_id AND status = 'OPEN';
+    END IF;
+
+    -- Record Audit Event
+    INSERT INTO public.folio_events (
+        property_id,
+        folio_id,
+        event_type,
+        actor_type,
+        actor_profile_id,
+        event_data
+    ) VALUES (
+        p_property_id,
+        p_folio_id,
+        'PAYMENT_RECORDED',
+        'STAFF',
+        v_profile_id,
+        jsonb_build_object(
+            'payment_id', v_payment.id,
+            'payment_reference', v_payment_ref,
+            'amount', v_payment.amount,
+            'method', p_payment_method,
+            'balance_due', (v_balance_info->>'balance_due')::numeric
+        )
+    );
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'payment', to_jsonb(v_payment),
+        'balance', v_balance_info
+    );
+END;
+$$;
+
+-- ============================================================
+-- Fix profile resolution in generate_invoice
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.generate_invoice(
+    p_folio_id uuid,
+    p_property_id uuid,
+    p_billing_name character varying DEFAULT NULL::character varying,
+    p_billing_email character varying DEFAULT NULL::character varying,
+    p_billing_address text DEFAULT NULL::text,
+    p_performed_by uuid DEFAULT NULL::uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+    v_folio RECORD;
+    v_balance_info JSONB;
+    v_invoice_num VARCHAR(50);
+    v_invoice RECORD;
+    v_guest RECORD;
+    v_charge RECORD;
+    v_profile_id UUID := NULL;
+BEGIN
+    -- Resolve profile id from auth_user_id or id
+    IF p_performed_by IS NOT NULL THEN
+        SELECT id INTO v_profile_id
+        FROM public.profiles
+        WHERE auth_user_id = p_performed_by OR id = p_performed_by
+        LIMIT 1;
+    END IF;
+
+    IF v_profile_id IS NULL AND auth.uid() IS NOT NULL THEN
+        SELECT id INTO v_profile_id
+        FROM public.profiles
+        WHERE auth_user_id = auth.uid() OR id = auth.uid()
+        LIMIT 1;
+    END IF;
+
+    SELECT * INTO v_folio
+    FROM public.guest_folios
+    WHERE id = p_folio_id AND property_id = p_property_id;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Folio not found');
+    END IF;
+
+    IF v_folio.status = 'VOID' THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Cannot generate invoice for a voided folio');
+    END IF;
+
+    -- Fetch guest for default billing info
+    SELECT * INTO v_guest
+    FROM public.guests
+    WHERE id = v_folio.guest_id;
+
+    v_balance_info := public.get_folio_balance(p_folio_id, p_property_id);
+    v_invoice_num := public.generate_invoice_number(p_property_id);
+
+    INSERT INTO public.invoices (
+        property_id,
+        folio_id,
+        stay_id,
+        guest_id,
+        invoice_number,
+        status,
+        currency,
+        subtotal,
+        tax_amount,
+        total_amount,
+        paid_amount,
+        balance_due,
+        billing_name,
+        billing_email,
+        billing_address,
+        issued_at,
+        created_by
+    ) VALUES (
+        p_property_id,
+        p_folio_id,
+        v_folio.stay_id,
+        v_folio.guest_id,
+        v_invoice_num,
+        CASE WHEN (v_balance_info->>'balance_due')::numeric <= 0 THEN 'PAID' ELSE 'ISSUED' END,
+        v_folio.currency,
+        (v_balance_info->>'charges_subtotal')::numeric,
+        (v_balance_info->>'taxes_total')::numeric,
+        (v_balance_info->>'gross_charges')::numeric,
+        (v_balance_info->>'net_payments')::numeric,
+        (v_balance_info->>'balance_due')::numeric,
+        COALESCE(p_billing_name, v_guest.first_name || ' ' || COALESCE(v_guest.last_name, '')),
+        COALESCE(p_billing_email, v_guest.email),
+        COALESCE(p_billing_address, v_guest.address_line_1),
+        now(),
+        v_profile_id
+    ) RETURNING * INTO v_invoice;
+
+    -- Copy folio charges to invoice line items
+    FOR v_charge IN 
+        SELECT * FROM public.folio_charges 
+        WHERE folio_id = p_folio_id AND voided_at IS NULL 
+    LOOP
+        INSERT INTO public.invoice_items (
+            property_id,
+            invoice_id,
+            description,
+            quantity,
+            unit_price,
+            subtotal,
+            tax_amount,
+            total_amount
+        ) VALUES (
+            p_property_id,
+            v_invoice.id,
+            v_charge.description,
+            v_charge.quantity,
+            v_charge.unit_price,
+            v_charge.subtotal,
+            v_charge.tax_amount,
+            v_charge.total_amount
+        );
+    END LOOP;
+
+    -- Record Audit Event
+    INSERT INTO public.folio_events (
+        property_id,
+        folio_id,
+        event_type,
+        actor_type,
+        actor_profile_id,
+        event_data
+    ) VALUES (
+        p_property_id,
+        p_folio_id,
+        'INVOICE_GENERATED',
+        'STAFF',
+        v_profile_id,
+        jsonb_build_object(
+            'invoice_id', v_invoice.id,
+            'invoice_number', v_invoice_num,
+            'total_amount', v_invoice.total_amount,
+            'balance_due', v_invoice.balance_due
+        )
+    );
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'invoice', to_jsonb(v_invoice)
+    );
+END;
+$$;

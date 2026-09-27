@@ -13,6 +13,8 @@ import {
   BedDouble,
   Car,
   Shirt,
+  Flower2,
+  Compass,
   BellRing,
   Inbox,
   CheckCircle2,
@@ -197,6 +199,7 @@ export function GuestRequestsBoard({
         };
       case "ROOM_SERVICE":
       case "FOOD":
+      case "DINING":
         return {
           icon: Utensils,
           bg: "bg-amber-50 border-amber-200 text-amber-700",
@@ -204,17 +207,32 @@ export function GuestRequestsBoard({
       case "LAUNDRY":
         return {
           icon: Shirt,
-          bg: "bg-cyan-50 border-cyan-200 text-cyan-700",
+          bg: "bg-indigo-50 border-indigo-200 text-indigo-700",
+        };
+      case "SPA":
+        return {
+          icon: Flower2,
+          bg: "bg-pink-50 border-pink-200 text-pink-700",
         };
       case "TRANSPORT":
         return {
           icon: Car,
-          bg: "bg-indigo-50 border-indigo-200 text-indigo-700",
+          bg: "bg-teal-50 border-teal-200 text-teal-700",
+        };
+      case "FRONT_DESK":
+        return {
+          icon: BedDouble,
+          bg: "bg-amber-50 border-amber-200 text-amber-700",
+        };
+      case "CONCIERGE":
+        return {
+          icon: Compass,
+          bg: "bg-purple-50 border-purple-200 text-purple-700",
         };
       default:
         return {
           icon: BellRing,
-          bg: "bg-purple-50 border-purple-200 text-purple-700",
+          bg: "bg-slate-100 border-slate-200 text-slate-700",
         };
     }
   };

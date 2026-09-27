@@ -16,6 +16,8 @@ import {
   Utensils,
   Car,
   Shirt,
+  Flower2,
+  Compass,
   BellRing,
   AlertCircle,
   FileText,
@@ -66,11 +68,18 @@ export function StaffGuestRequestDetailView({
         return <Wrench className="w-4 h-4 text-blue-400" />;
       case "ROOM_SERVICE":
       case "FOOD":
+      case "DINING":
         return <Utensils className="w-4 h-4 text-amber-400" />;
       case "LAUNDRY":
-        return <Shirt className="w-4 h-4 text-cyan-400" />;
+        return <Shirt className="w-4 h-4 text-indigo-400" />;
+      case "SPA":
+        return <Flower2 className="w-4 h-4 text-pink-400" />;
       case "TRANSPORT":
-        return <Car className="w-4 h-4 text-indigo-400" />;
+        return <Car className="w-4 h-4 text-teal-400" />;
+      case "FRONT_DESK":
+        return <BedDouble className="w-4 h-4 text-amber-400" />;
+      case "CONCIERGE":
+        return <Compass className="w-4 h-4 text-purple-400" />;
       default:
         return <BellRing className="w-4 h-4 text-violet-400" />;
     }

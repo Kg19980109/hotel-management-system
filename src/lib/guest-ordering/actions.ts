@@ -61,8 +61,56 @@ export async function placeGuestFoodOrderAction(input: CreateGuestFoodOrderInput
     };
   }
 
+  // Automatically sync food order to the Guest Requests page
+  try {
+    const itemIds = input.items.map((i) => i.menu_item_id);
+    const { data: menuItemsData } = await supabase
+      .from("menu_items")
+      .select("id, name, price")
+      .in("id", itemIds);
+
+    const itemsMap = new Map((menuItemsData || []).map((m) => [m.id, m]));
+    const totalQty = input.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
+    const formattedItems = input.items
+      .map((i) => {
+        const itemObj = itemsMap.get(i.menu_item_id);
+        const name = itemObj?.name || "Menu Item";
+        const special = i.special_instructions ? ` (Note: ${i.special_instructions})` : "";
+        return `• ${i.quantity}x ${name}${special}`;
+      })
+      .join("\n");
+
+    const descriptionParts = [
+      `Restaurant: ${data.restaurant_name || "Hotel Restaurant"}`,
+      `Order #${data.order_number} (Total: ₹${Number(data.total_amount).toFixed(2)})`,
+      `\nItems Ordered:\n${formattedItems}`,
+    ];
+
+    if (input.notes) {
+      descriptionParts.push(`\nGuest Instructions: ${input.notes}`);
+    }
+
+    const requestDescription = descriptionParts.join("\n");
+
+    await supabase.rpc("create_guest_service_request", {
+      p_session_token_hash: sessionTokenHash,
+      p_category: "ROOM_SERVICE",
+      p_request_type: "In-Room Dining Order",
+      p_title: `Food Order #${data.order_number} (${totalQty} ${totalQty === 1 ? "item" : "items"} • ₹${Number(data.total_amount).toFixed(2)})`,
+      p_description: requestDescription,
+      p_priority: "HIGH",
+    });
+  } catch (syncErr) {
+    console.warn("Could not sync food order to guest service requests:", syncErr);
+  }
+
+  revalidatePath("/guest-requests");
+  revalidatePath("/guest/requests");
   revalidatePath("/guest/orders");
   revalidatePath("/guest/dining");
+  revalidatePath("/rooms");
+  revalidatePath("/dashboard");
   if (data.order_id) {
     revalidatePath(`/guest/orders/${data.order_id}`);
   }

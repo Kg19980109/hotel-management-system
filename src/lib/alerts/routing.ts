@@ -102,13 +102,10 @@ export function isRequestRelevantForRole(
  * Provides the direct target staff URL for inspecting/managing the request.
  */
 export function getDepartmentQueueHref(category: string, requestId?: string): string {
-  const cat = category.toUpperCase();
-  if (cat === "ROOM_SERVICE" || cat === "FOOD" || cat === "DINING") {
-    return "/kitchen";
-  }
   if (requestId) {
     return `/guest-requests/${requestId}`;
   }
+  const cat = category.toUpperCase();
   if (cat === "HOUSEKEEPING" || cat === "LAUNDRY") {
     return "/housekeeping";
   }

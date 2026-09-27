@@ -21,6 +21,10 @@ import {
   Wrench,
   Utensils,
   BedDouble,
+  Car,
+  Shirt,
+  Flower2,
+  Compass,
   Clock,
   Loader2,
   Check,
@@ -45,14 +49,22 @@ const formatElapsed = (iso: string) => {
 };
 
 const getCategoryIcon = (cat: string) => {
-  const c = cat.toUpperCase();
-  if (c === "HOUSEKEEPING" || c === "LAUNDRY")
-    return <Sparkles className="w-3.5 h-3.5" style={{ color: "var(--success)" }} />;
+  const c = cat?.toUpperCase() || "";
+  if (c === "HOUSEKEEPING")
+    return <Sparkles className="w-3.5 h-3.5 text-emerald-400" />;
   if (c === "MAINTENANCE")
-    return <Wrench className="w-3.5 h-3.5" style={{ color: "var(--info)" }} />;
-  if (c === "ROOM_SERVICE" || c === "FOOD")
-    return <Utensils className="w-3.5 h-3.5" style={{ color: "var(--warning)" }} />;
-  return <BedDouble className="w-3.5 h-3.5" style={{ color: "var(--purple)" }} />;
+    return <Wrench className="w-3.5 h-3.5 text-blue-400" />;
+  if (c === "ROOM_SERVICE" || c === "FOOD" || c === "DINING")
+    return <Utensils className="w-3.5 h-3.5 text-amber-400" />;
+  if (c === "LAUNDRY")
+    return <Shirt className="w-3.5 h-3.5 text-indigo-400" />;
+  if (c === "SPA")
+    return <Flower2 className="w-3.5 h-3.5 text-pink-400" />;
+  if (c === "TRANSPORT")
+    return <Car className="w-3.5 h-3.5 text-teal-400" />;
+  if (c === "CONCIERGE")
+    return <Compass className="w-3.5 h-3.5 text-purple-400" />;
+  return <BedDouble className="w-3.5 h-3.5 text-amber-400" />;
 };
 
 const getPriorityConfig = (p: string) => {

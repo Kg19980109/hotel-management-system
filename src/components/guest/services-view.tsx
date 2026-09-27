@@ -21,17 +21,14 @@ import {
   MessageSquarePlus,
   Clock,
   Check,
-  Building2,
   ShieldCheck,
   Tag,
   Search,
   Zap,
   Coffee,
   Crown,
-  Flame,
-  PhoneCall,
   BellRing,
-  CheckCheck,
+  ArrowRight,
 } from "lucide-react";
 import { ServiceRequestCategory, ServiceRequestPriority } from "@/lib/guest-services/types";
 import { createGuestServiceRequestAction } from "@/lib/guest-services/actions";
@@ -51,12 +48,11 @@ interface ServiceCategoryMeta {
   id: ServiceRequestCategory;
   name: string;
   icon: React.ComponentType<{ className?: string }>;
-  color: string;
+  iconColor: string;
   iconBg: string;
-  cardGradient: string;
-  borderGlow: string;
   badgeBg: string;
   badgeText: string;
+  badgeBorder: string;
   description: string;
   isPaid: boolean;
   tag: string;
@@ -69,15 +65,14 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "HOUSEKEEPING",
     name: "Housekeeping",
     icon: Sparkles,
-    color: "text-emerald-400",
+    iconColor: "text-emerald-400",
     iconBg: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    cardGradient: "from-[#08201D]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-emerald-500/30 hover:border-emerald-400/60 hover:shadow-emerald-950/40",
-    badgeBg: "bg-emerald-500/15 border-emerald-500/30",
+    badgeBg: "bg-emerald-500/15",
     badgeText: "text-emerald-300",
-    description: "Linens, full cleaning & toiletries",
+    badgeBorder: "border-emerald-500/30",
+    description: "Linens, towels, room cleaning & fresh toiletries",
     isPaid: false,
-    tag: "Free / Complimentary",
+    tag: "Complimentary",
     commonQuickOptions: [
       "Fresh bath towels & hand towels",
       "Extra pillows & blankets",
@@ -92,15 +87,14 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "FRONT_DESK",
     name: "Front Desk & Reception",
     icon: BedDouble,
-    color: "text-amber-400",
+    iconColor: "text-amber-400",
     iconBg: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    cardGradient: "from-[#231A08]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-amber-500/30 hover:border-amber-400/60 hover:shadow-amber-950/40",
-    badgeBg: "bg-amber-500/15 border-amber-500/30",
+    badgeBg: "bg-amber-500/15",
     badgeText: "text-amber-300",
-    description: "Checkout, keys & front desk assistance",
+    badgeBorder: "border-amber-500/30",
+    description: "Checkout assistance, luggage, keys & inquiries",
     isPaid: false,
-    tag: "Instant Front Desk",
+    tag: "Front Desk",
     commonQuickOptions: [
       "Late check-out request",
       "Wake-up call setup",
@@ -115,15 +109,14 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "MAINTENANCE",
     name: "Room Maintenance",
     icon: Wrench,
-    color: "text-blue-400",
-    iconBg: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    cardGradient: "from-[#08182E]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-blue-500/30 hover:border-blue-400/60 hover:shadow-blue-950/40",
-    badgeBg: "bg-blue-500/15 border-blue-500/30",
-    badgeText: "text-blue-300",
-    description: "In-room AC, plumbing & technical repairs",
+    iconColor: "text-sky-400",
+    iconBg: "bg-sky-500/20 text-sky-400 border-sky-500/30",
+    badgeBg: "bg-sky-500/15",
+    badgeText: "text-sky-300",
+    badgeBorder: "border-sky-500/30",
+    description: "In-room AC cooling, plumbing, TV & electrical fixes",
     isPaid: false,
-    tag: "Engineering Dispatch",
+    tag: "Engineering",
     commonQuickOptions: [
       "Air Conditioning (AC) cooling issue",
       "Bathroom door / lock repair",
@@ -138,13 +131,12 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "LAUNDRY",
     name: "Laundry & Dry Cleaning",
     icon: Shirt,
-    color: "text-indigo-400",
+    iconColor: "text-indigo-400",
     iconBg: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
-    cardGradient: "from-[#141238]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-indigo-500/30 hover:border-indigo-400/60 hover:shadow-indigo-950/40",
-    badgeBg: "bg-indigo-500/15 border-indigo-500/30",
+    badgeBg: "bg-indigo-500/15",
     badgeText: "text-indigo-300",
-    description: "Dry cleaning, pressing & garment wash",
+    badgeBorder: "border-indigo-500/30",
+    description: "Dry cleaning, steam pressing, wash & fold",
     isPaid: true,
     tag: "Billed to Folio",
     commonQuickOptions: [
@@ -161,15 +153,14 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "SPA",
     name: "Spa & Wellness",
     icon: Flower2,
-    color: "text-pink-400",
+    iconColor: "text-pink-400",
     iconBg: "bg-pink-500/20 text-pink-400 border-pink-500/30",
-    cardGradient: "from-[#2B0E23]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-pink-500/30 hover:border-pink-400/60 hover:shadow-pink-950/40",
-    badgeBg: "bg-pink-500/15 border-pink-500/30",
+    badgeBg: "bg-pink-500/15",
     badgeText: "text-pink-300",
-    description: "Massages, therapies & wellness passes",
+    badgeBorder: "border-pink-500/30",
+    description: "Full body massages, facial therapies & pool passes",
     isPaid: true,
-    tag: "Luxury Wellness",
+    tag: "Wellness Service",
     commonQuickOptions: [
       "Full body Swedish massage (60m)",
       "Deep tissue muscle therapy (90m)",
@@ -184,15 +175,14 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "TRANSPORT",
     name: "Transport & Cabs",
     icon: Car,
-    color: "text-teal-400",
+    iconColor: "text-teal-400",
     iconBg: "bg-teal-500/20 text-teal-400 border-teal-500/30",
-    cardGradient: "from-[#082223]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-teal-500/30 hover:border-teal-400/60 hover:shadow-teal-950/40",
-    badgeBg: "bg-teal-500/15 border-teal-500/30",
+    badgeBg: "bg-teal-500/15",
     badgeText: "text-teal-300",
-    description: "Airport transfers, local taxis & chauffeur",
+    badgeBorder: "border-teal-500/30",
+    description: "Airport private transfers, city cabs & chauffeur",
     isPaid: true,
-    tag: "Chauffeur / Cab",
+    tag: "Cab / Transfer",
     commonQuickOptions: [
       "Airport private cab transfer",
       "Local city taxi booking",
@@ -207,13 +197,12 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "ROOM_SERVICE",
     name: "In-Room Dining Extras",
     icon: Coffee,
-    color: "text-rose-400",
+    iconColor: "text-rose-400",
     iconBg: "bg-rose-500/20 text-rose-400 border-rose-500/30",
-    cardGradient: "from-[#280B14]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-rose-500/30 hover:border-rose-400/60 hover:shadow-rose-950/40",
-    badgeBg: "bg-rose-500/15 border-rose-500/30",
+    badgeBg: "bg-rose-500/15",
     badgeText: "text-rose-300",
-    description: "Cutlery, ice bucket, glasses & minibar kit",
+    badgeBorder: "border-rose-500/30",
+    description: "Cutlery, ice bucket, glassware & minibar refill",
     isPaid: false,
     tag: "Dining Extras",
     commonQuickOptions: [
@@ -230,15 +219,14 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "CONCIERGE",
     name: "Concierge & Tours",
     icon: Compass,
-    color: "text-purple-400",
+    iconColor: "text-purple-400",
     iconBg: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-    cardGradient: "from-[#1F0E2F]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-purple-500/30 hover:border-purple-400/60 hover:shadow-purple-950/40",
-    badgeBg: "bg-purple-500/15 border-purple-500/30",
+    badgeBg: "bg-purple-500/15",
     badgeText: "text-purple-300",
-    description: "Sightseeing, table reservations & guide",
+    badgeBorder: "border-purple-500/30",
+    description: "Sightseeing tours, table bookings & local guidance",
     isPaid: false,
-    tag: "Personal Concierge",
+    tag: "Concierge",
     commonQuickOptions: [
       "Restaurant table reservation",
       "Sightseeing & day tour booking",
@@ -253,15 +241,14 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     id: "OTHER",
     name: "Special Amenities & Upgrades",
     icon: Crown,
-    color: "text-amber-300",
-    iconBg: "bg-amber-500/20 text-amber-300 border-amber-500/30",
-    cardGradient: "from-[#251A08]/90 via-[#0B182B]/95 to-[#08111F]",
-    borderGlow: "border-amber-500/30 hover:border-amber-400/60 hover:shadow-amber-950/40",
-    badgeBg: "bg-amber-500/15 border-amber-500/30",
-    badgeText: "text-amber-200",
+    iconColor: "text-amber-400",
+    iconBg: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+    badgeBg: "bg-amber-500/15",
+    badgeText: "text-amber-300",
+    badgeBorder: "border-amber-500/30",
     description: "Banquet halls, rollaway cots & custom hotel needs",
     isPaid: true,
-    tag: "VIP & Upgrades",
+    tag: "Custom / Upgrade",
     commonQuickOptions: [
       "Conference & banquet hall rental",
       "Day use tariff & room extension",
@@ -334,9 +321,9 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     });
   };
 
-  const openCategoryModal = (cat: ServiceCategoryMeta) => {
+  const openCategoryModal = (cat: ServiceCategoryMeta, preselectOption?: string) => {
     setSelectedCat(cat);
-    setSelectedQuickOption("");
+    setSelectedQuickOption(preselectOption || "");
     setSelectedPaidItem(null);
     setCustomMessage("");
     setPriority("MEDIUM");
@@ -456,193 +443,190 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
   }, [activeTab, searchQuery]);
 
   return (
-    <div className="p-4 space-y-5 pb-28 max-w-lg mx-auto">
-      {/* ── LUXURY HERO BANNER WITH AMBIENT GLOW ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#071329] via-[#0D1C38] to-[#0A162E] border border-amber-500/25 p-5 shadow-2xl">
-        {/* Glow orbs */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-amber-500/15 via-indigo-500/10 to-transparent rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-black uppercase tracking-widest">
-              <Sparkles className="w-3 h-3 text-amber-400" />
-              <span>Digital Guest Concierge</span>
-            </div>
-
-            {isVerifiedStay && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-black border border-emerald-500/30 shadow-xs">
-                Room {session?.room_number}
-              </span>
-            )}
+    <div className="p-4 space-y-4 pb-28 max-w-lg mx-auto">
+      {/* ── HEADER HERO BANNER ── */}
+      <div className="p-5 rounded-3xl bg-[#0F172A] border border-slate-800 shadow-xl space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10.5px] font-extrabold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Guest Services Concierge</span>
           </div>
 
-          <div>
-            <h1 className="text-2xl font-black text-white tracking-tight leading-tight">
-              Hotel Services &amp; Concierge
-            </h1>
-            <p className="text-xs text-slate-300/80 mt-0.5 leading-relaxed">
-              {isVerifiedStay
-                ? `1-tap dispatch for Room ${session?.room_number}. Staff respond in minutes.`
-                : "Contactless digital room services for verified in-house guests."}
-            </p>
-          </div>
-
-          {/* Real-time status pill */}
-          <div className="flex items-center gap-2 pt-1">
-            <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-xl border border-emerald-500/30">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              24/7 Digital Dispatch Active
+          {isVerifiedStay && (
+            <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 font-extrabold border border-emerald-500/30">
+              Room {session?.room_number}
             </span>
-            <Link
-              href="/guest/requests"
-              className="text-[10.5px] font-bold text-slate-300 hover:text-white bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700 flex items-center gap-1 transition"
-            >
-              <BellRing className="w-3 h-3 text-amber-400" />
-              <span>Active Requests</span>
-            </Link>
-          </div>
+          )}
+        </div>
+
+        <div>
+          <h1 className="text-2xl font-black text-white tracking-tight">
+            Hotel Services &amp; Requests
+          </h1>
+          <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+            {isVerifiedStay
+              ? `Instant service dispatch for Room ${session?.room_number}. Choose a category below:`
+              : "Contactless digital service requests for verified hotel guests."}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 pt-1">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-emerald-950/50 px-2.5 py-1 rounded-xl border border-emerald-500/25">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Staff on Duty · Fast Dispatch
+          </span>
+          <Link
+            href="/guest/requests"
+            className="text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 px-3 py-1 rounded-xl border border-slate-700 flex items-center gap-1 transition"
+          >
+            <BellRing className="w-3.5 h-3.5 text-amber-400" />
+            <span>Track Requests</span>
+          </Link>
         </div>
       </div>
 
-      {/* ── IN-ROOM DINING & ROOM SERVICE BANNER ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/20 via-[#0E1B2E] to-[#121E36] border border-amber-500/30 p-4 shadow-lg flex items-center justify-between gap-3 group">
+      {/* ── FOOD & ROOM SERVICE CTA BANNER ── */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0F172A] to-[#0F172A] border border-amber-500/30 flex items-center justify-between gap-3 shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow-md shrink-0 group-hover:scale-105 transition-transform">
+          <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow shrink-0">
             <Utensils className="w-5 h-5" />
           </div>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] uppercase font-black tracking-wider text-amber-400">Chef Specials</span>
-              <span className="h-1 w-1 rounded-full bg-amber-400" />
-              <span className="text-[10px] text-emerald-400 font-bold">Kitchen Open</span>
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+              <span>Dining &amp; Room Delivery</span>
             </div>
             <h3 className="text-xs font-black text-white">Order Food &amp; Beverages</h3>
-            <p className="text-[10px] text-slate-400">Hot meals, gourmet snacks &amp; drinks to Room {session?.room_number || "Suite"}</p>
+            <p className="text-[10.5px] text-slate-400">Delivered hot directly to your room</p>
           </div>
         </div>
 
         <Link
           href="/guest/dining"
-          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs transition shadow-md shrink-0 flex items-center gap-1 active:scale-95"
+          className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow shrink-0 flex items-center gap-1 active:scale-95"
         >
-          <span>Order</span>
+          <span>Menu</span>
           <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
         </Link>
       </div>
 
       {/* ── SEARCH & FILTER TABS ── */}
-      <div className="space-y-3">
-        {/* Search bar */}
+      <div className="space-y-2.5">
+        {/* Search input */}
         <div className="relative">
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search towels, AC repair, laundry, spa, cab..."
+            placeholder="Search towels, cleaning, AC, laundry, spa, taxi..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl text-xs bg-[#0E1B2E] border border-slate-800 text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500/50 shadow-inner"
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl text-xs bg-[#0F172A] border border-slate-800 text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
           />
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {/* Filter buttons */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setActiveTab("ALL")}
             className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition",
+              "px-3 py-1.5 rounded-xl text-xs font-bold transition",
               activeTab === "ALL"
-                ? "bg-amber-500 text-slate-950 shadow-md font-black"
-                : "bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800"
+                ? "bg-amber-500 text-slate-950 font-black shadow"
+                : "bg-[#0F172A] text-slate-400 hover:text-white border border-slate-800"
             )}
           >
-            ✨ All Services ({SERVICE_CATEGORIES.length})
+            All ({SERVICE_CATEGORIES.length})
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("COMPLIMENTARY")}
             className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5",
+              "px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1",
               activeTab === "COMPLIMENTARY"
-                ? "bg-emerald-500 text-slate-950 shadow-md font-black"
-                : "bg-slate-900/80 text-slate-400 hover:text-emerald-300 border border-slate-800"
+                ? "bg-emerald-500 text-slate-950 font-black shadow"
+                : "bg-[#0F172A] text-slate-400 hover:text-emerald-300 border border-slate-800"
             )}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Complimentary (5)</span>
+            <span>Free / Complimentary (5)</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("PAID")}
             className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5",
+              "px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1",
               activeTab === "PAID"
-                ? "bg-amber-500 text-slate-950 shadow-md font-black"
-                : "bg-slate-900/80 text-slate-400 hover:text-amber-300 border border-slate-800"
+                ? "bg-amber-500 text-slate-950 font-black shadow"
+                : "bg-[#0F172A] text-slate-400 hover:text-amber-300 border border-slate-800"
             )}
           >
             <Tag className="w-3.5 h-3.5" />
-            <span>Premium &amp; Wellness (4)</span>
+            <span>Chargeable (4)</span>
           </button>
         </div>
       </div>
 
-      {/* ── GRAPHICAL SERVICE CARDS GRID ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      {/* ── CRISP HIGH-CONTRAST SERVICE CARDS ── */}
+      <div className="space-y-3">
         {displayedCategories.map((cat) => {
           const Icon = cat.icon;
-          const paidItems = getCategoryPaidItems(cat);
 
           return (
             <div
               key={cat.id}
-              onClick={() => openCategoryModal(cat)}
-              className={cn(
-                "rounded-3xl p-4 transition-all duration-200 cursor-pointer border shadow-lg relative overflow-hidden flex flex-col justify-between group active:scale-[0.98]",
-                `bg-gradient-to-br ${cat.cardGradient}`,
-                cat.borderGlow
-              )}
+              className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 hover:border-slate-700 shadow-md space-y-3 transition-all"
             >
-              {/* Top Row: Icon + Badge */}
-              <div className="flex items-start justify-between gap-2">
-                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border shadow-md shrink-0 transition-transform group-hover:scale-105", cat.iconBg)}>
-                  <Icon className="w-6 h-6" />
+              {/* Top Row: Icon, Title & Badge */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow shrink-0", cat.iconBg)}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white leading-tight">
+                      {cat.name}
+                    </h3>
+                    <p className="text-[11.5px] text-slate-300 mt-0.5 leading-snug">
+                      {cat.description}
+                    </p>
+                  </div>
                 </div>
 
-                <span className={cn("text-[9.5px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border", cat.badgeBg, cat.badgeText)}>
+                <span className={cn("text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border shrink-0", cat.badgeBg, cat.badgeText, cat.badgeBorder)}>
                   {cat.tag}
                 </span>
               </div>
 
-              {/* Title & Description */}
-              <div className="mt-3.5 space-y-1">
-                <h4 className="text-sm font-black text-white group-hover:text-amber-300 transition-colors flex items-center justify-between">
-                  <span>{cat.name}</span>
-                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
-                </h4>
-                <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-1">
-                  {cat.description}
-                </p>
+              {/* Quick Clickable Options Chips */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                {cat.commonQuickOptions.slice(0, 3).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => openCategoryModal(cat, opt)}
+                    className="text-[11px] font-bold text-slate-200 bg-[#1E293B] hover:bg-amber-500 hover:text-slate-950 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-amber-500 transition-all active:scale-95"
+                  >
+                    + {opt}
+                  </button>
+                ))}
               </div>
 
-              {/* Popular quick chips preview */}
-              <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center gap-1.5 flex-wrap">
-                {cat.commonQuickOptions.slice(0, 2).map((opt) => (
-                  <span
-                    key={opt}
-                    className="text-[9.5px] font-semibold text-slate-300/80 bg-white/[0.04] px-2 py-0.5 rounded-lg border border-white/[0.06] truncate max-w-[150px]"
-                  >
-                    {opt}
-                  </span>
-                ))}
-                {cat.commonQuickOptions.length > 2 && (
-                  <span className="text-[9.5px] font-black text-amber-400/80">
-                    +{cat.commonQuickOptions.length - 2} more
-                  </span>
-                )}
+              {/* Bottom Action Row */}
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                <span className="text-[10.5px] text-slate-400 font-medium">
+                  {cat.isPaid ? "Billed directly to room folio" : "Provided with compliments"}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => openCategoryModal(cat)}
+                  className="inline-flex items-center gap-1 text-xs font-black text-amber-400 hover:text-amber-300 transition"
+                >
+                  <span>Request {cat.name}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           );
@@ -652,17 +636,17 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
       {/* ── MODAL DIALOG FOR SELECTED SERVICE ── */}
       {selectedCat && (
         <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-[#0D1A30] border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+          <div className="w-full max-w-lg bg-[#0F172A] border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
               <div className="flex items-center gap-3">
-                <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow-md shrink-0", selectedCat.iconBg)}>
+                <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow shrink-0", selectedCat.iconBg)}>
                   <selectedCat.icon className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-black text-white">{selectedCat.name}</h3>
-                    <span className={cn("px-2 py-0.5 rounded-md text-[9.5px] font-bold border", selectedCat.badgeBg, selectedCat.badgeText)}>
+                    <span className={cn("px-2 py-0.5 rounded-md text-[9.5px] font-bold border", selectedCat.badgeBg, selectedCat.badgeText, selectedCat.badgeBorder)}>
                       {selectedCat.tag}
                     </span>
                   </div>
@@ -727,7 +711,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                                 "p-3 rounded-xl text-left transition flex items-center justify-between gap-3 border",
                                 isSelected
                                   ? "bg-amber-500/20 border-amber-500 text-white shadow-md font-bold"
-                                  : "bg-[#091322] border-slate-800/80 hover:border-slate-700 text-slate-300"
+                                  : "bg-[#1E293B] border-slate-800 hover:border-slate-700 text-slate-300"
                               )}
                             >
                               <div className="space-y-0.5 min-w-0">
@@ -759,9 +743,9 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
                 {/* 2. Quick Options Chips */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{selectedCat.isPaid ? "Or Select Quick Request" : "Quick Selection"}</span>
+                    <span>{selectedCat.isPaid ? "Or Choose Request Type" : "Quick Selection"}</span>
                   </label>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -782,8 +766,8 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                           className={cn(
                             "p-2.5 rounded-xl text-xs text-left transition flex items-center justify-between border",
                             isSelected
-                              ? "bg-amber-500 text-slate-950 font-black border-amber-500 shadow-md"
-                              : "bg-[#091322] border-slate-800 text-slate-300 hover:bg-slate-800/60"
+                              ? "bg-amber-500 text-slate-950 font-black border-amber-500 shadow"
+                              : "bg-[#1E293B] border-slate-700 text-slate-200 hover:bg-slate-700/80"
                           )}
                         >
                           <span className="line-clamp-2 leading-tight">{opt}</span>
@@ -799,7 +783,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold text-white flex items-center gap-1.5">
                       <MessageSquarePlus className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Custom Message / Specific Instructions</span>
+                      <span>Custom Instructions / Notes</span>
                     </label>
                   </div>
 
@@ -808,13 +792,13 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
                     placeholder="E.g., Please bring extra bath towels around 6 PM, or specify any other requirement..."
-                    className="w-full px-3 py-2 rounded-xl bg-[#091322] border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 resize-none transition"
+                    className="w-full px-3 py-2 rounded-xl bg-[#1E293B] border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 resize-none transition"
                   />
                 </div>
 
                 {/* 4. Priority selection */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
                     Priority
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -825,7 +809,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                         "py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border",
                         priority === "MEDIUM"
                           ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow"
-                          : "bg-[#091322] text-slate-400 border-slate-800 hover:bg-slate-800"
+                          : "bg-[#1E293B] text-slate-300 border-slate-700 hover:bg-slate-700"
                       )}
                     >
                       <Clock className="w-3.5 h-3.5" />
@@ -839,7 +823,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                         "py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border",
                         priority === "URGENT"
                           ? "bg-rose-500 text-white border-rose-500 font-black shadow-lg"
-                          : "bg-[#091322] text-slate-400 border-slate-800 hover:bg-slate-800"
+                          : "bg-[#1E293B] text-slate-300 border-slate-700 hover:bg-slate-700"
                       )}
                     >
                       <Zap className="w-3.5 h-3.5" />

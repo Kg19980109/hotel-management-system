@@ -228,8 +228,9 @@ export default function HousekeepingPage() {
       .subscribe();
 
     const poll = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       void loadHousekeepingData();
-    }, 4000);
+    }, 30000);
 
     return () => {
       clearInterval(poll);

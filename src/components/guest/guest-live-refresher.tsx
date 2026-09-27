@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client";
  * and guest_service_requests, and triggers immediate router.refresh() on any update.
  * Also maintains a smart 4s active tab interval as fallback.
  */
-export function GuestLiveRefresher({ intervalMs = 4000 }: { intervalMs?: number }) {
+export function GuestLiveRefresher({ intervalMs = 30000 }: { intervalMs?: number }) {
   const router = useRouter();
 
   React.useEffect(() => {

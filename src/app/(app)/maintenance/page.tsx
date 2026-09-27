@@ -156,8 +156,9 @@ export default function MaintenancePage() {
       .subscribe();
 
     const poll = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       void loadData();
-    }, 4000);
+    }, 30000);
 
     return () => {
       clearInterval(poll);

@@ -27,14 +27,30 @@ async function checkStaffBillingAuth(
     .select("role:roles(code), status")
     .eq("property_id", propertyId)
     .eq("user_id", user.id)
-    .eq("status", "active")
-    .single();
+    .in("status", ["active", "ACTIVE"])
+    .maybeSingle();
 
-  if (!membership || !membership.role) {
-    return { error: "Access denied: No active membership for this property." };
+  let roleCode = (membership?.role as unknown as { code: string })?.code;
+
+  if (!membership || !roleCode) {
+    const { data: adminMemberships } = await supabase
+      .from("property_memberships")
+      .select("roles:role_id(code)")
+      .eq("user_id", user.id)
+      .in("status", ["active", "ACTIVE"])
+      .limit(10);
+
+    const isSuperAdmin = adminMemberships?.some((m) => {
+      const r = m.roles as unknown as { code: string } | null;
+      return r?.code === "SUPER_ADMIN" || r?.code === "HOTEL_OWNER";
+    });
+
+    if (isSuperAdmin) {
+      roleCode = "SUPER_ADMIN";
+    } else {
+      return { error: "Access denied: No active membership for this property." };
+    }
   }
-
-  const roleCode = (membership.role as unknown as { code: string })?.code;
 
   if (requiredPermission && !hasBillingPermission(roleCode, requiredPermission)) {
     return {

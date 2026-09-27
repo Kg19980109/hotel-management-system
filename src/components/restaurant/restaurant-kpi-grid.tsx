@@ -21,7 +21,7 @@ interface RestaurantKpiGridProps {
 
 export function RestaurantKpiGrid({
   kpis,
-  currency = "$",
+  currency = "₹",
   className = "",
   loading = false,
 }: RestaurantKpiGridProps) {
@@ -65,7 +65,7 @@ export function RestaurantKpiGrid({
 
       <KPIWidget
         title="Today's Sales"
-        value={`${currency}${kpis.today_order_sales.toLocaleString("en-US", {
+        value={`${currency}${kpis.today_order_sales.toLocaleString("en-IN", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         })}`}

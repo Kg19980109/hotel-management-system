@@ -428,7 +428,7 @@ export function MenuEditor({
     }
   };
 
-  const currencySymbol = restaurant.currency === "USD" ? "$" : "₹";
+  const currencySymbol = "₹";
 
   return (
     <div className="space-y-5">

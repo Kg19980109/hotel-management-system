@@ -136,7 +136,7 @@ export function DiningMenuView({
     setDetailInstructions("");
   };
 
-  const currencySymbol = restaurant.currency === "USD" ? "$" : "₹";
+  const currencySymbol = "₹";
 
   return (
     <div className="p-4 space-y-5 pb-36">

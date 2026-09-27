@@ -260,7 +260,7 @@ export default function RestaurantPage() {
       </div>
 
       {/* KPI Grid */}
-      <RestaurantKpiGrid kpis={kpis} currency={selectedOutlet?.currency === "USD" ? "$" : "₹"} />
+      <RestaurantKpiGrid kpis={kpis} currency="₹" />
 
       {/* No Outlets State */}
       {restaurants.length === 0 ? (

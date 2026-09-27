@@ -45,7 +45,7 @@ async function authenticateRestaurantSession(
     return { error: "Authentication required to perform restaurant operations." };
   }
 
-  // Verify membership and role
+  // Verify membership and role for this property
   const { data: membership, error: memberError } = await supabase
     .from("property_memberships")
     .select(`
@@ -57,15 +57,38 @@ async function authenticateRestaurantSession(
     `)
     .eq("property_id", propertyId)
     .eq("user_id", user.id)
-    .eq("status", "ACTIVE")
-    .single();
+    .in("status", ["active", "ACTIVE"])
+    .maybeSingle();
 
-  if (memberError || !membership) {
-    return { error: "You do not have an active membership for this property." };
+  let roleCode = "";
+
+  if (!memberError && membership) {
+    const roleData = membership.roles as unknown as { code: string } | null;
+    roleCode = roleData?.code || "";
+  } else {
+    // Check if user is a Platform Super Admin or Hotel Owner in any property
+    const { data: adminMemberships } = await supabase
+      .from("property_memberships")
+      .select(`
+        roles:role_id (
+          code
+        )
+      `)
+      .eq("user_id", user.id)
+      .in("status", ["active", "ACTIVE"])
+      .limit(10);
+
+    const isSuperAdmin = adminMemberships?.some((m) => {
+      const r = m.roles as unknown as { code: string } | null;
+      return r?.code === "SUPER_ADMIN" || r?.code === "HOTEL_OWNER";
+    });
+
+    if (isSuperAdmin) {
+      roleCode = "SUPER_ADMIN";
+    } else {
+      return { error: "You do not have an active membership for this property." };
+    }
   }
-
-  const roleData = membership.roles as unknown as { code: string } | null;
-  const roleCode = roleData?.code || "";
 
   if (requiredPermission && !hasRestaurantPermission([roleCode], requiredPermission)) {
     return {

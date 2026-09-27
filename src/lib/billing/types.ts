@@ -255,3 +255,88 @@ export interface GuestPortalFolioContext {
     paid_at: string;
   }[];
 }
+
+// ============================================================
+// UNIFIED BILLING & ORDERS TYPES (POS, QR, FOLIO, INVOICES)
+// ============================================================
+
+export type UnifiedBillSource =
+  | "POS_ORDER"       // POS Terminal counter / restaurant dine-in / takeaway
+  | "QR_ORDER"        // Guest QR digital food / bar order
+  | "QR_SERVICE"      // Guest QR chargeable service request (Spa, Laundry, Cab, Amenity)
+  | "FOLIO_CHARGE"    // In-room folio charge / incidentals
+  | "ROOM_STAY"       // Room accommodation tariff
+  | "TAX_INVOICE";    // Final issued tax invoice
+
+export type UnifiedBillCategory =
+  | "FOOD_BEVERAGE"
+  | "ROOM_TARIFF"
+  | "SPA_WELLNESS"
+  | "LAUNDRY"
+  | "TRANSPORT"
+  | "SERVICES"
+  | "GENERAL";
+
+export type UnifiedBillPaymentStatus =
+  | "PAID"
+  | "PENDING"
+  | "ROOM_CHARGED"
+  | "VOID";
+
+export interface UnifiedBillItem {
+  id?: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  notes?: string | null;
+}
+
+export interface UnifiedBill {
+  id: string;
+  billNumber: string;
+  source: UnifiedBillSource;
+  sourceLabel: string;
+  category: UnifiedBillCategory;
+  categoryLabel: string;
+  title: string;
+  description?: string;
+  guestName: string;
+  guestPhone?: string | null;
+  guestEmail?: string | null;
+  roomNumber?: string | null;
+  tableNumber?: string | null;
+  outletName?: string | null;
+  cashierOrStaff?: string | null;
+  items: UnifiedBillItem[];
+  itemCount: number;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  serviceChargeAmount?: number;
+  totalAmount: number;
+  currency: string;
+  paymentStatus: UnifiedBillPaymentStatus;
+  paymentMethod?: string | null;
+  createdAt: string;
+  paidAt?: string | null;
+  folioId?: string | null;
+  orderId?: string | null;
+  invoiceId?: string | null;
+  stayId?: string | null;
+  notes?: string | null;
+  rawStatus?: string;
+}
+
+export interface UnifiedBillingKPIs extends BillingKPIs {
+  totalBilledAmount: number;
+  posSalesTotal: number;
+  posOrdersCount: number;
+  qrOrdersTotal: number;
+  qrOrdersCount: number;
+  folioChargesTotal: number;
+  folioChargesCount: number;
+  invoicesTotal: number;
+  invoicesCount: number;
+}
+

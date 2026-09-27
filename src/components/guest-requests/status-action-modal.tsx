@@ -45,7 +45,7 @@ export function StatusActionModal({
   const getTitle = () => {
     switch (actionType) {
       case "ACKNOWLEDGE":
-        return "Acknowledge Guest Request";
+        return "Accept Guest Request";
       case "START":
         return "Start Work on Request";
       case "COMPLETE":
@@ -156,7 +156,7 @@ export function StatusActionModal({
             disabled={loading}
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
-            Confirm
+            {actionType === "ACKNOWLEDGE" ? "Accept Request" : "Confirm"}
           </Button>
         </div>
       </div>

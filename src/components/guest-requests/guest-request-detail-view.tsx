@@ -173,7 +173,7 @@ export function StaffGuestRequestDetailView({
                     className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-500/40 font-bold text-xs h-9 px-4 rounded-xl"
                     onClick={() => setActionType("ACKNOWLEDGE")}
                   >
-                    Acknowledge
+                    Accept
                   </Button>
                 )}
 

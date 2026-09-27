@@ -17,7 +17,10 @@ import {
   isRequestRelevantForRole,
   getDepartmentForCategory,
 } from "@/lib/alerts/routing";
-import { staffAcknowledgeGuestRequestAction } from "@/lib/guest-services/actions";
+import {
+  staffAcknowledgeGuestRequestAction,
+  staffAcceptOperationalAlertAction,
+} from "@/lib/guest-services/actions";
 
 export type ConnectionStatus = "CONNECTED" | "RECONNECTING" | "DISCONNECTED";
 
@@ -30,6 +33,7 @@ interface OperationalAlertContextType {
   setSoundEnabled: (enabled: boolean) => void;
   unlockAudio: () => Promise<boolean>;
   acknowledgeAlert: (requestId: string) => Promise<boolean>;
+  acceptAlert: (id: string) => Promise<boolean>;
   playTestSound: () => void;
   activeAlert: OperationalAlert | null;
   dismissCurrentModal: () => void;
@@ -46,6 +50,7 @@ const OperationalAlertContext = React.createContext<OperationalAlertContextType>
   setSoundEnabled: () => {},
   unlockAudio: async () => false,
   acknowledgeAlert: async () => false,
+  acceptAlert: async () => false,
   playTestSound: () => {},
   activeAlert: null,
   dismissCurrentModal: () => {},
@@ -105,11 +110,13 @@ export function OperationalAlertProvider({
     };
   }, []);
 
-  // Initial fetch of active unacknowledged requests & bounded sync on reconnect
+  // Initial fetch of active unacknowledged requests & food orders
   const syncOpenRequests = React.useCallback(async (propId: string, role: string | null) => {
     try {
       const supabase = createClient();
-      const { data, error } = await supabase
+
+      // 1. Fetch Guest Service Requests
+      const { data: serviceRequests } = await supabase
         .from("guest_service_requests")
         .select(`
           id,
@@ -129,32 +136,88 @@ export function OperationalAlertProvider({
         .order("created_at", { ascending: false })
         .limit(20);
 
-      if (error || !data) return;
+      if (serviceRequests) {
+        for (const item of serviceRequests) {
+          if (isRequestRelevantForRole(role, item.category)) {
+            const roomNum = (item.room as unknown as { room_number?: string })?.room_number || "—";
+            const guest = item.guest as unknown as { first_name?: string; last_name?: string };
+            const guestName = guest ? `${guest.first_name || ""} ${guest.last_name || ""}`.trim() : "Guest";
 
-      for (const item of data) {
-        if (isRequestRelevantForRole(role, item.category)) {
-          const roomNum = (item.room as unknown as { room_number?: string })?.room_number || "—";
-          const guest = item.guest as unknown as { first_name?: string; last_name?: string };
-          const guestName = guest ? `${guest.first_name || ""} ${guest.last_name || ""}`.trim() : "Guest";
+            operationalAlertManager.addOrUpdateAlert({
+              id: item.id,
+              type: "SERVICE_REQUEST",
+              category: item.category,
+              department: getDepartmentForCategory(item.category),
+              roomNumber: roomNum,
+              guestName: guestName || "Guest",
+              title: item.title,
+              description: item.description,
+              priority: (item.priority as AlertPriority) || "NORMAL",
+              receivedAt: new Date(item.created_at).getTime(),
+              propertyId: item.property_id,
+              status: item.status,
+            });
+          }
+        }
+      }
 
-          operationalAlertManager.addOrUpdateAlert({
-            id: item.id,
-            type: "SERVICE_REQUEST",
-            category: item.category,
-            department: getDepartmentForCategory(item.category),
-            roomNumber: roomNum,
-            guestName: guestName || "Guest",
-            title: item.title,
-            description: item.description,
-            priority: (item.priority as AlertPriority) || "NORMAL",
-            receivedAt: new Date(item.created_at).getTime(),
-            propertyId: item.property_id,
-            status: item.status,
-          });
+      // 2. Fetch Recent In-Room Food Orders (Last 2 hours, awaiting completion)
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+      const { data: foodOrders } = await supabase
+        .from("restaurant_orders")
+        .select(`
+          id,
+          property_id,
+          order_number,
+          order_type,
+          status,
+          notes,
+          total_amount,
+          currency,
+          created_at,
+          room:rooms(room_number),
+          table:restaurant_tables(table_number),
+          guest:guests(first_name, last_name),
+          order_items:restaurant_order_items(item_name, quantity)
+        `)
+        .eq("property_id", propId)
+        .in("status", ["OPEN", "CONFIRMED"])
+        .gte("created_at", twoHoursAgo)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (foodOrders) {
+        for (const order of foodOrders) {
+          if (isRequestRelevantForRole(role, "ROOM_SERVICE")) {
+            const r = order.room as unknown as { room_number?: string };
+            const t = order.table as unknown as { table_number?: string };
+            const roomNumber = r?.room_number ? r.room_number : t?.table_number ? `Table ${t.table_number}` : "—";
+            const g = order.guest as unknown as { first_name?: string; last_name?: string };
+            const guestName = g ? `${g.first_name || ""} ${g.last_name || ""}`.trim() : "Guest";
+
+            const itemsSummary = (order.order_items as unknown as Array<{ item_name: string; quantity: number }> || [])
+              .map((i) => `${i.quantity}x ${i.item_name}`)
+              .join(", ");
+
+            operationalAlertManager.addOrUpdateAlert({
+              id: order.id,
+              type: "FOOD_ORDER",
+              category: order.order_type === "DINE_IN" ? "DINING" : "ROOM_SERVICE",
+              department: "RESTAURANT",
+              roomNumber,
+              guestName: guestName || "Guest",
+              title: `Food Order #${order.order_number}`,
+              description: itemsSummary ? `${itemsSummary} • ₹${order.total_amount}` : (order.notes || `Total: ₹${order.total_amount}`),
+              priority: "HIGH",
+              receivedAt: new Date(order.created_at).getTime(),
+              propertyId: order.property_id,
+              status: order.status,
+            });
+          }
         }
       }
     } catch (e) {
-      console.error("Failed to sync open requests:", e);
+      console.error("Failed to sync open requests and orders:", e);
     }
   }, []);
 
@@ -177,8 +240,6 @@ export function OperationalAlertProvider({
     // Initial sync
     void syncOpenRequests(propertyId, currentRole);
 
-    // Low-frequency 30s polling backup (was 3.5s — kept radio/CPU awake on
-    // mobile). Paused when tab hidden. Realtime is the primary path.
     const heartbeatInterval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void syncOpenRequests(propertyId, currentRole);
@@ -192,7 +253,7 @@ export function OperationalAlertProvider({
       },
     });
 
-    // 1. Listen for changes on guest_service_requests (server-filtered by property)
+    // 1. Listen for changes on guest_service_requests
     channel.on(
       "postgres_changes",
       {
@@ -209,9 +270,8 @@ export function OperationalAlertProvider({
         }
 
         if (eventType === "INSERT") {
-          // New request arrived
+          // New service request arrived
           if (newRec.status === "SUBMITTED" && isRequestRelevantForRole(currentRole, newRec.category)) {
-            // Fetch room & guest info for display
             let roomNumber = "—";
             let guestName = "Guest";
             try {
@@ -248,7 +308,6 @@ export function OperationalAlertProvider({
             setIsModalMinimized(false);
           }
         } else if (eventType === "UPDATE") {
-          // Status updated by this staff or ANY other staff device
           if (
             newRec.status === "ACKNOWLEDGED" ||
             newRec.status === "ASSIGNED" ||
@@ -257,7 +316,6 @@ export function OperationalAlertProvider({
             newRec.status === "CANCELLED" ||
             newRec.status === "REJECTED"
           ) {
-            // Stop buzzer and remove alert immediately across all devices!
             operationalAlertManager.removeAlert(newRec.id);
           } else {
             operationalAlertManager.addOrUpdateAlert({
@@ -281,55 +339,86 @@ export function OperationalAlertProvider({
       }
     );
 
-    // 2. Listen for changes on restaurant_orders (for food & room service)
+    // 2. Listen for changes on restaurant_orders (Real-time Food & Dining Alert)
     channel.on(
       "postgres_changes",
       {
-        event: "INSERT",
+        event: "*",
         schema: "public",
         table: "restaurant_orders",
         filter: `property_id=eq.${propertyId}`,
       },
       async (payload) => {
-        const order = payload.new;
+        const { eventType, new: order } = payload;
+
         if (order?.property_id && order.property_id !== propertyId) {
           return;
         }
-        if (order.status === "CONFIRMED" && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
-          let roomNumber = "—";
-          let guestName = "Guest";
-          try {
-            const { data: detail } = await supabase
-              .from("restaurant_orders")
-              .select("room:rooms(room_number), guest:guests(first_name, last_name)")
-              .eq("id", order.id)
-              .single();
 
-            if (detail) {
-              const r = detail.room as unknown as { room_number?: string };
-              if (r?.room_number) roomNumber = r.room_number;
-              const g = detail.guest as unknown as { first_name?: string; last_name?: string };
-              if (g) guestName = `${g.first_name || ""} ${g.last_name || ""}`.trim();
+        if (eventType === "INSERT" || eventType === "UPDATE") {
+          // If active order waiting for acceptance
+          if (order && (order.status === "OPEN" || order.status === "CONFIRMED") && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
+            let roomNumber = "—";
+            let guestName = "Guest";
+            let itemsSummary = "";
+
+            try {
+              const { data: detail } = await supabase
+                .from("restaurant_orders")
+                .select(`
+                  room:rooms(room_number),
+                  table:restaurant_tables(table_number),
+                  guest:guests(first_name, last_name),
+                  order_items:restaurant_order_items(item_name, quantity)
+                `)
+                .eq("id", order.id)
+                .single();
+
+              if (detail) {
+                const r = detail.room as unknown as { room_number?: string };
+                const t = detail.table as unknown as { table_number?: string };
+                if (r?.room_number) roomNumber = r.room_number;
+                else if (t?.table_number) roomNumber = `Table ${t.table_number}`;
+
+                const g = detail.guest as unknown as { first_name?: string; last_name?: string };
+                if (g) guestName = `${g.first_name || ""} ${g.last_name || ""}`.trim();
+
+                const items = (detail.order_items as unknown as Array<{ item_name: string; quantity: number }> || []);
+                if (items.length > 0) {
+                  itemsSummary = items.map((i) => `${i.quantity}x ${i.item_name}`).join(", ");
+                }
+              }
+            } catch {
+              // fallback
             }
-          } catch {
-            // fallback
-          }
 
-          operationalAlertManager.addOrUpdateAlert({
-            id: order.id,
-            type: "FOOD_ORDER",
-            category: "ROOM_SERVICE",
-            department: "RESTAURANT",
-            roomNumber,
-            guestName: guestName || "Guest",
-            title: `Room Service Order #${order.order_number}`,
-            description: order.notes || `Total: ${order.currency} ${order.total_amount}`,
-            priority: "NORMAL",
-            receivedAt: Date.now(),
-            propertyId: order.property_id,
-            status: order.status,
-          });
-          setIsModalMinimized(false);
+            operationalAlertManager.addOrUpdateAlert({
+              id: order.id,
+              type: "FOOD_ORDER",
+              category: order.order_type === "DINE_IN" ? "DINING" : "ROOM_SERVICE",
+              department: "RESTAURANT",
+              roomNumber,
+              guestName: guestName || "Guest",
+              title: `Food Order #${order.order_number}`,
+              description: itemsSummary ? `${itemsSummary} • ₹${order.total_amount}` : (order.notes || `Total: ₹${order.total_amount}`),
+              priority: "HIGH",
+              receivedAt: Date.now(),
+              propertyId: order.property_id,
+              status: order.status,
+            });
+            setIsModalMinimized(false);
+          } else if (
+            order &&
+            (order.status === "PREPARING" ||
+              order.status === "READY" ||
+              order.status === "SERVED" ||
+              order.status === "COMPLETED" ||
+              order.status === "CANCELLED")
+          ) {
+            operationalAlertManager.removeAlert(order.id);
+          }
+        } else if (eventType === "DELETE") {
+          operationalAlertManager.removeAlert(payload.old?.id);
         }
       }
     );
@@ -338,7 +427,6 @@ export function OperationalAlertProvider({
     channel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
         setInternalStatus("CONNECTED");
-        // Bounded reconciliation on reconnect
         void syncOpenRequests(propertyId, currentRole);
       } else if (status === "TIMED_OUT" || status === "CHANNEL_ERROR") {
         setInternalStatus("RECONNECTING");
@@ -369,17 +457,22 @@ export function OperationalAlertProvider({
     return success;
   };
 
-  const handleAcknowledge = async (requestId: string): Promise<boolean> => {
+  const handleAcceptAlert = async (alertId: string): Promise<boolean> => {
     if (!propertyId) return false;
 
-    // Immediately stop buzzer locally for responsiveness
-    operationalAlertManager.removeAlert(requestId);
+    // Immediately stop buzzer locally for instant responsiveness
+    const targetAlert = alerts.find((a) => a.id === alertId);
+    operationalAlertManager.removeAlert(alertId);
 
     try {
-      const res = await staffAcknowledgeGuestRequestAction(propertyId, requestId);
+      const res = await staffAcceptOperationalAlertAction(
+        propertyId,
+        alertId,
+        targetAlert?.type
+      );
       return res.success;
     } catch (err) {
-      console.error("Failed to acknowledge request:", err);
+      console.error("Failed to accept alert:", err);
       return false;
     }
   };
@@ -400,7 +493,8 @@ export function OperationalAlertProvider({
         audioUnlocked,
         setSoundEnabled: handleSetSoundEnabled,
         unlockAudio: handleUnlockAudio,
-        acknowledgeAlert: handleAcknowledge,
+        acknowledgeAlert: handleAcceptAlert,
+        acceptAlert: handleAcceptAlert,
         playTestSound: handlePlayTestSound,
         activeAlert,
         dismissCurrentModal: () => setIsModalMinimized(true),

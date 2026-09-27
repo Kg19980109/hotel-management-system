@@ -419,12 +419,12 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
                         {acknowledgingId === req.id ? (
                           <>
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Acknowledging...</span>
+                            <span>Accepting...</span>
                           </>
                         ) : (
                           <>
                             <Check className="w-3.5 h-3.5" />
-                            <span>Acknowledge</span>
+                            <span>Accept</span>
                           </>
                         )}
                       </Button>

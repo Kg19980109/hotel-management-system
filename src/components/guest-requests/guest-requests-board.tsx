@@ -312,7 +312,7 @@ export function GuestRequestsBoard({
                           className="h-7 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border-amber-500/30 font-bold"
                           onClick={() => setActionTarget({ request: r, type: "ACKNOWLEDGE" })}
                         >
-                          Acknowledge
+                          Accept
                         </Button>
                       )}
 

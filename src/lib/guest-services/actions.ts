@@ -212,13 +212,88 @@ export async function staffAcknowledgeGuestRequestAction(
   if (error || !data?.success) {
     return {
       success: false,
-      error: error?.message || data?.error || "Failed to acknowledge request.",
+      error: error?.message || data?.error || "Failed to accept request.",
     };
   }
 
   revalidatePath("/guest-requests");
   revalidatePath(`/guest-requests/${requestId}`);
+  revalidatePath("/housekeeping");
+  revalidatePath("/maintenance");
   return { success: true };
+}
+
+export const staffAcceptGuestRequestAction = staffAcknowledgeGuestRequestAction;
+
+/**
+ * Universal Accept action for both Food Orders and Service Requests
+ */
+export async function staffAcceptOperationalAlertAction(
+  propertyId: string,
+  alertId: string,
+  alertType?: "SERVICE_REQUEST" | "FOOD_ORDER"
+) {
+  const supabase = await createClient();
+
+  // If it's a food order or if alertType is FOOD_ORDER, fire KDS ticket & confirm order
+  if (alertType === "FOOD_ORDER") {
+    try {
+      const { data, error } = await supabase.rpc("create_or_fire_kitchen_ticket", {
+        p_order_id: alertId,
+        p_property_id: propertyId,
+        p_priority: "NORMAL",
+      });
+
+      if (error) {
+        console.error("KDS firing error on accept:", error);
+      }
+
+      // Update order status if it was OPEN/PENDING
+      await supabase
+        .from("restaurant_orders")
+        .update({ status: "CONFIRMED" })
+        .eq("id", alertId)
+        .eq("property_id", propertyId);
+
+      revalidatePath("/kitchen");
+      revalidatePath("/restaurant/kds");
+      revalidatePath("/restaurant/orders");
+      revalidatePath(`/restaurant/orders/${alertId}`);
+      revalidatePath("/guest/orders");
+      revalidatePath("/pos");
+      return { success: true, data };
+    } catch (err) {
+      console.error("Failed to accept food order:", err);
+      return { success: false, error: err instanceof Error ? err.message : "Failed to accept food order." };
+    }
+  }
+
+  // Check if this ID belongs to a restaurant order or a service request
+  const { data: maybeOrder } = await supabase
+    .from("restaurant_orders")
+    .select("id")
+    .eq("id", alertId)
+    .maybeSingle();
+
+  if (maybeOrder) {
+    try {
+      await supabase.rpc("create_or_fire_kitchen_ticket", {
+        p_order_id: alertId,
+        p_property_id: propertyId,
+        p_priority: "NORMAL",
+      });
+      revalidatePath("/kitchen");
+      revalidatePath("/restaurant/kds");
+      revalidatePath("/restaurant/orders");
+      revalidatePath("/guest/orders");
+      return { success: true };
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Fallback to service request acknowledge
+  return await staffAcknowledgeGuestRequestAction(propertyId, alertId);
 }
 
 export async function staffAssignGuestRequestAction(

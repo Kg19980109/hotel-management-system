@@ -78,13 +78,7 @@ export function isRequestRelevantForRole(
 
     case "FRONT_DESK":
     case "RECEPTIONIST":
-      return (
-        normalizedCategory === "FRONT_DESK" ||
-        normalizedCategory === "CONCIERGE" ||
-        normalizedCategory === "SPA" ||
-        normalizedCategory === "TRANSPORT" ||
-        normalizedCategory === "OTHER"
-      );
+      return true; // Front Desk staff receive all property-wide alerts, service requests & food orders
 
     case "RESTAURANT_STAFF":
     case "KITCHEN_STAFF":
@@ -95,7 +89,7 @@ export function isRequestRelevantForRole(
       );
 
     default:
-      return false;
+      return true;
   }
 }
 
@@ -104,14 +98,11 @@ export function isRequestRelevantForRole(
  */
 export function getDepartmentQueueHref(category: string, requestId?: string): string {
   const cat = category.toUpperCase();
-  if (requestId) {
-    if (cat === "ROOM_SERVICE" || cat === "FOOD" || cat === "DINING") {
-      return `/restaurant/orders/${requestId}`;
-    }
-    return `/guest-requests/${requestId}`;
-  }
   if (cat === "ROOM_SERVICE" || cat === "FOOD" || cat === "DINING") {
-    return "/restaurant/orders";
+    return "/kitchen";
+  }
+  if (requestId) {
+    return `/guest-requests/${requestId}`;
   }
   if (cat === "HOUSEKEEPING" || cat === "LAUNDRY") {
     return "/housekeeping";

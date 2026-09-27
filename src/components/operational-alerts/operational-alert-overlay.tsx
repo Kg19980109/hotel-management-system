@@ -62,13 +62,19 @@ export function OperationalAlertOverlay() {
     return null;
   }
 
-  const handleAcknowledge = async () => {
+  const isFoodOrder =
+    currentAlert.type === "FOOD_ORDER" ||
+    currentAlert.category === "ROOM_SERVICE" ||
+    currentAlert.category === "FOOD" ||
+    currentAlert.category === "DINING";
+
+  const handleAccept = async () => {
     if (!currentAlert) return;
     const targetAlert = currentAlert;
     setIsSubmitting(true);
     try {
       await acknowledgeAlert(targetAlert.id);
-      // Automatically navigate to the respective department queue so staff can track progress immediately
+      // Automatically navigate to the destination queue (e.g. /kitchen for food orders)
       const href = getDepartmentQueueHref(targetAlert.category, targetAlert.id);
       setIsModalMinimized(true);
       router.push(href);
@@ -99,7 +105,7 @@ export function OperationalAlertOverlay() {
     const c = cat.toUpperCase();
     if (c === "HOUSEKEEPING" || c === "LAUNDRY") return <Sparkles className="w-5 h-5 text-emerald-400" />;
     if (c === "MAINTENANCE") return <Wrench className="w-5 h-5 text-blue-400" />;
-    if (c === "ROOM_SERVICE" || c === "FOOD") return <Utensils className="w-5 h-5 text-amber-400" />;
+    if (c === "ROOM_SERVICE" || c === "FOOD" || c === "DINING") return <Utensils className="w-5 h-5 text-amber-400" />;
     return <BedDouble className="w-5 h-5 text-amber-400" />;
   };
 
@@ -130,11 +136,11 @@ export function OperationalAlertOverlay() {
             <div className="flex items-center gap-1.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
               <p className="text-xs font-black uppercase tracking-wider text-white">
-                {alerts.length} New Request{alerts.length > 1 ? "s" : ""}
+                {alerts.length} New {isFoodOrder ? "Food Order" : "Request"}{alerts.length > 1 ? "s" : ""}
               </p>
             </div>
             <p className="text-[11px] text-slate-300 font-mono mt-0.5">
-              Room {currentAlert.roomNumber} • Expand Alert
+              {currentAlert.roomNumber.startsWith("Table") ? currentAlert.roomNumber : `Room ${currentAlert.roomNumber}`} • Expand Alert
             </p>
           </div>
           <Maximize2 className="w-4 h-4 text-slate-400 ml-1.5" />
@@ -180,7 +186,7 @@ export function OperationalAlertOverlay() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black uppercase tracking-wider text-white" id="operational-alert-title">
-                  Operational Command Alert
+                  {isFoodOrder ? "New In-Room Food Order" : "Operational Command Alert"}
                 </span>
                 <span
                   className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
@@ -191,7 +197,7 @@ export function OperationalAlertOverlay() {
                       : "bg-slate-800 text-slate-200 border border-white/10"
                   }`}
                 >
-                  {currentAlert.priority}
+                  {isFoodOrder ? "FOOD LIVE" : currentAlert.priority}
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 font-mono mt-0.5">
@@ -247,7 +253,7 @@ export function OperationalAlertOverlay() {
           <div className="px-6 py-2.5 bg-black/40 border-b border-white/10 flex items-center justify-between text-xs">
             <span className="font-bold text-[#E5C158] flex items-center gap-2 text-[11px] tracking-wide">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-              {alerts.length} UNACKNOWLEDGED REQUESTS IN QUEUE
+              {alerts.length} UNACCEPTED INCOMING QUEUE
             </span>
             <div className="flex items-center gap-1.5">
               <button
@@ -281,10 +287,10 @@ export function OperationalAlertOverlay() {
               </div>
               <div>
                 <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                  Guest Destination
+                  {currentAlert.roomNumber.startsWith("Table") ? "Dining Table" : "Guest Room"}
                 </p>
                 <p className="text-2xl font-black text-white tracking-tight">
-                  ROOM {currentAlert.roomNumber}
+                  {currentAlert.roomNumber.startsWith("Table") ? currentAlert.roomNumber.toUpperCase() : `ROOM ${currentAlert.roomNumber}`}
                 </p>
               </div>
             </div>
@@ -303,7 +309,7 @@ export function OperationalAlertOverlay() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">
-                Request Summary
+                {isFoodOrder ? "Food Order Items" : "Request Summary"}
               </span>
               <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-white/10 text-slate-200 border border-white/10">
                 {currentAlert.category}
@@ -313,7 +319,7 @@ export function OperationalAlertOverlay() {
               {currentAlert.title}
             </h3>
             {currentAlert.description && (
-              <p className="text-xs text-slate-300 leading-relaxed bg-black/40 p-3.5 rounded-xl border border-white/10 font-medium">
+              <p className="text-xs text-slate-200 leading-relaxed bg-black/40 p-3.5 rounded-xl border border-white/10 font-medium">
                 {currentAlert.description}
               </p>
             )}
@@ -337,17 +343,17 @@ export function OperationalAlertOverlay() {
         <div className="p-6 pt-0 flex items-center gap-3 relative">
           <button
             disabled={isSubmitting}
-            onClick={handleAcknowledge}
+            onClick={handleAccept}
             className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#E5C158] hover:from-[#E5C158] hover:to-[#F3D77B] text-[#08111F] font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-[#D4AF37]/25 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            <span>Acknowledge Request</span>
+            <span>{isFoodOrder ? "Accept & Send to Kitchen KDS" : "Accept Request"}</span>
           </button>
 
           <button
             onClick={handleView}
             className="py-3.5 px-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/15 flex items-center gap-1.5"
           >
-            <span>View Queue</span>
+            <span>{isFoodOrder ? "View KDS" : "View Queue"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

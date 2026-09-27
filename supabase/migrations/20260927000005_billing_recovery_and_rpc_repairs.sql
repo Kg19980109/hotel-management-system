@@ -320,15 +320,18 @@ BEGIN
 END;
 $$;
 
--- 4. Automatic Folio Posting on Room Service Food Orders
+-- 4. Single Canonical Definition for create_guest_food_order
+DROP FUNCTION IF EXISTS public.create_guest_food_order(character varying, uuid, jsonb, text, character varying, character varying, uuid);
+DROP FUNCTION IF EXISTS public.create_guest_food_order(character varying, uuid, character varying, jsonb, text, uuid, character varying);
+
 CREATE OR REPLACE FUNCTION public.create_guest_food_order(
     p_session_token_hash character varying,
     p_restaurant_id uuid,
-    p_order_type character varying,
     p_items jsonb,
     p_notes text DEFAULT NULL::text,
-    p_table_id uuid DEFAULT NULL::uuid,
-    p_idempotency_key character varying DEFAULT NULL::character varying
+    p_idempotency_key character varying DEFAULT NULL::character varying,
+    p_order_type character varying DEFAULT 'ROOM_SERVICE'::character varying,
+    p_table_id uuid DEFAULT NULL::uuid
 )
 RETURNS jsonb
 LANGUAGE plpgsql

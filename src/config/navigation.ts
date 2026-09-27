@@ -114,21 +114,25 @@ export const navigationConfig: NavGroup[] = [
     ],
   },
   {
-    label: "Restaurant",
+    label: "POS & Menu",
     items: [
       {
-        label: "Restaurant / POS",
-        href: "/restaurant",
+        label: "POS (Billing)",
+        href: "/pos",
         icon: UtensilsCrossed,
-        matchPaths: ["/restaurant/pos", "/restaurant/menu", "/restaurant/tables", "/restaurant/orders"],
-        permission: "restaurant.view",
+        permission: "pos.view",
       },
       {
-        label: "Kitchen (KDS)",
-        href: "/restaurant/kds",
+        label: "POS Configuration",
+        href: "/pos-configuration",
+        icon: Settings,
+        permission: "pos.config",
+      },
+      {
+        label: "Menu Configuration",
+        href: "/menu-configuration",
         icon: ChefHat,
-        matchPaths: ["/restaurant/kds/history", "/restaurant/kitchen/stations", "/kitchen"],
-        permission: "kitchen.view",
+        permission: "menu.config",
       },
     ],
   },
@@ -142,23 +146,13 @@ export const navigationConfig: NavGroup[] = [
         matchPaths: ["/qr-services/rooms", "/qr-services/tables", "/qr-services/requests", "/qr-services/dining"],
         permission: "qr_services.view",
       },
-      {
-        label: "Online Booking",
-        href: "/online-booking",
-        icon: Globe,
-        permission: "online_booking.view",
-      },
+
     ],
   },
   {
     label: "Business",
     items: [
-      {
-        label: "Inventory",
-        href: "/inventory",
-        icon: Package,
-        permission: "inventory.view",
-      },
+
       {
         label: "Staff",
         href: "/staff",

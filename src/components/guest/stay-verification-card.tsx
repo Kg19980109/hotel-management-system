@@ -49,10 +49,10 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
     }
   }, [rawToken, router]);
 
-  // Auto-unlock room session immediately upon scanning room QR
+  // Auto-unlock room session immediately only IF room has an active checked-in stay
   React.useEffect(() => {
     let isMounted = true;
-    if (resolution.valid && resolution.qr_type === "ROOM") {
+    if (resolution.valid && resolution.qr_type === "ROOM" && resolution.has_active_stay) {
       setLoading(true);
       void unlockSeamlessRoomSessionAction(rawToken).then((res) => {
         if (!isMounted) return;
@@ -61,13 +61,14 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
           router.refresh();
         } else {
           setLoading(false);
+          setError(res.error || "Unable to establish room session.");
         }
       });
     }
     return () => {
       isMounted = false;
     };
-  }, [rawToken, resolution.valid, resolution.qr_type, router]);
+  }, [rawToken, resolution.valid, resolution.qr_type, resolution.has_active_stay, router]);
 
   // If HOTEL_GENERAL QR, allow single-tap entry to explore the property
   const handlePublicEntry = async () => {
@@ -203,10 +204,14 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
             Room {resolution.room_number} • {resolution.room_type || "Deluxe Suite"}
           </div>
           <h2 className="text-2xl font-black text-white tracking-tight">
-            Welcome to Room {resolution.room_number}
+            {resolution.has_active_stay
+              ? `Welcome to Room ${resolution.room_number}`
+              : `Room ${resolution.room_number} — Check-In Required`}
           </h2>
           <p className="text-xs text-slate-300/80 max-w-xs mx-auto leading-relaxed">
-            Instant digital portal for in-room gourmet dining, housekeeping, and concierge assistance.
+            {resolution.has_active_stay
+              ? "Instant digital portal for in-room gourmet dining, housekeeping, and concierge assistance."
+              : `No guest is currently checked into Room ${resolution.room_number}. Please check in at the Front Desk to activate in-room services.`}
           </p>
         </div>
 
@@ -217,29 +222,50 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
           </div>
         )}
 
-        {/* Primary Seamless Action Button */}
+        {/* Action Buttons */}
         <div className="space-y-3 relative z-10">
-          <button
-            onClick={handleSeamlessUnlock}
-            disabled={loading}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-amber-500/25 transition-all active:scale-[0.98] disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Entering Room {resolution.room_number}...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 text-slate-950" />
-                <span>Enter Room {resolution.room_number} Portal</span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </>
-            )}
-          </button>
+          {resolution.has_active_stay ? (
+            <button
+              onClick={handleSeamlessUnlock}
+              disabled={loading}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-amber-500/25 transition-all active:scale-[0.98] disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Entering Room {resolution.room_number}...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-slate-950" />
+                  <span>Enter Room {resolution.room_number} Portal</span>
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={handlePublicEntry}
+              disabled={loading}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <span>Browse Hotel & Dining (Public View)</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          )}
 
           <p className="text-center text-[11px] text-slate-400">
-            {loading ? "Establishing encrypted in-room guest session..." : "No password needed • Verified room QR scan"}
+            {resolution.has_active_stay
+              ? loading
+                ? "Establishing encrypted in-room guest session..."
+                : "Verified in-house guest • Active Room QR"
+              : "Room requires staff assignment & check-in before in-room ordering"}
           </p>
         </div>
 

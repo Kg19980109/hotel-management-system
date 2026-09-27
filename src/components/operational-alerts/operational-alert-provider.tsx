@@ -243,7 +243,7 @@ export function OperationalAlertProvider({
     const heartbeatInterval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void syncOpenRequests(propertyId, currentRole);
-    }, 30000);
+    }, 2000);
 
     // Stable channel dedicated to this property's operational events
     const channelName = `stayhub:operational-alerts:${propertyId}`;

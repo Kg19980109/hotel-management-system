@@ -97,7 +97,7 @@ export default function QrServicesPage() {
     <div className="space-y-6 pb-12">
       <PageHeader
         title="Guest QR Portal & Access Points"
-        description="Manage digital guest access points, generate printable QR cards, and monitor active guest sessions."
+        description="Manage digital guest access points, generate printable bedside QR cards, and publish dining menus straight to Kitchen KDS."
         breadcrumbs={[
           { label: "Guest Experience", href: "/qr-services" },
           { label: "QR Access Points" },
@@ -108,13 +108,44 @@ export default function QrServicesPage() {
             size="sm"
             onClick={loadData}
             disabled={loading}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 rounded-xl"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             <span>Refresh</span>
           </Button>
         }
       />
+
+      {/* Sub-Navigation Strip */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <a
+          href="/qr-services"
+          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-primary text-white shadow-sm flex items-center gap-2 shrink-0"
+        >
+          <span>All Access Points</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10.5px]">
+            {qrCodes.length}
+          </span>
+        </a>
+        <a
+          href="/qr-services/rooms"
+          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-card hover:bg-secondary text-muted-foreground hover:text-foreground border border-border transition-colors flex items-center gap-2 shrink-0"
+        >
+          <span>Room Batch Manager</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-secondary text-[10.5px]">
+            {rooms.length} Rooms
+          </span>
+        </a>
+        <a
+          href="/qr-services/dining"
+          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-card hover:bg-secondary text-muted-foreground hover:text-foreground border border-border transition-colors flex items-center gap-2 shrink-0"
+        >
+          <span>QR Dining Publisher</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10.5px] font-bold">
+            Live Menu
+          </span>
+        </a>
+      </div>
 
       {propertyId && (
         <QrManagerView

@@ -68,15 +68,15 @@ export function PropertySelector({
           aria-haspopup="listbox"
           aria-label={`Selected property: ${activeName}`}
           className={cn(
-            "flex items-center gap-2 px-2.5 py-1 rounded-xl text-left bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs transition-all duration-150",
-            isOpen && "bg-slate-50 ring-2 ring-indigo-500/20 border-indigo-400"
+            "flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.12] shadow-inner transition-all duration-150",
+            isOpen && "bg-white/[0.14] ring-2 ring-indigo-400/30 border-indigo-400"
           )}
         >
-          <div className="h-6.5 w-6.5 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-[10px] font-black shrink-0 shadow-2xs">
+          <div className="h-6.5 w-6.5 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-black shrink-0 shadow-sm shadow-indigo-950/40">
             {activeInitials}
           </div>
           <div className="hidden md:block max-w-[160px]">
-            <p className="text-xs font-bold text-slate-800 truncate leading-tight">
+            <p className="text-xs font-bold text-slate-100 truncate leading-tight">
               {activeName}
             </p>
             <p className="text-[10.5px] font-medium text-slate-400 truncate leading-tight mt-0.5">
@@ -90,18 +90,18 @@ export function PropertySelector({
           <div
             role="listbox"
             aria-label="Accessible properties"
-            className="absolute left-0 mt-2 w-72 rounded-[var(--radius-lg)] bg-white border border-[var(--border)] shadow-[var(--shadow-lg)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+            className="absolute left-0 mt-2 w-72 rounded-2xl bg-[#0A1124] border border-white/[0.12] shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-2xl"
           >
-            <div className="px-3 py-1.5 border-b border-[var(--border)] flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--foreground-subtle)]">
+            <div className="px-3 py-1.5 border-b border-white/[0.08] flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 My Properties ({properties.length || 1})
               </span>
               <Building2 className="h-3.5 w-3.5 text-slate-400" />
             </div>
 
-            <div className="max-h-60 overflow-y-auto py-1">
+            <div className="max-h-60 overflow-y-auto py-1 divide-y divide-white/[0.04]">
               {properties.length === 0 ? (
-                <div className="px-3 py-2 text-[12px] text-[var(--foreground-muted)]">
+                <div className="px-3 py-2 text-[12px] text-slate-300">
                   {activeName} ({activeLocation})
                 </div>
               ) : (
@@ -125,33 +125,33 @@ export function PropertySelector({
                         await switchProperty(prop.property_id);
                       }}
                       className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--secondary)] transition-colors",
-                        isSelected && "bg-indigo-50/60"
+                        "w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-white/[0.08] transition-colors",
+                        isSelected && "bg-indigo-600/20 text-white"
                       )}
                     >
-                      <div className="h-7 w-7 rounded-[var(--radius-sm)] bg-indigo-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                      <div className="h-7 w-7 rounded-lg bg-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
                         {initials}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={cn("text-[13px] font-medium truncate", isSelected ? "text-[var(--primary)] font-semibold" : "text-[var(--foreground)]")}>
+                        <p className={cn("text-[13px] font-medium truncate", isSelected ? "text-indigo-400 font-semibold" : "text-slate-200")}>
                           {prop.property_name}
                         </p>
-                        <p className="text-[11px] text-[var(--foreground-muted)] truncate">
-                          {prop.city}, {prop.state} · <span className="text-indigo-600 font-medium">{prop.role_name}</span>
+                        <p className="text-[11px] text-slate-400 truncate">
+                          {prop.city}, {prop.state} · <span className="text-indigo-400 font-medium">{prop.role_name}</span>
                         </p>
                       </div>
-                      {isSelected && <Check className="h-4 w-4 text-[var(--primary)] shrink-0" />}
+                      {isSelected && <Check className="h-4 w-4 text-indigo-400 shrink-0" />}
                     </button>
                   );
                 })
               )}
             </div>
 
-            <div className="pt-1 mt-1 border-t border-[var(--border)]">
+            <div className="pt-1 mt-1 border-t border-white/[0.08]">
               <Link
                 href="/onboarding"
                 onClick={() => setIsOpen(false)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] font-medium text-[var(--primary)] hover:bg-[var(--secondary)] transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] font-medium text-indigo-400 hover:bg-white/[0.08] transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Register Another Property</span>

@@ -89,7 +89,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
         // offline — next tick retries
       }
     };
-    timer = setInterval(() => void poll(), 10000);
+    timer = setInterval(() => void poll(), 2000);
     return () => {
       if (timer) clearInterval(timer);
     };

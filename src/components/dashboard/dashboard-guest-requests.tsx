@@ -174,7 +174,7 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadRequests();
-    }, 30000);
+    }, 2000);
     return () => {
       cancelled = true;
       clearInterval(interval);

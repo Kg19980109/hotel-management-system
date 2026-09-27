@@ -279,7 +279,7 @@ export default function KitchenKdsPage() {
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refreshTickets();
-    }, 4000);
+    }, 2000);
 
     return () => {
       clearInterval(interval);

@@ -120,10 +120,10 @@
   --shadow-lg: 0 16px 40px rgba(13,24,48,0.12), 0 6px 16px rgba(13,24,48,0.07);
   --shadow-xl: 0 24px 56px rgba(13,24,48,0.18), 0 8px 24px rgba(13,24,48,0.10);
 
-  /* ─── TOPBAR ─────────────────────────────────────────────── */
-  --topbar-height: 58px;
-  --topbar-bg:     rgba(255,255,255,0.96);
-  --topbar-border: #E8ECF3;
+  /* ─── TOPBAR (Dark Luxury Hospitality Header) ───────────── */
+  --topbar-height: 60px;
+  --topbar-bg:     rgba(8, 17, 31, 0.96);
+  --topbar-border: rgba(255, 255, 255, 0.08);
 
   /* ─── TYPOGRAPHY ─────────────────────────────────────────── */
   --font-sans:  var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);

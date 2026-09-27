@@ -221,6 +221,34 @@ export default function RoomQrManagementPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Sub-Navigation Strip */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <a
+          href="/qr-services"
+          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-card hover:bg-secondary text-muted-foreground hover:text-foreground border border-border transition-colors flex items-center gap-2 shrink-0"
+        >
+          <span>All Access Points</span>
+        </a>
+        <a
+          href="/qr-services/rooms"
+          className="px-3.5 py-2 rounded-xl text-xs font-bold bg-primary text-white shadow-sm flex items-center gap-2 shrink-0"
+        >
+          <span>Room Batch Manager</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10.5px]">
+            {roomsWithQr.length} Rooms
+          </span>
+        </a>
+        <a
+          href="/qr-services/dining"
+          className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-card hover:bg-secondary text-muted-foreground hover:text-foreground border border-border transition-colors flex items-center gap-2 shrink-0"
+        >
+          <span>QR Dining Publisher</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10.5px] font-bold">
+            Live Menu
+          </span>
+        </a>
+      </div>
+
       {/* Hero Banner */}
       <div
         className="relative overflow-hidden rounded-3xl border border-white/10 shadow-2xl px-6 py-6"

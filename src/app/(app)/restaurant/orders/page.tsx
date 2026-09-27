@@ -139,7 +139,7 @@ export default function RestaurantOrdersPage() {
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadData();
-    }, 30000);
+    }, 2000);
 
     return () => {
       clearInterval(interval);

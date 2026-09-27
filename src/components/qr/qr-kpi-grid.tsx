@@ -1,6 +1,7 @@
 import * as React from "react";
-import { QrCode, BedDouble, Building2, Users } from "lucide-react";
+import { QrCode, BedDouble, Building2, Users, Sparkles } from "lucide-react";
 import { GuestQrCode, GuestSession } from "@/lib/guest-portal/types";
+import { Card } from "@/components/ui/card";
 
 interface QrKpiGridProps {
   qrCodes: GuestQrCode[];
@@ -20,61 +21,83 @@ export function QrKpiGrid({ qrCodes, sessions }: QrKpiGridProps) {
       title: "Total QR Access Points",
       value: totalQrs,
       icon: QrCode,
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
-      description: "Configured access points",
+      color: "text-indigo-600 dark:text-indigo-400",
+      bgColor: "bg-indigo-500/10 border-indigo-500/20",
+      accent: "from-indigo-500/10 via-purple-500/5 to-transparent",
+      description: "Active digital access touchpoints",
+      badge: "Configured",
     },
     {
       title: "Active Room QRs",
       value: activeRoomQrs,
       icon: BedDouble,
-      color: "text-amber-500",
-      bgColor: "bg-amber-500/10",
-      description: "Assigned in-room codes",
+      color: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/10 border-amber-500/20",
+      accent: "from-amber-500/10 via-yellow-500/5 to-transparent",
+      description: "In-room guest bedside cards",
+      badge: "In-Room Service",
     },
     {
       title: "General Hotel QRs",
       value: activeGeneralQrs,
       icon: Building2,
-      color: "text-emerald-500",
-      bgColor: "bg-emerald-500/10",
-      description: "Public lobby & amenities",
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10 border-emerald-500/20",
+      accent: "from-emerald-500/10 via-teal-500/5 to-transparent",
+      description: "Lobby, amenities & public portals",
+      badge: "Public & Dining",
     },
     {
-      title: "Active Guest Sessions",
+      title: "Live Guest Sessions",
       value: activeGuestSessions,
       icon: Users,
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
-      description: "Current verified sessions",
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-500/10 border-purple-500/20",
+      accent: "from-purple-500/10 via-pink-500/5 to-transparent",
+      description: "Current authenticated phones",
+      badge: "Live Active",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
       {kpis.map((kpi, idx) => {
         const Icon = kpi.icon;
         return (
-          <div
+          <Card
             key={idx}
-            className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center justify-between"
+            className={`relative overflow-hidden p-4 rounded-2xl border border-border/80 bg-gradient-to-br ${kpi.accent} bg-card shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group`}
           >
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 {kpi.title}
               </span>
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                {kpi.value}
+              <div
+                className={`w-9 h-9 rounded-xl ${kpi.bgColor} ${kpi.color} border flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform duration-150`}
+              >
+                <Icon className="w-4.5 h-4.5" />
               </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                {kpi.description}
-              </span>
             </div>
 
-            <div className={`w-12 h-12 rounded-xl ${kpi.bgColor} ${kpi.color} flex items-center justify-center`}>
-              <Icon className="w-6 h-6" />
+            <div className="mt-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-3xl font-extrabold text-foreground tracking-tight">
+                  {kpi.value}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary/80 text-foreground-muted border border-border/60">
+                  {idx === 3 && activeGuestSessions > 0 ? (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  ) : (
+                    <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                  )}
+                  {kpi.badge}
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1 font-medium">
+                {kpi.description}
+              </p>
             </div>
-          </div>
+          </Card>
         );
       })}
     </div>

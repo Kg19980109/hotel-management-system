@@ -114,11 +114,11 @@ export default function GuestRequestsPage() {
         .subscribe();
     });
 
-    // 15s visible-only backup poll (was 3s with spinner on every tick)
+    // 2s visible-only fast sync poll
     const pollInterval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refreshQuiet();
-    }, 15000);
+    }, 2000);
 
     return () => {
       cancelled = true;

@@ -87,11 +87,11 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
     window.addEventListener("online", handleReconnectSync);
     document.addEventListener("visibilitychange", handleReconnectSync);
 
-    // Fast active polling fallback (every 3s while cooking/preparing) for instant feedback
+    // Fast active polling fallback (every 2s while cooking/preparing) for instant feedback
     const heartbeatTimer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       router.refresh();
-    }, 3000);
+    }, 2000);
 
     return () => {
       void supabase.removeChannel(channel);

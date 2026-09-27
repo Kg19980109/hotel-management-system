@@ -1432,16 +1432,18 @@ export async function getExpenseReport(
     getDateRangeBoundaries(params.preset, context.timezone, params.startDate, params.endDate);
 
   const { data: expenses } = await supabase
-    .from("staff_expenses")
-    .select("id, category, amount, status, expense_date")
+    .from("expenses")
+    .select("id, amount, status, expense_date, category:expense_categories(name)")
     .eq("property_id", propertyId)
+    .neq("status", "CANCELLED")
     .gte("expense_date", startDate)
     .lte("expense_date", endDate);
 
   const { data: prevExpenses } = await supabase
-    .from("staff_expenses")
+    .from("expenses")
     .select("amount")
     .eq("property_id", propertyId)
+    .neq("status", "CANCELLED")
     .gte("expense_date", previousStartDate)
     .lte("expense_date", previousEndDate);
 
@@ -1449,14 +1451,15 @@ export async function getExpenseReport(
   const totalSpend = expList.reduce((s, e) => s + Number(e.amount || 0), 0);
   const prevSpend = (prevExpenses || []).reduce((s, e) => s + Number(e.amount || 0), 0);
 
-  const pendingAmt = expList.filter((e) => e.status === "PENDING_APPROVAL").reduce((s, e) => s + Number(e.amount || 0), 0);
-  const approvedAmt = expList.filter((e) => e.status === "APPROVED").reduce((s, e) => s + Number(e.amount || 0), 0);
+  const pendingAmt = expList.filter((e) => e.status === "PENDING" || e.status === "PENDING_APPROVAL").reduce((s, e) => s + Number(e.amount || 0), 0);
+  const approvedAmt = expList.filter((e) => e.status === "RECORDED" || e.status === "APPROVED").reduce((s, e) => s + Number(e.amount || 0), 0);
   const paidAmt = expList.filter((e) => e.status === "PAID").reduce((s, e) => s + Number(e.amount || 0), 0);
-  const rejectedAmt = expList.filter((e) => e.status === "REJECTED").reduce((s, e) => s + Number(e.amount || 0), 0);
+  const rejectedAmt = expList.filter((e) => e.status === "REJECTED" || e.status === "CANCELLED").reduce((s, e) => s + Number(e.amount || 0), 0);
 
   const catMap = new Map<string, { count: number; amount: number }>();
   expList.forEach((e) => {
-    const c = e.category || "GENERAL";
+    const cat = Array.isArray(e.category) ? e.category[0] : e.category;
+    const c = (cat as { name?: string })?.name || "General";
     const cur = catMap.get(c) || { count: 0, amount: 0 };
     cur.count++;
     cur.amount += Number(e.amount || 0);

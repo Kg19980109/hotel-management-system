@@ -163,7 +163,7 @@ export function KdsTerminal({
     const timer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadData();
-    }, 4000);
+    }, 2000);
 
     return () => {
       clearInterval(timer);

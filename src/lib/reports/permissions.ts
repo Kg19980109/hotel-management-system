@@ -7,6 +7,7 @@ import type { RoleCode } from "../auth/roles";
 export type ReportPermission =
   | "REPORTS_VIEW"
   | "REPORTS_EXPORT"
+  | "REPORT_BUSINESS"
   | "REPORT_OCCUPANCY"
   | "REPORT_REVENUE"
   | "REPORT_RESERVATIONS"
@@ -26,6 +27,7 @@ export const ROLE_REPORT_PERMISSIONS: Record<RoleCode, ReportPermission[]> = {
   SUPER_ADMIN: [
     "REPORTS_VIEW",
     "REPORTS_EXPORT",
+    "REPORT_BUSINESS",
     "REPORT_OCCUPANCY",
     "REPORT_REVENUE",
     "REPORT_RESERVATIONS",
@@ -44,6 +46,7 @@ export const ROLE_REPORT_PERMISSIONS: Record<RoleCode, ReportPermission[]> = {
   HOTEL_OWNER: [
     "REPORTS_VIEW",
     "REPORTS_EXPORT",
+    "REPORT_BUSINESS",
     "REPORT_OCCUPANCY",
     "REPORT_REVENUE",
     "REPORT_RESERVATIONS",
@@ -62,6 +65,7 @@ export const ROLE_REPORT_PERMISSIONS: Record<RoleCode, ReportPermission[]> = {
   GENERAL_MANAGER: [
     "REPORTS_VIEW",
     "REPORTS_EXPORT",
+    "REPORT_BUSINESS",
     "REPORT_OCCUPANCY",
     "REPORT_REVENUE",
     "REPORT_RESERVATIONS",
@@ -80,6 +84,7 @@ export const ROLE_REPORT_PERMISSIONS: Record<RoleCode, ReportPermission[]> = {
   ACCOUNTANT: [
     "REPORTS_VIEW",
     "REPORTS_EXPORT",
+    "REPORT_BUSINESS",
     "REPORT_OCCUPANCY",
     "REPORT_REVENUE",
     "REPORT_FINANCIALS",
@@ -159,6 +164,7 @@ export function getAccessibleReportRoutes(role: string | null | undefined): Arra
     category: "overview" | "operations" | "financial" | "resources";
   }> = [
     { href: "/reports", label: "Executive Dashboard", permission: "REPORTS_VIEW", category: "overview" },
+    { href: "/reports/business", label: "Owner Business Intelligence", permission: "REPORT_BUSINESS", category: "overview" },
     { href: "/reports/occupancy", label: "Occupancy", permission: "REPORT_OCCUPANCY", category: "operations" },
     { href: "/reports/rooms", label: "Room Performance", permission: "REPORT_OCCUPANCY", category: "operations" },
     { href: "/reports/reservations", label: "Reservations", permission: "REPORT_RESERVATIONS", category: "operations" },

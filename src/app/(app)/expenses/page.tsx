@@ -1,15 +1,26 @@
 "use client";
 
 import * as React from "react";
-import { PlaceholderPage } from "@/components/shared/placeholder-page";
+import { useAuth } from "@/lib/auth/context";
+import { ExpenseManagerView } from "@/components/expenses/expense-manager-view";
+import { LoadingState } from "@/components/ui/states";
 
-export default function Page() {
+export default function ExpensesPage() {
+  const { currentProperty, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingState message="Loading hotel expense manager..." />;
+  }
+
+  const propertyId = currentProperty?.property_id || "demo-property";
+  const propertyName = currentProperty?.property_name || "StayHub Property";
+  const currency = "INR";
+
   return (
-    <PlaceholderPage
-      title="Expenses & Petty Cash"
-      description="Operating expenditures, vendor payments, and utility receipts."
-      breadcrumbs={[{"label":"Business","href":"/expenses"},{"label":"Expenses"}]}
-      phase="Phase 18 — Accounting & Expenses"
+    <ExpenseManagerView
+      propertyId={propertyId}
+      propertyName={propertyName}
+      currency={currency}
     />
   );
 }

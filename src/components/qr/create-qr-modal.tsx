@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { X, QrCode, Building2, BedDouble, AlertCircle, Loader2 } from "lucide-react";
+import { X, QrCode, Building2, BedDouble, AlertCircle, Loader2, Sparkles, ShieldCheck } from "lucide-react";
 import { QrType, GuestQrCode } from "@/lib/guest-portal/types";
 import { createGuestQrCodeAction } from "@/lib/guest-portal/actions";
+import { Button } from "@/components/ui/button";
 
 interface RoomOption {
   id: string;
@@ -72,28 +73,35 @@ export function CreateQrModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-150">
+      <div className="w-full max-w-md bg-card rounded-2xl border border-border/80 shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-amber-500" />
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
-              Create QR Access Point
-            </h3>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border/80 bg-gradient-to-r from-amber-500/10 via-card to-card">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <QrCode className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-foreground">
+                Create QR Access Point
+              </h3>
+              <p className="text-[11px] text-muted-foreground">
+                Generate authenticated guest mobile access point
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -101,34 +109,34 @@ export function CreateQrModal({
 
           {/* Type Selector */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+            <label className="text-xs font-bold text-foreground uppercase tracking-wider">
               Access Point Type
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => setQrType("ROOM")}
-                className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition ${
+                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
                   qrType === "ROOM"
-                    ? "border-amber-500 bg-amber-500/10 text-amber-500 dark:text-amber-400"
-                    : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    ? "border-amber-500/80 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-xs"
+                    : "border-border/80 text-muted-foreground hover:bg-secondary"
                 }`}
               >
-                <BedDouble className="w-4 h-4" />
-                <span>Room In-Stay</span>
+                <BedDouble className="w-5 h-5" />
+                <span>In-Room Bedside</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setQrType("HOTEL_GENERAL")}
-                className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition ${
+                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
                   qrType === "HOTEL_GENERAL"
-                    ? "border-amber-500 bg-amber-500/10 text-amber-500 dark:text-amber-400"
-                    : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    ? "border-indigo-500/80 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-xs"
+                    : "border-border/80 text-muted-foreground hover:bg-secondary"
                 }`}
               >
-                <Building2 className="w-4 h-4" />
-                <span>Hotel General</span>
+                <Building2 className="w-5 h-5" />
+                <span>Public / Lobby</span>
               </button>
             </div>
           </div>
@@ -136,14 +144,14 @@ export function CreateQrModal({
           {/* Room Selection (if ROOM) */}
           {qrType === "ROOM" && (
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Assigned Room <span className="text-amber-500">*</span>
+              <label className="text-xs font-bold text-foreground">
+                Assigned Guest Room <span className="text-amber-500">*</span>
               </label>
               <select
                 required
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2.5 rounded-xl bg-secondary/50 border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
               >
                 <option value="">Select a room...</option>
                 {rooms.map((r) => (
@@ -152,43 +160,47 @@ export function CreateQrModal({
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-slate-500">
-                Any existing active QR for this room will be automatically rotated.
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                Any previous QR for this room will be rotated automatically.
               </p>
             </div>
           )}
 
           {/* Custom Name / Label */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              Access Point Label <span className="text-slate-400 text-[10px]">(Optional)</span>
+            <label className="text-xs font-bold text-foreground">
+              Card Label <span className="text-muted-foreground text-[10.5px] font-normal">(Optional)</span>
             </label>
             <input
               type="text"
-              placeholder={qrType === "ROOM" ? "e.g. Master Bedroom QR" : "e.g. Main Lobby Reception QR"}
+              placeholder={qrType === "ROOM" ? "e.g. Master Bedroom Nightstand QR" : "e.g. Lobby Reception Desk QR"}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs focus:outline-none focus:border-amber-500"
+              className="w-full px-3 py-2 rounded-xl bg-secondary/50 border border-border text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
             />
           </div>
 
           {/* Actions */}
-          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
-            <button
+          <div className="pt-3 border-t border-border/80 flex items-center justify-end gap-2.5">
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={onClose}
-              className="py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              className="rounded-xl text-xs font-medium"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={loading}
-              className="py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition disabled:opacity-50"
+              className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs h-9 px-4 flex items-center gap-1.5 shadow-md shadow-amber-950/20"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <Sparkles className="w-3.5 h-3.5" />
               <span>Generate Secure QR</span>
-            </button>
+            </Button>
           </div>
         </form>
       </div>

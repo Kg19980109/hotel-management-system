@@ -230,7 +230,7 @@ export default function HousekeepingPage() {
     const poll = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadHousekeepingData();
-    }, 30000);
+    }, 2000);
 
     return () => {
       clearInterval(poll);

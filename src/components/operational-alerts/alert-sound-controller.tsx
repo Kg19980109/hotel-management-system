@@ -8,7 +8,6 @@
 import * as React from "react";
 import { Volume2, VolumeX, Bell, RefreshCw } from "lucide-react";
 import { useOperationalAlerts } from "./operational-alert-provider";
-import { operationalAlertManager } from "@/lib/alerts/operational-alert-manager";
 
 export function AlertSoundController() {
   const {
@@ -26,7 +25,7 @@ export function AlertSoundController() {
     <div className="relative flex items-center gap-2">
       {/* 1. Connection Status Dot / Badge (Only when reconnecting) */}
       {connectionStatus === "RECONNECTING" && (
-        <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#D4AF37]/10 text-[#E5C158] border border-[#D4AF37]/30 animate-pulse">
+        <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#D4AF37]/15 text-[#E5C158] border border-[#D4AF37]/30 animate-pulse">
           <RefreshCw className="w-3 h-3 animate-spin text-[#E5C158]" />
           <span>Syncing Dispatch...</span>
         </span>
@@ -58,14 +57,14 @@ export function AlertSoundController() {
           setSoundEnabled(!soundEnabled);
         }}
         title={soundEnabled ? "Audible alerts ON (Click to mute)" : "Audible alerts MUTED (Click to enable)"}
-        className={`p-2 rounded-xl transition border ${
+        className={`p-2 rounded-xl transition border h-9.5 w-9.5 flex items-center justify-center ${
           soundEnabled
-            ? "bg-slate-100 hover:bg-slate-200/80 text-slate-800 border-slate-200/90 shadow-2xs"
-            : "bg-slate-50 text-slate-400 border-slate-200/60 hover:bg-slate-100"
+            ? "bg-white/[0.07] hover:bg-white/[0.14] text-emerald-400 border-white/[0.12] shadow-inner"
+            : "bg-white/[0.04] text-slate-400 border-white/[0.08] hover:bg-white/[0.08]"
         }`}
       >
         {soundEnabled ? (
-          <Volume2 className="w-4 h-4 text-emerald-600" />
+          <Volume2 className="w-4 h-4 text-emerald-400" />
         ) : (
           <VolumeX className="w-4 h-4 text-slate-400" />
         )}

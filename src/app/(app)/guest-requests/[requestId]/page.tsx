@@ -126,7 +126,7 @@ export default function GuestRequestDetailPage() {
     const poll = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refreshQuiet();
-    }, 15000);
+    }, 2000);
 
     return () => {
       cancelled = true;

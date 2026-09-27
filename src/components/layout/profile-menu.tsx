@@ -63,13 +63,13 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
         aria-haspopup="menu"
         aria-label="User profile menu"
         className={cn(
-          "flex items-center gap-2 rounded-xl px-2 py-1 hover:bg-slate-100/80 transition-all duration-150 text-left border border-transparent hover:border-slate-200/80",
-          isOpen && "bg-slate-100 border-slate-200"
+          "flex items-center gap-2 rounded-xl px-2.5 py-1.5 hover:bg-white/[0.12] transition-all duration-150 text-left border border-white/[0.12] bg-white/[0.07] shadow-inner",
+          isOpen && "bg-white/[0.14] ring-2 ring-indigo-400/30 border-indigo-400"
         )}
       >
         <Avatar name={userName} size="sm" />
         <div className="text-left hidden sm:block">
-          <p className="text-xs font-bold text-slate-800 leading-tight">
+          <p className="text-xs font-bold text-slate-100 leading-tight">
             {userName}
           </p>
           <p className="text-[10.5px] font-medium text-slate-400 leading-tight mt-0.5">
@@ -78,7 +78,7 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
         </div>
         <ChevronDown
           className={cn(
-            "text-slate-400 transition-transform duration-200 hidden sm:block h-3.5 w-3.5",
+            "text-slate-400 transition-transform duration-200 hidden sm:block h-3.5 w-3.5 ml-0.5",
             isOpen && "rotate-180"
           )}
         />
@@ -88,17 +88,17 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
         <div
           role="menu"
           aria-label="User account actions"
-          className="absolute right-0 mt-2 w-64 rounded-[var(--radius-xl)] bg-white border border-[var(--border)] shadow-[var(--shadow-xl)] py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#0A1124] border border-white/[0.12] shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-2xl"
         >
           {/* User Details */}
-          <div className="px-4 py-3 border-b border-[var(--border)]">
-            <p className="text-[13px] font-semibold text-[var(--foreground)] truncate">
+          <div className="px-4 py-3 border-b border-white/[0.08]">
+            <p className="text-[13px] font-semibold text-slate-100 truncate">
               {userName}
             </p>
-            <p className="text-[12px] text-[var(--foreground-muted)] truncate">
+            <p className="text-[12px] text-slate-400 truncate">
               {userEmail}
             </p>
-            <div className="flex items-center gap-1.5 mt-2 text-[11px] font-medium text-[var(--primary)] bg-indigo-50/70 px-2 py-1 rounded-[var(--radius-sm)]">
+            <div className="flex items-center gap-1.5 mt-2 text-[11px] font-medium text-indigo-400 bg-indigo-500/15 border border-indigo-500/25 px-2.5 py-1 rounded-lg">
               <Building className="h-3 w-3 shrink-0" />
               <span className="truncate">{hotelName}</span>
             </div>
@@ -110,33 +110,33 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
               href="/settings"
               onClick={() => setIsOpen(false)}
               role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
             >
-              <User className="h-4 w-4 text-[var(--foreground-muted)]" />
+              <User className="h-4 w-4 text-slate-400" />
               <span>My Profile</span>
             </Link>
             <Link
               href="/settings"
               onClick={() => setIsOpen(false)}
               role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
             >
-              <Settings className="h-4 w-4 text-[var(--foreground-muted)]" />
+              <Settings className="h-4 w-4 text-slate-400" />
               <span>Hotel Settings</span>
             </Link>
             <Link
               href="/settings"
               onClick={() => setIsOpen(false)}
               role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-[var(--foreground)] hover:bg-[var(--secondary)] transition-colors"
+              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
             >
-              <Shield className="h-4 w-4 text-[var(--foreground-muted)]" />
+              <Shield className="h-4 w-4 text-slate-400" />
               <span>Roles & Permissions</span>
             </Link>
           </div>
 
           {/* Sign Out */}
-          <div className="border-t border-[var(--border)] pt-1 mt-1">
+          <div className="border-t border-white/[0.08] pt-1 mt-1">
             <button
               type="button"
               role="menuitem"
@@ -144,7 +144,7 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
                 setIsOpen(false);
                 await signOut();
               }}
-              className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-[var(--danger)] hover:bg-red-50/60 transition-colors text-left"
+              className="w-full flex items-center gap-2.5 px-4 py-2 text-[13px] text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors text-left"
             >
               <LogOut className="h-4 w-4" />
               <span>Sign Out</span>

@@ -23,10 +23,12 @@ import {
   UserCheck,
   CreditCard,
   BellRing,
+  LineChart,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   "/reports": <LayoutDashboard className="w-3.5 h-3.5" />,
+  "/reports/business": <LineChart className="w-3.5 h-3.5" />,
   "/reports/occupancy": <BedDouble className="w-3.5 h-3.5" />,
   "/reports/rooms": <DoorOpen className="w-3.5 h-3.5" />,
   "/reports/reservations": <CalendarCheck className="w-3.5 h-3.5" />,

@@ -58,6 +58,15 @@ export interface RoomType {
   updated_at: string;
 }
 
+export interface RoomLiveFolioCharge {
+  id: string;
+  description: string;
+  chargeType: string;
+  amount: number;
+  taxAmount: number;
+  postedAt: string;
+}
+
 export interface RoomLiveStay {
   id: string;
   reservationId?: string;
@@ -79,6 +88,7 @@ export interface RoomLiveStay {
   balanceDue: number;
   currency: string;
   folioId?: string;
+  charges?: RoomLiveFolioCharge[];
 }
 
 export interface RoomLiveServiceRequest {

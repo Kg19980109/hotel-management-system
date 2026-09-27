@@ -123,11 +123,28 @@ export async function fetchRooms(
 
     // 1. Fetch active checked-in stays for these rooms
     const activeStaysMap = new Map<string, any>();
-    const foliosMap = new Map<string, { totalCharges: number; totalPaid: number; balanceDue: number; currency: string; folioId: string }>();
+    const foliosMap = new Map<
+      string,
+      {
+        totalCharges: number;
+        totalPaid: number;
+        balanceDue: number;
+        currency: string;
+        folioId: string;
+        charges: Array<{
+          id: string;
+          description: string;
+          chargeType: string;
+          amount: number;
+          taxAmount: number;
+          postedAt: string;
+        }>;
+      }
+    >();
 
     if (roomIds.length > 0) {
       try {
-        const { data: activeStays } = await supabase
+        const { data: activeStays, error: staysErr } = await supabase
           .from("stays")
           .select(`
             id,
@@ -135,18 +152,21 @@ export async function fetchRooms(
             guest_id,
             reservation_id,
             status,
-            actual_check_in,
+            actual_check_in_at,
             expected_check_out_date,
             adults,
             children,
-            key_card_number,
             notes,
-            guest:guests(id, first_name, last_name, email, phone, vip_status),
+            guest:guests(id, first_name, last_name, email, phone),
             reservation:reservations(id, confirmation_number, total_amount)
           `)
           .eq("property_id", propertyId)
           .eq("status", "CHECKED_IN")
           .in("room_id", roomIds);
+
+        if (staysErr) {
+          console.error("fetchRooms activeStays query error:", staysErr);
+        }
 
         if (activeStays && activeStays.length > 0) {
           activeStays.forEach((s: any) => {
@@ -154,28 +174,47 @@ export async function fetchRooms(
           });
 
           const stayIds = activeStays.map((s: any) => s.id);
-          const { data: folios } = await supabase
+          const { data: folios, error: foliosErr } = await supabase
             .from("guest_folios")
             .select(`
               id,
               stay_id,
               currency,
-              folio_charges(total_amount),
+              folio_charges(id, description, charge_type, total_amount, tax_amount, posted_at, voided_at),
               folio_payments(amount, status)
             `)
             .in("stay_id", stayIds);
 
+          if (foliosErr) {
+            console.error("fetchRooms folios query error:", foliosErr);
+          }
+
           (folios || []).forEach((f: any) => {
-            const charges = (f.folio_charges || []).reduce((acc: number, c: any) => acc + Number(c.total_amount || 0), 0);
+            const validCharges = (f.folio_charges || []).filter((c: any) => !c.voided_at);
+            const charges = validCharges.reduce(
+              (acc: number, c: any) => acc + Number(c.total_amount || 0),
+              0
+            );
             const payments = (f.folio_payments || [])
               .filter((p: any) => p.status === "COMPLETED")
               .reduce((acc: number, p: any) => acc + Number(p.amount || 0), 0);
+
+            const itemizedCharges = validCharges.map((c: any) => ({
+              id: c.id,
+              description: c.description || "Room Charge",
+              chargeType: c.charge_type || "ROOM_CHARGE",
+              amount: Number(c.total_amount || 0),
+              taxAmount: Number(c.tax_amount || 0),
+              postedAt: c.posted_at || new Date().toISOString(),
+            }));
+
             foliosMap.set(f.stay_id, {
               folioId: f.id,
               currency: f.currency || "INR",
               totalCharges: charges,
               totalPaid: payments,
               balanceDue: Math.max(0, charges - payments),
+              charges: itemizedCharges,
             });
           });
         }
@@ -188,7 +227,7 @@ export async function fetchRooms(
     const requestsByRoom = new Map<string, any[]>();
     if (roomIds.length > 0) {
       try {
-        const { data: activeRequests } = await supabase
+        const { data: activeRequests, error: reqErr } = await supabase
           .from("guest_service_requests")
           .select(`
             id,
@@ -198,13 +237,16 @@ export async function fetchRooms(
             category,
             priority,
             status,
-            created_at,
-            assigned_staff:assigned_staff_id(full_name)
+            created_at
           `)
           .eq("property_id", propertyId)
           .not("status", "in", '("COMPLETED","CANCELLED","REJECTED")')
           .in("room_id", roomIds)
           .order("created_at", { ascending: false });
+
+        if (reqErr) {
+          console.error("fetchRooms activeRequests query error:", reqErr);
+        }
 
         (activeRequests || []).forEach((r: any) => {
           if (r.room_id) {
@@ -239,16 +281,16 @@ export async function fetchRooms(
           guestVip: Boolean(g?.vip_status),
           adults: stay.adults || 1,
           children: stay.children || 0,
-          checkInDate: stay.actual_check_in || stay.created_at,
+          checkInDate: stay.actual_check_in_at || stay.created_at,
           expectedCheckOutDate: stay.expected_check_out_date,
           status: stay.status,
-          keyCardNumber: stay.key_card_number || null,
           notes: stay.notes || null,
           totalCharges: folioData?.totalCharges || Number(res?.total_amount || 0),
           totalPaid: folioData?.totalPaid || 0,
           balanceDue: folioData ? folioData.balanceDue : Number(res?.total_amount || 0),
           currency: folioData?.currency || "INR",
           folioId: folioData?.folioId,
+          charges: folioData?.charges || [],
         };
       }
 

@@ -364,6 +364,7 @@ export async function assignRoomAndCheckInGuestAction(
       p_adults: input.adults || 1,
       p_children: input.children || 0,
       p_notes: input.notes || null,
+      p_performed_by: authRes.auth?.userId || null,
     });
 
     if (error) {
@@ -383,6 +384,146 @@ export async function assignRoomAndCheckInGuestAction(
     return { success: true, data };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Failed to assign room and check in guest";
+    return { success: false, error: msg };
+  }
+}
+
+export interface DirectAssignmentRoomOption {
+  id: string;
+  room_number: string;
+  room_name?: string | null;
+  status: string;
+  housekeeping_status: string;
+  is_active: boolean;
+  is_occupied: boolean;
+  active_guest_name?: string | null;
+  room_type?: {
+    id: string;
+    name: string;
+    code: string;
+    base_rate: number;
+    max_occupancy?: number;
+  } | null;
+}
+
+export interface DirectAssignmentGuestOption {
+  id: string;
+  first_name: string;
+  last_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+}
+
+/**
+ * Fetch available rooms and recent guests for direct room assignment
+ */
+export async function getDirectAssignmentOptionsAction(
+  propertyId: string
+): Promise<ActionResponse<{
+  rooms: DirectAssignmentRoomOption[];
+  guests: DirectAssignmentGuestOption[];
+}>> {
+  if (!propertyId) {
+    return { success: false, error: "Property context is required." };
+  }
+
+  const supabase = await createClient();
+
+  try {
+    // 1. Fetch rooms with room_types and active stays
+    const { data: rawRooms, error: roomsErr } = await supabase
+      .from("rooms")
+      .select(`
+        id,
+        room_number,
+        room_name,
+        status,
+        housekeeping_status,
+        is_active,
+        room_types:room_type_id (
+          id,
+          name,
+          code,
+          base_rate,
+          max_occupancy
+        ),
+        stays (
+          id,
+          status,
+          guests (
+            first_name,
+            last_name
+          )
+        )
+      `)
+      .eq("property_id", propertyId)
+      .eq("is_active", true)
+      .order("room_number", { ascending: true });
+
+    if (roomsErr) {
+      console.error("getDirectAssignmentOptionsAction rooms error:", roomsErr);
+      return { success: false, error: roomsErr.message };
+    }
+
+    const rooms: DirectAssignmentRoomOption[] = (rawRooms || []).map((r: any) => {
+      const activeStay = (r.stays || []).find((s: any) => s.status === "CHECKED_IN");
+      const isOccupied = !!activeStay || r.status === "OCCUPIED";
+      const guestObj = activeStay?.guests;
+      const activeGuestName = guestObj
+        ? `${guestObj.first_name} ${guestObj.last_name || ""}`.trim()
+        : null;
+
+      const rt = r.room_types;
+      return {
+        id: r.id,
+        room_number: r.room_number,
+        room_name: r.room_name,
+        status: r.status,
+        housekeeping_status: r.housekeeping_status,
+        is_active: r.is_active,
+        is_occupied: isOccupied,
+        active_guest_name: activeGuestName,
+        room_type: rt
+          ? {
+              id: rt.id,
+              name: rt.name,
+              code: rt.code,
+              base_rate: Number(rt.base_rate) || 0,
+              max_occupancy: rt.max_occupancy,
+            }
+          : null,
+      };
+    });
+
+    // 2. Fetch recent guests
+    const { data: rawGuests, error: guestsErr } = await supabase
+      .from("guests")
+      .select("id, first_name, last_name, phone, email")
+      .eq("property_id", propertyId)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (guestsErr) {
+      console.error("getDirectAssignmentOptionsAction guests error:", guestsErr);
+    }
+
+    const guests: DirectAssignmentGuestOption[] = (rawGuests || []).map((g: any) => ({
+      id: g.id,
+      first_name: g.first_name,
+      last_name: g.last_name,
+      phone: g.phone,
+      email: g.email,
+    }));
+
+    return {
+      success: true,
+      data: {
+        rooms,
+        guests,
+      },
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to load assignment options";
     return { success: false, error: msg };
   }
 }

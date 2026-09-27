@@ -22,8 +22,12 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
-import { createClient } from "@/lib/supabase/client";
-import { assignRoomAndCheckInGuestAction } from "@/lib/front-desk/actions";
+import {
+  assignRoomAndCheckInGuestAction,
+  getDirectAssignmentOptionsAction,
+  DirectAssignmentRoomOption,
+  DirectAssignmentGuestOption,
+} from "@/lib/front-desk/actions";
 
 interface DirectRoomAssignmentModalProps {
   isOpen: boolean;
@@ -39,25 +43,6 @@ interface DirectRoomAssignmentModalProps {
   }) => void;
 }
 
-interface RoomOption {
-  id: string;
-  room_number: string;
-  room_name?: string;
-  status: string;
-  room_type?: {
-    name: string;
-    base_price?: number;
-  };
-}
-
-interface GuestOption {
-  id: string;
-  first_name: string;
-  last_name?: string;
-  phone?: string;
-  email?: string;
-}
-
 export function DirectRoomAssignmentModal({
   isOpen,
   onClose,
@@ -67,12 +52,11 @@ export function DirectRoomAssignmentModal({
   onSuccess,
 }: DirectRoomAssignmentModalProps) {
   const { success, error: toastError } = useToast();
-  const supabase = React.useMemo(() => createClient(), []);
 
   const [loadingInitial, setLoadingInitial] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [rooms, setRooms] = useState<RoomOption[]>([]);
-  const [guests, setGuests] = useState<GuestOption[]>([]);
+  const [rooms, setRooms] = useState<DirectAssignmentRoomOption[]>([]);
+  const [guests, setGuests] = useState<DirectAssignmentGuestOption[]>([]);
 
   // Form Mode: "EXISTING_GUEST" | "NEW_GUEST"
   const [guestMode, setGuestMode] = useState<"EXISTING_GUEST" | "NEW_GUEST">(
@@ -86,7 +70,7 @@ export function DirectRoomAssignmentModal({
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [idDocType, setIdDocType] = useState("Aadhaar / National ID");
+  const [idDocType, setIdDocType] = useState("NATIONAL_ID");
   const [idDocNumber, setIdDocNumber] = useState("");
 
   // Room & Stay Details
@@ -117,38 +101,25 @@ export function DirectRoomAssignmentModal({
     async function loadData() {
       setLoadingInitial(true);
       try {
-        // Fetch all rooms in property
-        const { data: roomsData } = await supabase
-          .from("rooms")
-          .select("id, room_number, room_name, status, room_type:room_type_id(name, base_price)")
-          .eq("property_id", propertyId)
-          .order("room_number", { ascending: true });
+        const res = await getDirectAssignmentOptionsAction(propertyId);
+        if (res.success && res.data) {
+          setRooms(res.data.rooms);
+          setGuests(res.data.guests);
 
-        if (roomsData) {
-          setRooms(roomsData as unknown as RoomOption[]);
           if (defaultRoomId) {
             setSelectedRoomId(defaultRoomId);
-            const found = (roomsData as unknown as RoomOption[]).find((r) => r.id === defaultRoomId);
-            if (found?.room_type?.base_price) {
-              setRatePerNight(Number(found.room_type.base_price));
+            const found = res.data.rooms.find((r) => r.id === defaultRoomId);
+            if (found?.room_type?.base_rate) {
+              setRatePerNight(Number(found.room_type.base_rate));
             }
           }
-        }
 
-        // Fetch recent guests
-        const { data: guestsData } = await supabase
-          .from("guests")
-          .select("id, first_name, last_name, phone, email")
-          .eq("property_id", propertyId)
-          .order("created_at", { ascending: false })
-          .limit(100);
-
-        if (guestsData) {
-          setGuests(guestsData as GuestOption[]);
           if (defaultGuestId) {
             setSelectedGuestId(defaultGuestId);
             setGuestMode("EXISTING_GUEST");
           }
+        } else if (res.error) {
+          toastError("Failed to Load Rooms", res.error);
         }
       } catch (err) {
         console.error("Failed to load modal data:", err);
@@ -158,14 +129,14 @@ export function DirectRoomAssignmentModal({
     }
 
     void loadData();
-  }, [isOpen, propertyId, defaultGuestId, defaultRoomId, supabase]);
+  }, [isOpen, propertyId, defaultGuestId, defaultRoomId]);
 
-  // When room is changed, pre-fill base price
+  // When room is changed, pre-fill base rate
   const handleRoomChange = (roomId: string) => {
     setSelectedRoomId(roomId);
     const found = rooms.find((r) => r.id === roomId);
-    if (found?.room_type?.base_price && ratePerNight === 0) {
-      setRatePerNight(Number(found.room_type.base_price));
+    if (found?.room_type?.base_rate) {
+      setRatePerNight(Number(found.room_type.base_rate));
     }
   };
 
@@ -412,10 +383,10 @@ export function DirectRoomAssignmentModal({
                     onChange={(e) => setIdDocType(e.target.value)}
                     className="w-full h-9 rounded-lg border border-border bg-card px-3 text-xs text-foreground focus:outline-hidden focus:ring-1 focus:ring-amber-500"
                   >
-                    <option value="Aadhaar / National ID">Aadhaar / National ID</option>
-                    <option value="Passport">Passport</option>
-                    <option value="Driving License">Driving License</option>
-                    <option value="Voter ID">Voter ID</option>
+                    <option value="NATIONAL_ID">Aadhaar / National ID</option>
+                    <option value="PASSPORT">Passport</option>
+                    <option value="DRIVERS_LICENSE">Driving License</option>
+                    <option value="OTHER">Voter ID / Other</option>
                   </select>
                 </div>
 
@@ -496,27 +467,53 @@ export function DirectRoomAssignmentModal({
                 <label className="text-[11px] font-semibold text-muted-foreground">
                   Select Room <span className="text-red-500">*</span>
                 </label>
-                <select
-                  required
-                  value={selectedRoomId}
-                  onChange={(e) => handleRoomChange(e.target.value)}
-                  className="w-full h-9 rounded-lg border border-border bg-card px-3 text-xs text-foreground focus:outline-hidden focus:ring-1 focus:ring-amber-500 font-bold"
-                >
-                  <option value="">-- Choose Available Room --</option>
-                  {rooms.map((r) => {
-                    const isOccupied = r.status === "OCCUPIED";
-                    return (
-                      <option
-                        key={r.id}
-                        value={r.id}
-                        disabled={isOccupied}
-                        className={isOccupied ? "text-muted-foreground" : "text-foreground font-bold"}
-                      >
-                        Room {r.room_number} {r.room_type?.name ? `(${r.room_type.name})` : ""} — {r.status}
-                      </option>
-                    );
-                  })}
-                </select>
+                <div className="relative">
+                  <select
+                    required
+                    disabled={loadingInitial}
+                    value={selectedRoomId}
+                    onChange={(e) => handleRoomChange(e.target.value)}
+                    className="w-full h-9 rounded-lg border border-border bg-card px-3 text-xs text-foreground focus:outline-hidden focus:ring-1 focus:ring-amber-500 font-bold disabled:opacity-60"
+                  >
+                    <option value="">
+                      {loadingInitial ? "-- Loading Property Rooms... --" : "-- Choose Available Room --"}
+                    </option>
+                    {rooms.map((r) => {
+                      const isOccupied = r.is_occupied || r.status === "OCCUPIED";
+                      const isDirty = r.housekeeping_status === "DIRTY" || r.status === "DIRTY";
+                      const isOutOfOrder = r.status === "OUT_OF_ORDER" || r.status === "OUT_OF_SERVICE";
+
+                      let statusBadge = r.status;
+                      if (isOccupied) {
+                        statusBadge = `Occupied (${r.active_guest_name || "Guest in-house"})`;
+                      } else if (isOutOfOrder) {
+                        statusBadge = "Out of Order";
+                      } else if (isDirty) {
+                        statusBadge = "Available (Cleaning Pending)";
+                      } else {
+                        statusBadge = "Available / Clean";
+                      }
+
+                      const rateStr = r.room_type?.base_rate ? ` • ₹${r.room_type.base_rate}/night` : "";
+
+                      return (
+                        <option
+                          key={r.id}
+                          value={r.id}
+                          disabled={isOccupied || isOutOfOrder}
+                          className={isOccupied || isOutOfOrder ? "text-muted-foreground" : "text-foreground font-bold"}
+                        >
+                          Room {r.room_number} {r.room_type?.name ? `(${r.room_type.name})` : ""} — {statusBadge}{rateStr}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  {loadingInitial && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Nightly Tariff */}

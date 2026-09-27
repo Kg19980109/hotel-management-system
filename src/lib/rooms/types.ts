@@ -58,6 +58,40 @@ export interface RoomType {
   updated_at: string;
 }
 
+export interface RoomLiveStay {
+  id: string;
+  reservationId?: string;
+  confirmationNumber?: string;
+  guestId?: string;
+  guestName: string;
+  guestEmail?: string | null;
+  guestPhone?: string | null;
+  guestVip?: boolean;
+  adults: number;
+  children: number;
+  checkInDate: string;
+  expectedCheckOutDate: string;
+  status: string;
+  keyCardNumber?: string | null;
+  notes?: string | null;
+  totalCharges: number;
+  totalPaid: number;
+  balanceDue: number;
+  currency: string;
+  folioId?: string;
+}
+
+export interface RoomLiveServiceRequest {
+  id: string;
+  title: string;
+  description?: string | null;
+  category: string;
+  priority: string;
+  status: string;
+  createdAt: string;
+  assignedStaffName?: string | null;
+}
+
 export interface Room {
   id: string;
   property_id: string;
@@ -78,6 +112,10 @@ export interface Room {
   // Joined relation objects
   room_type?: RoomType | null;
   floor?: Floor | null;
+  // Live Operational Context
+  liveStay?: RoomLiveStay | null;
+  activeRequests?: RoomLiveServiceRequest[];
+  pendingRequestsCount?: number;
 }
 
 export interface RoomStats {

@@ -4,3 +4,4 @@ export * from "./room-status-modal";
 export * from "./room-filters";
 export * from "./room-table";
 export * from "./room-card-grid";
+export * from "./room-live-details-modal";

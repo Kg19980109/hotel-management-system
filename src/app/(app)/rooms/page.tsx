@@ -25,6 +25,7 @@ import {
   RoomTable,
   RoomCardGrid,
   RoomStatusModal,
+  RoomLiveDetailsModal,
 } from "@/components/rooms";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/states";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,7 @@ export default function RoomsPage() {
   const [roomTypes, setRoomTypes] = React.useState<RoomType[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [viewMode, setViewMode] = React.useState<"list" | "grid">("list");
+  const [viewMode, setViewMode] = React.useState<"list" | "grid">("grid");
   const [filters, setFilters] = React.useState<RoomFilterOptions>({
     status: "ALL",
     housekeepingStatus: "ALL",
@@ -64,6 +65,7 @@ export default function RoomsPage() {
     pageSize: 24,
   });
   const [selectedRoomForStatus, setSelectedRoomForStatus] = React.useState<Room | null>(null);
+  const [selectedRoomForLiveDetails, setSelectedRoomForLiveDetails] = React.useState<Room | null>(null);
   const [roomToDeactivate, setRoomToDeactivate] = React.useState<Room | null>(null);
   const [isDeactivating, setIsDeactivating] = React.useState(false);
 
@@ -317,12 +319,14 @@ export default function RoomsPage() {
               currency={currency}
               onOpenStatusModal={(room) => setSelectedRoomForStatus(room)}
               onDeactivateRoom={(room) => setRoomToDeactivate(room)}
+              onSelectRoom={(room) => setSelectedRoomForLiveDetails(room)}
             />
           ) : (
             <RoomCardGrid
               rooms={rooms}
               currency={currency}
               onOpenStatusModal={(room) => setSelectedRoomForStatus(room)}
+              onSelectRoom={(room) => setSelectedRoomForLiveDetails(room)}
             />
           )}
 
@@ -370,6 +374,23 @@ export default function RoomsPage() {
           )}
         </div>
       )}
+
+      {/* Live Guest & Stay Inspection Modal */}
+      <RoomLiveDetailsModal
+        open={Boolean(selectedRoomForLiveDetails)}
+        room={selectedRoomForLiveDetails}
+        propertyId={activePropertyId || ""}
+        currency={currency}
+        onClose={() => setSelectedRoomForLiveDetails(null)}
+        onSuccess={() => {
+          loadData();
+          // Update the selected room in state if open
+          if (selectedRoomForLiveDetails) {
+            const updated = rooms.find((r) => r.id === selectedRoomForLiveDetails.id);
+            if (updated) setSelectedRoomForLiveDetails(updated);
+          }
+        }}
+      />
 
       {/* Modals */}
       <RoomStatusModal

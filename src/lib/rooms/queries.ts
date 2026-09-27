@@ -12,6 +12,8 @@ import type {
   Floor,
   RoomStats,
   RoomFilterOptions,
+  RoomLiveStay,
+  RoomLiveServiceRequest,
 } from "./types";
 
 /**
@@ -112,30 +114,179 @@ export async function fetchRooms(
     const { data, count, error } = await query;
 
     if (error) {
-      console.error("Error fetching rooms:", error);
+      console.error("fetchRooms query error:", error);
       return { rooms: [], totalCount: 0 };
     }
 
-    const rooms: Room[] = (data || []).map((item) => ({
-      id: item.id,
-      property_id: item.property_id,
-      floor_id: item.floor_id,
-      room_type_id: item.room_type_id,
-      room_number: item.room_number,
-      room_name: item.room_name,
-      status: item.status,
-      housekeeping_status: item.housekeeping_status,
-      availability_status: item.availability_status,
-      max_occupancy: item.max_occupancy,
-      floor_label: item.floor_label,
-      view_type: item.view_type,
-      notes: item.notes,
-      is_active: item.is_active,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      room_type: item.room_type as unknown as RoomType | null,
-      floor: item.floor as unknown as Floor | null,
-    }));
+    const rawData = data || [];
+    const roomIds = rawData.map((item) => item.id);
+
+    // 1. Fetch active checked-in stays for these rooms
+    const activeStaysMap = new Map<string, any>();
+    const foliosMap = new Map<string, { totalCharges: number; totalPaid: number; balanceDue: number; currency: string; folioId: string }>();
+
+    if (roomIds.length > 0) {
+      try {
+        const { data: activeStays } = await supabase
+          .from("stays")
+          .select(`
+            id,
+            room_id,
+            guest_id,
+            reservation_id,
+            status,
+            actual_check_in,
+            expected_check_out_date,
+            adults,
+            children,
+            key_card_number,
+            notes,
+            guest:guests(id, first_name, last_name, email, phone, vip_status),
+            reservation:reservations(id, confirmation_number, total_amount)
+          `)
+          .eq("property_id", propertyId)
+          .eq("status", "CHECKED_IN")
+          .in("room_id", roomIds);
+
+        if (activeStays && activeStays.length > 0) {
+          activeStays.forEach((s: any) => {
+            if (s.room_id) activeStaysMap.set(s.room_id, s);
+          });
+
+          const stayIds = activeStays.map((s: any) => s.id);
+          const { data: folios } = await supabase
+            .from("guest_folios")
+            .select(`
+              id,
+              stay_id,
+              currency,
+              folio_charges(total_amount),
+              folio_payments(amount, status)
+            `)
+            .in("stay_id", stayIds);
+
+          (folios || []).forEach((f: any) => {
+            const charges = (f.folio_charges || []).reduce((acc: number, c: any) => acc + Number(c.total_amount || 0), 0);
+            const payments = (f.folio_payments || [])
+              .filter((p: any) => p.status === "COMPLETED")
+              .reduce((acc: number, p: any) => acc + Number(p.amount || 0), 0);
+            foliosMap.set(f.stay_id, {
+              folioId: f.id,
+              currency: f.currency || "INR",
+              totalCharges: charges,
+              totalPaid: payments,
+              balanceDue: Math.max(0, charges - payments),
+            });
+          });
+        }
+      } catch (e) {
+        console.error("fetchRooms stays/folios enrichment error:", e);
+      }
+    }
+
+    // 2. Fetch active guest service requests for these rooms
+    const requestsByRoom = new Map<string, any[]>();
+    if (roomIds.length > 0) {
+      try {
+        const { data: activeRequests } = await supabase
+          .from("guest_service_requests")
+          .select(`
+            id,
+            room_id,
+            title,
+            description,
+            category,
+            priority,
+            status,
+            created_at,
+            assigned_staff:assigned_staff_id(full_name)
+          `)
+          .eq("property_id", propertyId)
+          .not("status", "in", '("COMPLETED","CANCELLED","REJECTED")')
+          .in("room_id", roomIds)
+          .order("created_at", { ascending: false });
+
+        (activeRequests || []).forEach((r: any) => {
+          if (r.room_id) {
+            const list = requestsByRoom.get(r.room_id) || [];
+            list.push(r);
+            requestsByRoom.set(r.room_id, list);
+          }
+        });
+      } catch (e) {
+        console.error("fetchRooms service requests enrichment error:", e);
+      }
+    }
+
+    const rooms: Room[] = rawData.map((item) => {
+      const stay = activeStaysMap.get(item.id);
+      const reqList = requestsByRoom.get(item.id) || [];
+      const folioData = stay ? foliosMap.get(stay.id) : null;
+
+      let liveStay: RoomLiveStay | null = null;
+      if (stay) {
+        const g = stay.guest;
+        const res = stay.reservation;
+        const guestName = g ? `${g.first_name || ""} ${g.last_name || ""}`.trim() : "Guest";
+        liveStay = {
+          id: stay.id,
+          reservationId: stay.reservation_id,
+          confirmationNumber: res?.confirmation_number || "WALK-IN",
+          guestId: stay.guest_id,
+          guestName: guestName || "Registered Guest",
+          guestEmail: g?.email || null,
+          guestPhone: g?.phone || null,
+          guestVip: Boolean(g?.vip_status),
+          adults: stay.adults || 1,
+          children: stay.children || 0,
+          checkInDate: stay.actual_check_in || stay.created_at,
+          expectedCheckOutDate: stay.expected_check_out_date,
+          status: stay.status,
+          keyCardNumber: stay.key_card_number || null,
+          notes: stay.notes || null,
+          totalCharges: folioData?.totalCharges || Number(res?.total_amount || 0),
+          totalPaid: folioData?.totalPaid || 0,
+          balanceDue: folioData ? folioData.balanceDue : Number(res?.total_amount || 0),
+          currency: folioData?.currency || "INR",
+          folioId: folioData?.folioId,
+        };
+      }
+
+      const activeRequests = reqList.map((r: any) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description,
+        category: r.category,
+        priority: r.priority,
+        status: r.status,
+        createdAt: r.created_at,
+        assignedStaffName: r.assigned_staff?.full_name || null,
+      }));
+
+      return {
+        id: item.id,
+        property_id: item.property_id,
+        floor_id: item.floor_id,
+        room_type_id: item.room_type_id,
+        room_number: item.room_number,
+        room_name: item.room_name,
+        status: item.status,
+        housekeeping_status: item.housekeeping_status,
+        availability_status: item.availability_status,
+        max_occupancy: item.max_occupancy,
+        floor_label: item.floor_label,
+        view_type: item.view_type,
+        notes: item.notes,
+        is_active: item.is_active,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        room_type: item.room_type as unknown as RoomType | null,
+        floor: item.floor as unknown as Floor | null,
+        liveStay,
+        activeRequests,
+        pendingRequestsCount: activeRequests.length,
+      };
+    });
 
     return { rooms, totalCount: count || 0 };
   } catch (err) {

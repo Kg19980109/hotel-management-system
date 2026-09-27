@@ -13,6 +13,7 @@ interface RoomTableProps {
   currency: string;
   onOpenStatusModal: (room: Room) => void;
   onDeactivateRoom: (room: Room) => void;
+  onSelectRoom?: (room: Room) => void;
 }
 
 const STATUS_BORDER_COLOR: Record<string, string> = {
@@ -23,7 +24,7 @@ const STATUS_BORDER_COLOR: Record<string, string> = {
   MAINTENANCE: "var(--danger)",
 };
 
-export function RoomTable({ rooms, currency, onOpenStatusModal, onDeactivateRoom }: RoomTableProps) {
+export function RoomTable({ rooms, currency, onOpenStatusModal, onDeactivateRoom, onSelectRoom }: RoomTableProps) {
   return (
     <div className="stayhub-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -151,15 +152,14 @@ export function RoomTable({ rooms, currency, onOpenStatusModal, onDeactivateRoom
                         Status
                       </button>
 
-                      <Link href={`/rooms/${room.id}`}>
-                        <button
-                          type="button"
-                          className="h-7 w-7 flex items-center justify-center text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)] rounded-[var(--radius-md)] transition-colors"
-                          title="View Room Dossier"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </button>
-                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => onSelectRoom?.(room)}
+                        className="h-7 w-7 flex items-center justify-center text-[var(--foreground-muted)] hover:text-indigo-600 hover:bg-indigo-50 rounded-[var(--radius-md)] transition-colors"
+                        title="Inspect Live Guest, Bill & Requests"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </button>
 
                       <Link href={`/rooms/${room.id}/edit`}>
                         <button

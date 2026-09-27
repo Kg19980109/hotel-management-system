@@ -40,7 +40,10 @@ export default function RestaurantMenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   const loadData = useCallback(async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -49,9 +52,7 @@ export default function RestaurantMenuPage() {
       setRestaurants(rests);
 
       if (rests.length > 0) {
-        const activeRest = selectedRestaurant
-          ? rests.find((r) => r.id === selectedRestaurant.id) || rests[0]
-          : rests[0];
+        const activeRest = rests[0];
         setSelectedRestaurant(activeRest);
 
         const [catsData, itemsData] = await Promise.all([
@@ -70,32 +71,13 @@ export default function RestaurantMenuPage() {
     } finally {
       setLoading(false);
     }
-  }, [propertyId, selectedRestaurant]);
+  }, [propertyId]);
 
   useEffect(() => {
     if (!authLoading && propertyId) {
-      void Promise.resolve().then(() => loadData());
+      void loadData();
     }
   }, [authLoading, propertyId, loadData]);
-
-  const handleSelectOutlet = async (restaurantId: string) => {
-    const target = restaurants.find((r) => r.id === restaurantId);
-    if (!target) return;
-    setSelectedRestaurant(target);
-    try {
-      setLoading(true);
-      const [catsData, itemsData] = await Promise.all([
-        getMenuCategories(target.id, true),
-        getMenuItems(target.id, true),
-      ]);
-      setCategories(catsData);
-      setMenuItems(itemsData);
-    } catch (err: unknown) {
-      console.error("Failed to switch outlet:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const activeItemsCount = useMemo(() => {
     return menuItems.filter((m) => m.is_active).length;
@@ -188,19 +170,10 @@ export default function RestaurantMenuPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
-            {restaurants.length > 1 && (
-              <select
-                value={selectedRestaurant.id}
-                onChange={(e) => handleSelectOutlet(e.target.value)}
-                className="text-xs h-9 rounded-lg border border-white/20 bg-slate-900/80 backdrop-blur-md px-3 py-1 font-semibold text-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[var(--brand-gold)]"
-              >
-                {restaurants.map((r) => (
-                  <option key={r.id} value={r.id} className="bg-slate-900 text-white">
-                    {r.name} ({r.code})
-                  </option>
-                ))}
-              </select>
-            )}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/20 bg-slate-900/80 backdrop-blur-md text-xs font-semibold text-white shadow-xs">
+              <Store className="h-3.5 w-3.5 text-[var(--brand-gold)]" />
+              <span>{selectedRestaurant.name}</span>
+            </div>
 
             <Link href="/pos">
               <Button

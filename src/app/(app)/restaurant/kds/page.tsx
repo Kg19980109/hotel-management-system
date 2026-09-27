@@ -46,9 +46,7 @@ export default function KitchenDisplayPage() {
       setRestaurants(rests);
 
       if (rests.length > 0) {
-        const activeRest = selectedRestaurant
-          ? rests.find((r) => r.id === selectedRestaurant.id) || rests[0]
-          : rests[0];
+        const activeRest = rests[0];
         setSelectedRestaurant(activeRest);
 
         const stns = await getKitchenStations(activeRest.id, false);
@@ -62,29 +60,17 @@ export default function KitchenDisplayPage() {
     } finally {
       setLoading(false);
     }
-  }, [propertyId, selectedRestaurant]);
+  }, [propertyId]);
 
   useEffect(() => {
     if (!authLoading) {
       if (propertyId) {
-        void Promise.resolve().then(() => loadData());
+        void loadData();
       } else {
         setLoading(false);
       }
     }
   }, [authLoading, propertyId, loadData]);
-
-  const handleSelectOutlet = async (restaurantId: string) => {
-    const target = restaurants.find((r) => r.id === restaurantId);
-    if (!target) return;
-    setSelectedRestaurant(target);
-    try {
-      const stns = await getKitchenStations(target.id, false);
-      setStations(stns);
-    } catch (err: unknown) {
-      console.error("Failed to fetch stations for outlet:", err);
-    }
-  };
 
   if (authLoading || (loading && !selectedRestaurant)) {
     return (
@@ -131,19 +117,10 @@ export default function KitchenDisplayPage() {
         description="Live order production queue, cook timers, station routing, and meal expedition."
         actions={
           <div className="flex items-center gap-2">
-            {restaurants.length > 1 && (
-              <select
-                value={selectedRestaurant.id}
-                onChange={(e) => handleSelectOutlet(e.target.value)}
-                className="text-xs h-9 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground shadow-xs"
-              >
-                {restaurants.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name} ({r.code})
-                  </option>
-                ))}
-              </select>
-            )}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-bold text-foreground shadow-xs">
+              <Store className="h-3.5 w-3.5 text-amber-500" />
+              <span>{selectedRestaurant.name}</span>
+            </div>
 
             <Link href="/restaurant/kitchen/stations">
               <Button variant="outline" size="sm" className="text-xs h-9">

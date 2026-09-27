@@ -1,5 +1,11 @@
 "use client";
 
+// ============================================================
+// STAYHUB POS CONFIGURATION & CATALOG MANAGEMENT (Phase 12)
+// Ultra-Modern, High-Performance POS Billing Catalog
+// Strictly structured across: Food, Rooms & Stay, and Services
+// ============================================================
+
 import * as React from "react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
@@ -10,14 +16,21 @@ import {
   Plus,
   Search,
   RefreshCw,
-  Store,
   Edit2,
   Trash2,
   CheckCircle2,
   XCircle,
-  ChevronRight,
-  Layers,
   AlertCircle,
+  Layers,
+  ChefHat,
+  Tag,
+  DollarSign,
+  ShieldCheck,
+  Check,
+  X,
+  LayoutGrid,
+  List,
+  Store,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 import { Button } from "@/components/ui/button";
@@ -53,8 +66,7 @@ export default function PosConfigurationPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
@@ -64,7 +76,7 @@ export default function PosConfigurationPage() {
   // Filtering & Search
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("ALL");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "86ED" | "INACTIVE">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "AVAILABLE" | "86ED">("ALL");
 
   // Modal States
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
@@ -72,7 +84,7 @@ export default function PosConfigurationPage() {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [selectedItemForEdit, setSelectedItemForEdit] = useState<MenuItem | null>(null);
 
-  // Add Item Form State
+  // Add/Edit Item Form State
   const [itemName, setItemName] = useState("");
   const [itemShortName, setItemShortName] = useState("");
   const [itemSku, setItemSku] = useState("");
@@ -86,20 +98,20 @@ export default function PosConfigurationPage() {
   const [newCatName, setNewCatName] = useState("");
   const [newCatDesc, setNewCatDesc] = useState("");
 
+  // Load Data with no recursive dependency loops
   const loadData = useCallback(async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
 
       const rests = await getRestaurants(propertyId, true);
-      setRestaurants(rests);
-
       if (rests.length > 0) {
-        const activeRest = selectedRestaurant
-          ? rests.find((r) => r.id === selectedRestaurant.id) || rests[0]
-          : rests[0];
-        setSelectedRestaurant(activeRest);
+        const activeRest = rests[0];
+        setRestaurant(activeRest);
 
         const [catsData, itemsData] = await Promise.all([
           getMenuCategories(activeRest.id, true),
@@ -109,7 +121,7 @@ export default function PosConfigurationPage() {
         setCategories(catsData);
         setMenuItems(itemsData);
       } else {
-        setSelectedRestaurant(null);
+        setRestaurant(null);
       }
     } catch (err: unknown) {
       console.error("Failed to load POS configuration data:", err);
@@ -117,32 +129,13 @@ export default function PosConfigurationPage() {
     } finally {
       setLoading(false);
     }
-  }, [propertyId, selectedRestaurant]);
+  }, [propertyId]);
 
   useEffect(() => {
     if (!authLoading && propertyId) {
-      void Promise.resolve().then(() => loadData());
+      void loadData();
     }
   }, [authLoading, propertyId, loadData]);
-
-  const handleSelectOutlet = async (restaurantId: string) => {
-    const target = restaurants.find((r) => r.id === restaurantId);
-    if (!target) return;
-    setSelectedRestaurant(target);
-    try {
-      setLoading(true);
-      const [catsData, itemsData] = await Promise.all([
-        getMenuCategories(target.id, true),
-        getMenuItems(target.id, true),
-      ]);
-      setCategories(catsData);
-      setMenuItems(itemsData);
-    } catch (err: unknown) {
-      console.error("Failed to switch outlet:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Section-aware categories
   const sectionCategories = useMemo(() => {
@@ -166,106 +159,85 @@ export default function PosConfigurationPage() {
           c.name.toLowerCase().includes("event")
       );
     }
-    // FOOD section: all food categories (excluding Rooms and Services)
+    // FOOD section: all dining categories
     return categories.filter(
       (c) =>
-        !c.name.toLowerCase().includes("room tariffs") &&
-        !c.name.toLowerCase().includes("hotel services")
+        !c.name.toLowerCase().includes("room tariff") &&
+        !c.name.toLowerCase().includes("stay charge") &&
+        !c.name.toLowerCase().includes("hotel service") &&
+        !c.name.toLowerCase().includes("spa & wellness")
     );
   }, [categories, activeSection]);
 
-  // Filter items strictly for the active POS section
+  // Filter items strictly for active section
   const sectionItems = useMemo(() => {
     return menuItems.filter((item) => getPosItemSection(item) === activeSection);
   }, [menuItems, activeSection]);
 
-  // Apply search and dropdown filters
+  // Counts for all 3 sections
+  const counts = useMemo(() => {
+    let food = 0;
+    let rooms = 0;
+    let services = 0;
+    for (const item of menuItems) {
+      const sec = getPosItemSection(item);
+      if (sec === "FOOD") food++;
+      else if (sec === "ROOMS") rooms++;
+      else if (sec === "SERVICES") services++;
+    }
+    return { food, rooms, services, total: menuItems.length };
+  }, [menuItems]);
+
+  // Filtered Items based on search, category filter, and status filter
   const filteredItems = useMemo(() => {
-    let list = sectionItems;
-
-    if (selectedCategoryFilter !== "ALL") {
-      list = list.filter((item) => item.category_id === selectedCategoryFilter);
-    }
-
-    if (statusFilter === "AVAILABLE") {
-      list = list.filter((item) => item.is_active && item.is_available);
-    } else if (statusFilter === "86ED") {
-      list = list.filter((item) => item.is_active && !item.is_available);
-    } else if (statusFilter === "INACTIVE") {
-      list = list.filter((item) => !item.is_active);
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter((item) => {
-        const matchesName = item.name.toLowerCase().includes(q);
-        const matchesSku = item.sku?.toLowerCase().includes(q) || false;
-        const matchesShort = item.short_name?.toLowerCase().includes(q) || false;
-        const matchesDesc = item.description?.toLowerCase().includes(q) || false;
-        const matchesCat = item.category_name?.toLowerCase().includes(q) || false;
-        return matchesName || matchesSku || matchesShort || matchesDesc || matchesCat;
-      });
-    }
-
-    return list;
-  }, [sectionItems, selectedCategoryFilter, statusFilter, searchQuery]);
-
-  // Ensure default category exists when adding items
-  const ensureCategoryForSection = async (): Promise<string> => {
-    if (!selectedRestaurant || !propertyId) return "";
-
-    let targetCatName = "Main Courses";
-    if (activeSection === "ROOMS") {
-      targetCatName = "Room Tariffs & Stay Charges";
-    } else if (activeSection === "SERVICES") {
-      targetCatName = "Hotel Services & Amenities";
-    }
-
-    const existing = categories.find(
-      (c) => c.name.toLowerCase() === targetCatName.toLowerCase()
-    );
-    if (existing) return existing.id;
-
-    // Create standard category for this section
-    const res = await createMenuCategoryAction(propertyId, {
-      restaurant_id: selectedRestaurant.id,
-      name: targetCatName,
-      description: `${targetCatName} for POS billing`,
-      display_order: activeSection === "ROOMS" ? 90 : activeSection === "SERVICES" ? 95 : 1,
+    return sectionItems.filter((item) => {
+      // Search
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchName = item.name.toLowerCase().includes(q);
+        const matchSku = item.sku?.toLowerCase().includes(q);
+        const matchCat = item.category_name?.toLowerCase().includes(q);
+        if (!matchName && !matchSku && !matchCat) return false;
+      }
+      // Category
+      if (selectedCategoryFilter !== "ALL" && item.category_id !== selectedCategoryFilter) {
+        return false;
+      }
+      // Status
+      if (statusFilter === "AVAILABLE" && !item.is_available) return false;
+      if (statusFilter === "86ED" && item.is_available) return false;
+      return true;
     });
+  }, [sectionItems, searchQuery, selectedCategoryFilter, statusFilter]);
 
-    if (res.success && res.data?.id) {
-      const freshCats = await getMenuCategories(selectedRestaurant.id, true);
-      setCategories(freshCats);
-      return res.data.id;
+  // Toggle Item Availability (In-stock vs 86ed)
+  const handleToggleAvailability = async (item: MenuItem) => {
+    if (!propertyId) return;
+    const newStatus = !item.is_available;
+    // Optimistic UI update
+    setMenuItems((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, is_available: newStatus } : i))
+    );
+
+    try {
+      const res = await toggleMenuItemAvailabilityAction(propertyId, item.id, newStatus);
+      if (!res.success) {
+        toastError("Error", res.error || "Failed to update item availability");
+        void loadData();
+      } else {
+        success(
+          newStatus ? "Item Available" : "Item Marked Sold Out (86ed)",
+          `"${item.name}" availability updated for POS & QR portals.`
+        );
+      }
+    } catch {
+      toastError("Error", "Failed to update item status");
+      void loadData();
     }
-
-    return categories[0]?.id || "";
   };
 
-  const openAddItemModal = async () => {
-    if (!selectedRestaurant) {
-      toastError("Select Outlet", "Please select a dining/POS outlet first.");
-      return;
-    }
-
-    // Default or select appropriate category
-    let defaultCatId = sectionCategories[0]?.id;
-    if (!defaultCatId) {
-      defaultCatId = await ensureCategoryForSection();
-    }
-
-    setItemCategoryId(defaultCatId || "");
-    setItemName("");
-    setItemShortName("");
-    setItemSku("");
-    setItemPrice("");
-    setItemDescription("");
-    setItemIsAvailable(true);
-    setIsAddItemModalOpen(true);
-  };
-
-  const openEditItemModal = (item: MenuItem) => {
+  // Open Edit Modal
+  const handleOpenEdit = (item: MenuItem) => {
     setSelectedItemForEdit(item);
     setItemName(item.name);
     setItemShortName(item.short_name || "");
@@ -277,60 +249,67 @@ export default function PosConfigurationPage() {
     setIsEditItemModalOpen(true);
   };
 
+  // Open Add Modal
+  const handleOpenAdd = () => {
+    setItemName("");
+    setItemShortName("");
+    setItemSku("");
+    setItemPrice("");
+    setItemCategoryId(sectionCategories[0]?.id || categories[0]?.id || "");
+    setItemDescription("");
+    setItemIsAvailable(true);
+    setIsAddItemModalOpen(true);
+  };
+
+  // Handle Save New Item
   const handleSaveNewItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!propertyId || !selectedRestaurant) return;
+    if (!propertyId || !restaurant) return;
 
     if (!itemName.trim()) {
       toastError("Validation Error", "Item name is required.");
       return;
     }
-
-    const parsedPrice = parseFloat(itemPrice);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-      toastError("Validation Error", "Please enter a valid price in INR (₹).");
+    const priceNum = parseFloat(itemPrice);
+    if (isNaN(priceNum) || priceNum < 0) {
+      toastError("Validation Error", "Please provide a valid price (₹).");
       return;
     }
-
-    let finalCategoryId = itemCategoryId;
-    if (!finalCategoryId) {
-      finalCategoryId = await ensureCategoryForSection();
-    }
-
-    if (!finalCategoryId) {
-      toastError("Category Error", "Please select or create a category first.");
+    if (!itemCategoryId) {
+      toastError("Validation Error", "Please select a category.");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const res = await createMenuItemAction(propertyId, {
-        restaurant_id: selectedRestaurant.id,
-        category_id: finalCategoryId,
+        restaurant_id: restaurant.id,
+        category_id: itemCategoryId,
         name: itemName.trim(),
         short_name: itemShortName.trim() || undefined,
         sku: itemSku.trim() || undefined,
-        description: itemDescription.trim() || undefined,
-        price: parsedPrice,
+        price: priceNum,
         currency: "INR",
+        description: itemDescription.trim() || undefined,
         is_available: itemIsAvailable,
       });
 
       if (!res.success) {
-        toastError("Error", res.error || "Failed to create item.");
+        toastError("Error", res.error || "Failed to create item");
         return;
       }
 
-      success("Item Added", `'${itemName}' added to POS ${activeSection === "FOOD" ? "Food Menu" : activeSection === "ROOMS" ? "Room Charges" : "Hotel Services"}.`);
+      success("Item Created", `"${itemName}" is now live in POS Billing & Menus.`);
       setIsAddItemModalOpen(false);
       void loadData();
     } catch (err: unknown) {
-      toastError("Error", err instanceof Error ? err.message : "Failed to add item.");
+      toastError("Error", err instanceof Error ? err.message : "Failed to create item");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Handle Save Edit Item
   const handleSaveEditItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!propertyId || !selectedItemForEdit) return;
@@ -339,10 +318,9 @@ export default function PosConfigurationPage() {
       toastError("Validation Error", "Item name is required.");
       return;
     }
-
-    const parsedPrice = parseFloat(itemPrice);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-      toastError("Validation Error", "Please enter a valid price in INR (₹).");
+    const priceNum = parseFloat(itemPrice);
+    if (isNaN(priceNum) || priceNum < 0) {
+      toastError("Validation Error", "Please provide a valid price (₹).");
       return;
     }
 
@@ -352,67 +330,50 @@ export default function PosConfigurationPage() {
         name: itemName.trim(),
         short_name: itemShortName.trim() || undefined,
         sku: itemSku.trim() || undefined,
-        description: itemDescription.trim() || undefined,
-        price: parsedPrice,
+        price: priceNum,
         category_id: itemCategoryId || selectedItemForEdit.category_id,
+        description: itemDescription.trim() || undefined,
         is_available: itemIsAvailable,
       });
 
       if (!res.success) {
-        toastError("Error", res.error || "Failed to update item.");
+        toastError("Error", res.error || "Failed to update item");
         return;
       }
 
-      success("Item Updated", `'${itemName}' updated successfully in POS.`);
+      success("Item Updated", `"${itemName}" changes saved.`);
       setIsEditItemModalOpen(false);
-      setSelectedItemForEdit(null);
       void loadData();
     } catch (err: unknown) {
-      toastError("Error", err instanceof Error ? err.message : "Failed to update item.");
+      toastError("Error", err instanceof Error ? err.message : "Failed to update item");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleToggleAvailability = async (item: MenuItem) => {
+  // Handle Delete / Deactivate Item
+  const handleDeleteItem = async (item: MenuItem) => {
     if (!propertyId) return;
-    try {
-      const newStatus = !item.is_available;
-      const res = await toggleMenuItemAvailabilityAction(propertyId, item.id, newStatus);
-      if (!res.success) {
-        toastError("Error", res.error || "Failed to toggle stock status.");
-        return;
-      }
-      success(
-        newStatus ? "In Stock" : "Marked 86ed",
-        `'${item.name}' is now ${newStatus ? "available in POS" : "marked unavailable (86ed)"}.`
-      );
-      void loadData();
-    } catch (err: unknown) {
-      toastError("Error", err instanceof Error ? err.message : "Failed to toggle availability.");
-    }
-  };
-
-  const handleDeactivateItem = async (item: MenuItem) => {
-    if (!propertyId) return;
-    if (!confirm(`Are you sure you want to remove '${item.name}' from active POS billing?`)) return;
+    if (!confirm(`Are you sure you want to remove "${item.name}" from POS Billing?`)) return;
 
     try {
       const res = await deactivateMenuItemAction(propertyId, item.id);
       if (!res.success) {
-        toastError("Error", res.error || "Failed to deactivate item.");
+        toastError("Error", res.error || "Failed to remove item");
         return;
       }
-      success("Item Removed", `'${item.name}' removed from POS catalog.`);
+      success("Item Removed", `"${item.name}" removed from active POS catalog.`);
       void loadData();
-    } catch (err: unknown) {
-      toastError("Error", err instanceof Error ? err.message : "Failed to remove item.");
+    } catch {
+      toastError("Error", "Failed to delete item");
     }
   };
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
+  // Handle Create Category
+  const handleSaveNewCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!propertyId || !selectedRestaurant) return;
+    if (!propertyId || !restaurant) return;
+
     if (!newCatName.trim()) {
       toastError("Validation Error", "Category name is required.");
       return;
@@ -421,33 +382,32 @@ export default function PosConfigurationPage() {
     setIsSubmitting(true);
     try {
       const res = await createMenuCategoryAction(propertyId, {
-        restaurant_id: selectedRestaurant.id,
+        restaurant_id: restaurant.id,
         name: newCatName.trim(),
         description: newCatDesc.trim() || undefined,
-        display_order: categories.length + 1,
       });
 
       if (!res.success) {
-        toastError("Error", res.error || "Failed to create category.");
+        toastError("Error", res.error || "Failed to create category");
         return;
       }
 
-      success("Category Created", `Category '${newCatName}' created successfully.`);
-      setIsAddCategoryModalOpen(false);
+      success("Category Created", `"${newCatName}" added to POS catalog.`);
       setNewCatName("");
       setNewCatDesc("");
+      setIsAddCategoryModalOpen(false);
       void loadData();
     } catch (err: unknown) {
-      toastError("Error", err instanceof Error ? err.message : "Failed to create category.");
+      toastError("Error", err instanceof Error ? err.message : "Failed to create category");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (authLoading || (loading && !restaurants.length)) {
+  if (authLoading || (loading && !restaurant)) {
     return (
       <div className="p-6">
-        <LoadingState message="Loading POS Configuration Console..." />
+        <LoadingState message="Connecting to POS Master Configuration..." />
       </div>
     );
   }
@@ -460,493 +420,570 @@ export default function PosConfigurationPage() {
     );
   }
 
+  if (!restaurant) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto space-y-4">
+        <div className="py-16 text-center bg-card rounded-2xl border border-dashed border-border p-8">
+          <Store className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+          <h3 className="text-base font-bold text-foreground">
+            No Active Restaurant Configured
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+            Please configure your property dining outlet in Menu Configuration to start adding POS billing items.
+          </p>
+          <Link href="/menu-configuration" className="inline-block mt-4">
+            <Button size="sm" className="text-xs font-semibold">
+              Open Menu Configuration
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* ── LUXURY MIDNIGHT NAVY HEADER ── */}
-      <div
-        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10 shadow-2xl"
-        style={{
-          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
-        }}
-      >
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div>
-            <div
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
-              style={{
-                color: "var(--brand-gold)",
-                borderColor: "rgba(214,168,90,0.25)",
-                background: "rgba(214,168,90,0.08)",
-              }}
-            >
-              <Sparkles className="h-3 w-3" />
-              <span>Direct POS Billing Config</span>
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* ── TOP HERO BANNER & STATS ── */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-[#0B1528] via-[#091122] to-[#040812] border border-white/10 shadow-2xl space-y-5 relative overflow-hidden">
+        {/* Glow Accent */}
+        <div className="absolute top-0 right-0 w-80 h-36 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" />
+
+        <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[var(--brand-gold)] to-amber-600 flex items-center justify-center text-slate-950 shadow-lg shadow-amber-500/20 shrink-0 font-bold">
+              <UtensilsCrossed className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-heading">
-              POS Item & Tariff Configuration
-            </h1>
-            <p className="text-sm text-slate-300/80 mt-1 max-w-2xl leading-relaxed">
-              Configure items and tariffs for the 3 hotel billing streams. Anything added or modified here syncs immediately to the POS cashier terminal.
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white font-heading">
+                  POS Configuration & Item Catalog
+                </h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  Live Sync
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Configure all billable catalog items for POS Billing & QR In-Room Guest Portals
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Outlet Selector */}
-            {restaurants.length > 1 && (
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                <Store className="w-4 h-4 text-[var(--brand-gold)]" />
-                <select
-                  value={selectedRestaurant?.id || ""}
-                  onChange={(e) => void handleSelectOutlet(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-white border-none outline-none cursor-pointer"
-                >
-                  {restaurants.map((r) => (
-                    <option key={r.id} value={r.id} className="bg-slate-900 text-white">
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
+          {/* Quick Action Buttons */}
+          <div className="flex items-center gap-2.5 flex-wrap">
             <Button
               variant="outline"
               size="sm"
               onClick={() => void loadData()}
               disabled={loading}
-              className="border-white/10 text-slate-200 hover:bg-white/5 text-xs font-bold"
+              className="h-9 px-3 text-xs font-bold border-white/10 bg-white/5 hover:bg-white/10 text-slate-200"
             >
-              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
-              Sync Real-Time
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin text-[var(--brand-gold)]" : ""}`} />
+              Refresh
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddCategoryModalOpen(true)}
+              className="h-9 px-3 text-xs font-bold border-white/10 bg-white/5 hover:bg-white/10 text-slate-200"
+            >
+              <Layers className="h-3.5 w-3.5 mr-1.5 text-indigo-400" />
+              + Category
+            </Button>
+
+            <Button
+              size="sm"
+              onClick={handleOpenAdd}
+              className="h-9 px-4 text-xs font-black bg-gradient-to-r from-[var(--brand-gold)] to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 active:scale-95 transition"
+            >
+              <Plus className="h-4 w-4 mr-1.5" />
+              + Add POS Item
             </Button>
 
             <Link href="/pos">
-              <Button className="bg-gradient-to-r from-[var(--brand-gold)] to-amber-500 text-slate-950 font-black text-xs hover:brightness-105 shadow-md shadow-amber-500/20">
-                <Store className="w-4 h-4 mr-1.5" />
-                Open Live POS Terminal
-                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 text-xs font-bold border-white/10 bg-white/5 hover:bg-white/10 text-white"
+              >
+                Go to POS Billing
               </Button>
             </Link>
           </div>
         </div>
+
+        {/* Live Catalog Metrics Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-white/10 relative z-10">
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-xs">
+              🍽️
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-slate-400">Food & Dining</p>
+              <p className="text-base font-extrabold text-white font-mono">{counts.food} Items</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs">
+              🛏️
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-slate-400">Rooms & Stay</p>
+              <p className="text-base font-extrabold text-white font-mono">{counts.rooms} Tariffs</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs">
+              ✨
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-slate-400">Services & Spa</p>
+              <p className="text-base font-extrabold text-white font-mono">{counts.services} Services</p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/[0.04] border border-white/5 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[var(--brand-gold)]/10 text-[var(--brand-gold)] flex items-center justify-center font-bold text-xs">
+              ₹
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-slate-400">Billing Currency</p>
+              <p className="text-base font-extrabold text-[var(--brand-gold)] font-mono">INR (₹)</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* ── THE 3 PRIMARY POS TABS (Strictly matching the user's POS terminal tabs) ── */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-900/60 backdrop-blur border border-slate-800 rounded-2xl">
+      {/* ── 3 MASTER POS BILLING SECTION TABS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* TAB 1: FOOD & DINING */}
         <button
+          type="button"
           onClick={() => {
             setActiveSection("FOOD");
             setSelectedCategoryFilter("ALL");
           }}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-extrabold transition-all shadow-sm ${
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
             activeSection === "FOOD"
-              ? "bg-[var(--brand-gold)] text-slate-950 shadow-md shadow-amber-500/20 scale-[1.01]"
-              : "text-slate-400 hover:text-white hover:bg-white/5"
+              ? "bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-transparent border-amber-500/50 shadow-lg shadow-amber-500/10"
+              : "bg-card border-border hover:border-border/80 text-muted-foreground"
           }`}
         >
-          <UtensilsCrossed className="w-4 h-4" />
-          <span>Food & Dining Menu</span>
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                activeSection === "FOOD"
+                  ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              🍽️
+            </div>
+            <div>
+              <h3 className={`text-sm font-bold ${activeSection === "FOOD" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+                Food & Dining Menu
+              </h3>
+              <p className="text-[11px] text-muted-foreground">Kitchen dishes, drinks & room dining</p>
+            </div>
+          </div>
           <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-              activeSection === "FOOD" ? "bg-slate-950/20 text-slate-950" : "bg-slate-800 text-slate-400"
+            className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+              activeSection === "FOOD"
+                ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                : "bg-muted text-muted-foreground"
             }`}
           >
-            {menuItems.filter((i) => getPosItemSection(i) === "FOOD").length}
+            {counts.food}
           </span>
         </button>
 
+        {/* TAB 2: ROOMS & STAY CHARGES */}
         <button
+          type="button"
           onClick={() => {
             setActiveSection("ROOMS");
             setSelectedCategoryFilter("ALL");
           }}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-extrabold transition-all shadow-sm ${
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
             activeSection === "ROOMS"
-              ? "bg-[var(--brand-gold)] text-slate-950 shadow-md shadow-amber-500/20 scale-[1.01]"
-              : "text-slate-400 hover:text-white hover:bg-white/5"
+              ? "bg-gradient-to-r from-indigo-500/15 via-indigo-500/10 to-transparent border-indigo-500/50 shadow-lg shadow-indigo-500/10"
+              : "bg-card border-border hover:border-border/80 text-muted-foreground"
           }`}
         >
-          <BedDouble className="w-4 h-4" />
-          <span>Rooms & Stay Charges</span>
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                activeSection === "ROOMS"
+                  ? "bg-indigo-600 text-white font-bold shadow-md shadow-indigo-500/20"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              🛏️
+            </div>
+            <div>
+              <h3 className={`text-sm font-bold ${activeSection === "ROOMS" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+                Rooms & Stay Charges
+              </h3>
+              <p className="text-[11px] text-muted-foreground">Room tariffs, day passes & extra beds</p>
+            </div>
+          </div>
           <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-              activeSection === "ROOMS" ? "bg-slate-950/20 text-slate-950" : "bg-slate-800 text-slate-400"
+            className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+              activeSection === "ROOMS"
+                ? "bg-indigo-500/20 text-indigo-500 border border-indigo-500/30"
+                : "bg-muted text-muted-foreground"
             }`}
           >
-            {menuItems.filter((i) => getPosItemSection(i) === "ROOMS").length}
+            {counts.rooms}
           </span>
         </button>
 
+        {/* TAB 3: HOTEL SERVICES & SPA */}
         <button
+          type="button"
           onClick={() => {
             setActiveSection("SERVICES");
             setSelectedCategoryFilter("ALL");
           }}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-extrabold transition-all shadow-sm ${
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
             activeSection === "SERVICES"
-              ? "bg-[var(--brand-gold)] text-slate-950 shadow-md shadow-amber-500/20 scale-[1.01]"
-              : "text-slate-400 hover:text-white hover:bg-white/5"
+              ? "bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent border-emerald-500/50 shadow-lg shadow-emerald-500/10"
+              : "bg-card border-border hover:border-border/80 text-muted-foreground"
           }`}
         >
-          <Sparkles className="w-4 h-4" />
-          <span>Hotel Services & Spa</span>
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                activeSection === "SERVICES"
+                  ? "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-500/20"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              ✨
+            </div>
+            <div>
+              <h3 className={`text-sm font-bold ${activeSection === "SERVICES" ? "text-foreground font-extrabold" : "text-foreground"}`}>
+                Hotel Services & Spa
+              </h3>
+              <p className="text-[11px] text-muted-foreground">Spa, laundry, transfers & amenities</p>
+            </div>
+          </div>
           <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
-              activeSection === "SERVICES" ? "bg-slate-950/20 text-slate-950" : "bg-slate-800 text-slate-400"
+            className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+              activeSection === "SERVICES"
+                ? "bg-emerald-500/20 text-emerald-500 border border-emerald-500/30"
+                : "bg-muted text-muted-foreground"
             }`}
           >
-            {menuItems.filter((i) => getPosItemSection(i) === "SERVICES").length}
+            {counts.services}
           </span>
         </button>
       </div>
 
-      {/* ── ACTION BAR & FILTERS ── */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/80">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          {/* Search Input */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+      {/* ── FILTER & SEARCH TOOLBAR ── */}
+      <div className="bg-card p-4 rounded-2xl border border-border shadow-xs space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Search Box */}
+          <div className="relative w-full sm:w-72">
+            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
-              type="text"
               placeholder={`Search ${activeSection === "FOOD" ? "dishes" : activeSection === "ROOMS" ? "tariffs" : "services"}...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-slate-950 border-slate-800 text-xs h-9 text-white placeholder:text-slate-500 rounded-xl"
+              className="pl-9 text-xs h-9 bg-background"
             />
           </div>
 
-          {/* Category Filter */}
-          {sectionCategories.length > 0 && (
-            <select
-              value={selectedCategoryFilter}
-              onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-              className="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 outline-none cursor-pointer h-9 font-medium"
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setStatusFilter("ALL")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                statusFilter === "ALL"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <option value="ALL">All Categories ({sectionCategories.length})</option>
+              All ({sectionItems.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("AVAILABLE")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                statusFilter === "AVAILABLE"
+                  ? "bg-emerald-600 text-white shadow-xs"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              In-Stock ({sectionItems.filter((i) => i.is_available).length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("86ED")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                statusFilter === "86ED"
+                  ? "bg-rose-600 text-white shadow-xs"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Sold Out / 86ed ({sectionItems.filter((i) => !i.is_available).length})
+            </button>
+          </div>
+        </div>
+
+        {/* Category Pill Filters */}
+        {sectionCategories.length > 0 && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-t border-border/50 pt-2.5">
+            <span className="text-[11px] font-bold text-muted-foreground mr-1 shrink-0">Category:</span>
+            <button
+              type="button"
+              onClick={() => setSelectedCategoryFilter("ALL")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                selectedCategoryFilter === "ALL"
+                  ? "bg-foreground text-background"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All Categories
+            </button>
+            {sectionCategories.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedCategoryFilter(c.id)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                  selectedCategoryFilter === c.id
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── CATALOG ITEMS GRID ── */}
+      {filteredItems.length === 0 ? (
+        <div className="py-20 text-center bg-card rounded-2xl border border-dashed border-border p-8 shadow-xs space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 mx-auto flex items-center justify-center">
+            <Tag className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base font-bold text-foreground">
+              No Items Found in this Section
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+              {searchQuery
+                ? `No items match "${searchQuery}".`
+                : `You currently have no active catalog items in the ${activeSection} section.`}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleOpenAdd}
+            className="text-xs font-bold bg-[var(--brand-gold)] text-slate-950 mt-2"
+          >
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Add First Item
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredItems.map((item) => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-2xl border transition-all shadow-xs flex flex-col justify-between space-y-3 ${
+                item.is_available
+                  ? "bg-card border-border hover:border-border/80"
+                  : "bg-muted/30 border-dashed border-border opacity-70"
+              }`}
+            >
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
+                      {item.category_name || "General"}
+                    </span>
+                    <h4 className="text-sm font-black text-foreground pt-1 leading-snug">
+                      {item.name}
+                    </h4>
+                  </div>
+
+                  {/* Availability Badge */}
+                  <button
+                    type="button"
+                    onClick={() => void handleToggleAvailability(item)}
+                    className={`px-2 py-0.5 rounded-full text-[10.5px] font-extrabold transition cursor-pointer shrink-0 flex items-center gap-1 ${
+                      item.is_available
+                        ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/25"
+                        : "bg-rose-500/15 text-rose-500 border border-rose-500/30 hover:bg-rose-500/25"
+                    }`}
+                    title="Click to toggle availability in POS & QR menu"
+                  >
+                    {item.is_available ? (
+                      <>
+                        <Check className="h-3 w-3" /> Available
+                      </>
+                    ) : (
+                      <>
+                        <X className="h-3 w-3" /> 86ed / Sold Out
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {item.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {item.description}
+                  </p>
+                )}
+
+                {item.sku && (
+                  <p className="text-[10.5px] font-mono text-muted-foreground">
+                    SKU: <span className="font-bold text-foreground">{item.sku}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Price & Action Row */}
+              <div className="pt-3 border-t border-border flex items-center justify-between">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg font-black font-mono text-[var(--brand-gold)]">
+                    ₹{item.price.toFixed(2)}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase font-semibold">INR</span>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleOpenEdit(item)}
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                    title="Edit Item"
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void handleDeleteItem(item)}
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-rose-500"
+                    title="Remove Item"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── ADD ITEM MODAL ── */}
+      <Modal
+        open={isAddItemModalOpen}
+        onClose={() => setIsAddItemModalOpen(false)}
+        title={`Add Item to ${activeSection === "FOOD" ? "Food & Dining" : activeSection === "ROOMS" ? "Rooms & Stay" : "Hotel Services"}`}
+      >
+        <form onSubmit={handleSaveNewItem} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Category *</label>
+            <select
+              value={itemCategoryId}
+              onChange={(e) => setItemCategoryId(e.target.value)}
+              className="w-full text-xs h-9 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground"
+              required
+            >
               {sectionCategories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
               ))}
             </select>
-          )}
-
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-            className="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 outline-none cursor-pointer h-9 font-medium"
-          >
-            <option value="ALL">All Availability</option>
-            <option value="AVAILABLE">In Stock & Active</option>
-            <option value="86ED">Unavailable (86ed)</option>
-            <option value="INACTIVE">Archived / Inactive</option>
-          </select>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-          {activeSection === "FOOD" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddCategoryModalOpen(true)}
-              className="border-slate-800 text-slate-300 hover:bg-slate-800 text-xs font-bold h-9 rounded-xl"
-            >
-              <Layers className="w-3.5 h-3.5 mr-1.5 text-[var(--brand-gold)]" />
-              + Add Category
-            </Button>
-          )}
-
-          <Button
-            size="sm"
-            onClick={() => void openAddItemModal()}
-            className="bg-[var(--brand-gold)] hover:brightness-105 text-slate-950 font-black text-xs h-9 rounded-xl shadow-md shadow-amber-500/15"
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            {activeSection === "FOOD"
-              ? "Add Food Item"
-              : activeSection === "ROOMS"
-              ? "Add Room Charge / Tariff"
-              : "Add Hotel Service / Spa"}
-          </Button>
-        </div>
-      </div>
-
-      {/* ── ITEMS GRID ── */}
-      {filteredItems.length === 0 ? (
-        <Card className="p-12 text-center border-dashed border-slate-800 bg-slate-900/20 space-y-3 rounded-3xl">
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
-            {activeSection === "FOOD" ? (
-              <UtensilsCrossed className="w-6 h-6" />
-            ) : activeSection === "ROOMS" ? (
-              <BedDouble className="w-6 h-6" />
-            ) : (
-              <Sparkles className="w-6 h-6" />
-            )}
-          </div>
-          <h3 className="text-base font-bold text-white">
-            No {activeSection === "FOOD" ? "food menu items" : activeSection === "ROOMS" ? "room stay charges" : "hotel service charges"} found
-          </h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            {searchQuery
-              ? `No items matching '${searchQuery}'. Try clearing your search filter.`
-              : `Click the button below to add your first ${activeSection === "FOOD" ? "dish" : activeSection === "ROOMS" ? "room charge item" : "hotel service item"} to the POS.`}
-          </p>
-          <Button
-            size="sm"
-            onClick={() => void openAddItemModal()}
-            className="bg-[var(--brand-gold)] text-slate-950 font-bold text-xs mt-2"
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" />
-            Add First Item
-          </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredItems.map((item) => (
-            <Card
-              key={item.id}
-              className={`p-4 rounded-2xl border transition-all hover:border-[var(--brand-gold)]/40 group relative flex flex-col justify-between ${
-                !item.is_active
-                  ? "bg-slate-950/40 border-slate-900 opacity-60"
-                  : !item.is_available
-                  ? "bg-amber-950/10 border-amber-900/30"
-                  : "bg-slate-900/60 border-slate-800"
-              }`}
-            >
-              <div className="space-y-2.5">
-                {/* Header: Name, Price, and Section Badge */}
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/50">
-                      {item.category_name || "Standard Item"}
-                    </span>
-                    <h4 className="text-sm font-extrabold text-white mt-1 group-hover:text-[var(--brand-gold)] transition">
-                      {item.name}
-                    </h4>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-base font-black text-amber-400 font-mono">
-                      ₹{Number(item.price).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                {item.description && (
-                  <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                    {item.description}
-                  </p>
-                )}
-
-                {/* SKU / Short Name Info */}
-                {(item.sku || item.short_name) && (
-                  <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
-                    {item.sku && <span>SKU: {item.sku}</span>}
-                    {item.short_name && <span>• Short: {item.short_name}</span>}
-                  </div>
-                )}
-              </div>
-
-              {/* Footer Controls: Availability toggle, Edit, Delete */}
-              <div className="pt-3 mt-3 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                <button
-                  onClick={() => void handleToggleAvailability(item)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition ${
-                    item.is_available
-                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20"
-                      : "bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20"
-                  }`}
-                  title="Click to toggle in-stock availability in POS"
-                >
-                  {item.is_available ? (
-                    <>
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                      <span>In Stock</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-3 h-3 text-amber-400" />
-                      <span>86ed (Unavailable)</span>
-                    </>
-                  )}
-                </button>
-
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openEditItemModal(item)}
-                    className="h-7 w-7 p-0 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg"
-                    title="Edit Item"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void handleDeactivateItem(item)}
-                    className="h-7 w-7 p-0 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg"
-                    title="Remove Item"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* ── MODAL: ADD POS ITEM ── */}
-      <Modal
-        open={isAddItemModalOpen}
-        onClose={() => setIsAddItemModalOpen(false)}
-        title={
-          activeSection === "FOOD"
-            ? "Add Food Menu Item"
-            : activeSection === "ROOMS"
-            ? "Add Room Tariff / Stay Charge"
-            : "Add Hotel Service / Spa Amenity"
-        }
-      >
-        <form onSubmit={handleSaveNewItem} className="space-y-4">
-          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-300">
-              This item will immediately be available in POS under the{" "}
-              <strong className="text-amber-300">
-                {activeSection === "FOOD"
-                  ? "Food & Dining Menu"
-                  : activeSection === "ROOMS"
-                  ? "Rooms & Stay Charges"
-                  : "Hotel Services & Spa"}
-              </strong>{" "}
-              tab for bill generation.
-            </p>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Item / Charge Name <span className="text-rose-400">*</span>
-            </label>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Item Name *</label>
             <Input
-              type="text"
-              placeholder={
-                activeSection === "FOOD"
-                  ? "e.g., Paneer Butter Masala, Club Sandwich"
-                  : activeSection === "ROOMS"
-                  ? "e.g., Deluxe Ocean View Tariff, Extra Rollaway Bed"
-                  : "e.g., Swedish Full Body Massage, Airport Premium Shuttle"
-              }
+              placeholder="e.g. Butter Chicken / Deluxe Suite / Swedish Massage"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              className="bg-slate-950 border-slate-800 text-xs text-white"
+              className="text-xs h-9"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Price (INR ₹) <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-400 font-mono">
-                  ₹
-                </span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={itemPrice}
-                  onChange={(e) => setItemPrice(e.target.value)}
-                  className="pl-7 bg-slate-950 border-slate-800 text-xs text-white font-mono font-bold"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Category
-              </label>
-              <select
-                value={itemCategoryId}
-                onChange={(e) => setItemCategoryId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-xs text-white rounded-xl px-3 py-2 outline-none cursor-pointer h-9 font-medium"
-              >
-                {sectionCategories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Short Name / Code
-              </label>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-foreground">Price in INR (₹) *</label>
               <Input
-                type="text"
-                placeholder="e.g., PBN, EXBED, SPA60"
-                value={itemShortName}
-                onChange={(e) => setItemShortName(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-xs text-white font-mono"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="₹ 0.00"
+                value={itemPrice}
+                onChange={(e) => setItemPrice(e.target.value)}
+                className="text-xs h-9 font-mono"
+                required
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                SKU / Tariff Code
-              </label>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-foreground">SKU / Item Code</label>
               <Input
-                type="text"
-                placeholder="e.g., FNB-01, RM-EXT-01"
+                placeholder="e.g. FOOD-01"
                 value={itemSku}
                 onChange={(e) => setItemSku(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-xs text-white font-mono"
+                className="text-xs h-9 font-mono"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Description / Inclusions
-            </label>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Short Name (POS Quick Key)</label>
+            <Input
+              placeholder="e.g. Butter Chk"
+              value={itemShortName}
+              onChange={(e) => setItemShortName(e.target.value)}
+              className="text-xs h-9"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Description</label>
             <textarea
               rows={2}
-              placeholder="Brief details or inclusions for billing receipts..."
+              placeholder="Details or ingredients..."
               value={itemDescription}
               onChange={(e) => setItemDescription(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[var(--brand-gold)] transition"
+              className="w-full text-xs p-2.5 rounded-md border border-input bg-background font-medium text-foreground resize-none"
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-2">
             <input
               type="checkbox"
-              id="initialAvailability"
+              id="addItemAvail"
               checked={itemIsAvailable}
               onChange={(e) => setItemIsAvailable(e.target.checked)}
-              className="rounded bg-slate-950 border-slate-800 text-[var(--brand-gold)] focus:ring-0 cursor-pointer"
+              className="rounded border-input h-4 w-4 text-primary"
             />
-            <label htmlFor="initialAvailability" className="text-xs font-medium text-slate-300 cursor-pointer">
-              Mark immediately In-Stock & available in POS cashier
+            <label htmlFor="addItemAvail" className="text-xs font-medium text-foreground cursor-pointer">
+              Available immediately in POS Terminal & QR Menu
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="pt-3 flex justify-end gap-2 border-t border-border">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsAddItemModalOpen(false)}
-              className="border-slate-800 text-slate-300 text-xs"
             >
               Cancel
             </Button>
@@ -954,130 +991,99 @@ export default function PosConfigurationPage() {
               type="submit"
               size="sm"
               disabled={isSubmitting}
-              className="bg-[var(--brand-gold)] text-slate-950 font-black text-xs"
+              className="bg-[var(--brand-gold)] text-slate-950 font-bold"
             >
-              {isSubmitting ? "Adding..." : "Save to POS Catalog"}
+              {isSubmitting ? "Creating..." : "Create Item"}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* ── MODAL: EDIT POS ITEM ── */}
+      {/* ── EDIT ITEM MODAL ── */}
       <Modal
         open={isEditItemModalOpen}
         onClose={() => setIsEditItemModalOpen(false)}
-        title={`Edit ${selectedItemForEdit?.name || "Item"}`}
+        title="Edit Catalog Item"
       >
         <form onSubmit={handleSaveEditItem} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Item Name <span className="text-rose-400">*</span>
-            </label>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Category *</label>
+            <select
+              value={itemCategoryId}
+              onChange={(e) => setItemCategoryId(e.target.value)}
+              className="w-full text-xs h-9 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground"
+              required
+            >
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Item Name *</label>
             <Input
-              type="text"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
-              className="bg-slate-950 border-slate-800 text-xs text-white"
+              className="text-xs h-9"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Price (INR ₹) <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-400 font-mono">
-                  ₹
-                </span>
-                <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={itemPrice}
-                  onChange={(e) => setItemPrice(e.target.value)}
-                  className="pl-7 bg-slate-950 border-slate-800 text-xs text-white font-mono font-bold"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Category
-              </label>
-              <select
-                value={itemCategoryId}
-                onChange={(e) => setItemCategoryId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 text-xs text-white rounded-xl px-3 py-2 outline-none cursor-pointer h-9 font-medium"
-              >
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Short Name / Code
-              </label>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-foreground">Price in INR (₹) *</label>
               <Input
-                type="text"
-                value={itemShortName}
-                onChange={(e) => setItemShortName(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-xs text-white font-mono"
+                type="number"
+                step="0.01"
+                min="0"
+                value={itemPrice}
+                onChange={(e) => setItemPrice(e.target.value)}
+                className="text-xs h-9 font-mono"
+                required
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                SKU / Tariff Code
-              </label>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-foreground">SKU / Code</label>
               <Input
-                type="text"
                 value={itemSku}
                 onChange={(e) => setItemSku(e.target.value)}
-                className="bg-slate-950 border-slate-800 text-xs text-white font-mono"
+                className="text-xs h-9 font-mono"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Description
-            </label>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Description</label>
             <textarea
               rows={2}
               value={itemDescription}
               onChange={(e) => setItemDescription(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[var(--brand-gold)] transition"
+              className="w-full text-xs p-2.5 rounded-md border border-input bg-background font-medium text-foreground resize-none"
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-2">
             <input
               type="checkbox"
-              id="editAvailability"
+              id="editItemAvail"
               checked={itemIsAvailable}
               onChange={(e) => setItemIsAvailable(e.target.checked)}
-              className="rounded bg-slate-950 border-slate-800 text-[var(--brand-gold)] focus:ring-0 cursor-pointer"
+              className="rounded border-input h-4 w-4 text-primary"
             />
-            <label htmlFor="editAvailability" className="text-xs font-medium text-slate-300 cursor-pointer">
-              Item In-Stock & Available for POS billing
+            <label htmlFor="editItemAvail" className="text-xs font-medium text-foreground cursor-pointer">
+              Available in POS Terminal & QR Menu
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="pt-3 flex justify-end gap-2 border-t border-border">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsEditItemModalOpen(false)}
-              className="border-slate-800 text-slate-300 text-xs"
             >
               Cancel
             </Button>
@@ -1085,55 +1091,49 @@ export default function PosConfigurationPage() {
               type="submit"
               size="sm"
               disabled={isSubmitting}
-              className="bg-[var(--brand-gold)] text-slate-950 font-black text-xs"
+              className="bg-[var(--brand-gold)] text-slate-950 font-bold"
             >
-              {isSubmitting ? "Saving..." : "Update Item"}
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* ── MODAL: ADD CATEGORY ── */}
+      {/* ── ADD CATEGORY MODAL ── */}
       <Modal
         open={isAddCategoryModalOpen}
         onClose={() => setIsAddCategoryModalOpen(false)}
-        title="Add Menu / Tariff Category"
+        title="Create New POS Category"
       >
-        <form onSubmit={handleCreateCategory} className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Category Name <span className="text-rose-400">*</span>
-            </label>
+        <form onSubmit={handleSaveNewCategory} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Category Name *</label>
             <Input
-              type="text"
-              placeholder="e.g., Tandoori Starters, Beverages, Spa Packages"
+              placeholder="e.g. Starters / Room Tariffs / Spa Treatments"
               value={newCatName}
               onChange={(e) => setNewCatName(e.target.value)}
-              className="bg-slate-950 border-slate-800 text-xs text-white"
+              className="text-xs h-9"
               required
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1.5">
-              Description
-            </label>
-            <Input
-              type="text"
-              placeholder="Optional category description"
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-foreground">Description</label>
+            <textarea
+              rows={2}
+              placeholder="Optional category details..."
               value={newCatDesc}
               onChange={(e) => setNewCatDesc(e.target.value)}
-              className="bg-slate-950 border-slate-800 text-xs text-white"
+              className="w-full text-xs p-2.5 rounded-md border border-input bg-background font-medium text-foreground resize-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="pt-3 flex justify-end gap-2 border-t border-border">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setIsAddCategoryModalOpen(false)}
-              className="border-slate-800 text-slate-300 text-xs"
             >
               Cancel
             </Button>
@@ -1141,7 +1141,7 @@ export default function PosConfigurationPage() {
               type="submit"
               size="sm"
               disabled={isSubmitting}
-              className="bg-[var(--brand-gold)] text-slate-950 font-black text-xs"
+              className="bg-[var(--brand-gold)] text-slate-950 font-bold"
             >
               {isSubmitting ? "Creating..." : "Create Category"}
             </Button>

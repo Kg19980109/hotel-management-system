@@ -41,7 +41,10 @@ export default function RestaurantPosPage() {
   const [tables, setTables] = useState<RestaurantTable[]>([]);
 
   const loadData = useCallback(async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -50,9 +53,7 @@ export default function RestaurantPosPage() {
       setRestaurants(rests);
 
       if (rests.length > 0) {
-        const activeRest = selectedRestaurant
-          ? rests.find((r) => r.id === selectedRestaurant.id) || rests[0]
-          : rests[0];
+        const activeRest = rests[0];
         setSelectedRestaurant(activeRest);
 
         const [catsData, itemsData, tablesData] = await Promise.all([
@@ -73,34 +74,13 @@ export default function RestaurantPosPage() {
     } finally {
       setLoading(false);
     }
-  }, [propertyId, selectedRestaurant]);
+  }, [propertyId]);
 
   useEffect(() => {
     if (!authLoading && propertyId) {
-      void Promise.resolve().then(() => loadData());
+      void loadData();
     }
   }, [authLoading, propertyId, loadData]);
-
-  const handleSelectOutlet = async (restaurantId: string) => {
-    const target = restaurants.find((r) => r.id === restaurantId);
-    if (!target) return;
-    setSelectedRestaurant(target);
-    try {
-      setLoading(true);
-      const [catsData, itemsData, tablesData] = await Promise.all([
-        getMenuCategories(target.id, false),
-        getMenuItems(target.id, false),
-        getRestaurantTables(target.id, false),
-      ]);
-      setCategories(catsData);
-      setMenuItems(itemsData);
-      setTables(tablesData);
-    } catch (err: unknown) {
-      console.error("Failed to switch outlet:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (authLoading || (loading && !selectedRestaurant)) {
     return (
@@ -153,19 +133,10 @@ export default function RestaurantPosPage() {
         description="High-speed order taking, live table seating, and instant order creation."
         actions={
           <div className="flex items-center gap-2">
-            {restaurants.length > 1 && (
-              <select
-                value={selectedRestaurant.id}
-                onChange={(e) => handleSelectOutlet(e.target.value)}
-                className="text-xs h-9 rounded-md border border-input bg-background px-3 py-1 font-medium text-foreground shadow-xs"
-              >
-                {restaurants.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name} ({r.code})
-                  </option>
-                ))}
-              </select>
-            )}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-bold text-foreground shadow-xs">
+              <Store className="h-3.5 w-3.5 text-amber-500" />
+              <span>{selectedRestaurant.name}</span>
+            </div>
 
             <Link href="/restaurant/tables">
               <Button variant="outline" size="sm" className="text-xs h-9">

@@ -449,20 +449,11 @@ export default function KitchenKdsPage() {
 
         {/* Right Header Controls */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Outlet Selector */}
-          {restaurants.length > 1 && (
-            <select
-              value={selectedRestaurant.id}
-              onChange={(e) => void handleSelectOutlet(e.target.value)}
-              className="text-xs h-8 rounded-lg border border-input bg-card px-2.5 font-bold text-foreground shadow-xs cursor-pointer"
-            >
-              {restaurants.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          )}
+          {/* Unified Outlet Badge */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-card border border-border text-xs font-bold text-foreground">
+            <Store className="h-3.5 w-3.5 text-amber-500" />
+            <span>{selectedRestaurant.name}</span>
+          </div>
 
           {/* Live Digital Clock */}
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted text-xs font-mono font-bold text-foreground border border-border">

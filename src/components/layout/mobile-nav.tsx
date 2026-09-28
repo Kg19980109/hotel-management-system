@@ -76,16 +76,14 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
             onClick={onClose}
             className="flex items-center gap-2.5 focus:outline-none"
           >
-            <div className="bg-white/95 rounded-xl px-2.5 py-1 border border-white/20 shadow-md flex items-center justify-center">
-              <Image
-                src="/images/logo-brand.png"
-                alt="ASSO Logo"
-                width={110}
-                height={32}
-                className="h-7 w-auto object-contain"
-                priority
-              />
-            </div>
+            <Image
+              src="/images/logo-brand-dark.png"
+              alt="ASSO Logo"
+              width={120}
+              height={34}
+              className="h-7.5 w-auto object-contain filter drop-shadow-md"
+              priority
+            />
           </Link>
 
           <button

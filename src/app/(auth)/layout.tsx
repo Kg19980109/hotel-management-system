@@ -18,17 +18,15 @@ export default function AuthLayout({
 
       {/* Brand Header */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded-[var(--radius)]">
-          <div className="bg-white/95 rounded-xl px-3 py-1.5 border border-white/20 shadow-md flex items-center justify-center">
-            <Image
-              src="/images/logo-brand.png"
-              alt="ASSO Logo"
-              width={130}
-              height={38}
-              className="h-8 w-auto object-contain"
-              priority
-            />
-          </div>
+        <Link href="/" className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-xl">
+          <Image
+            src="/images/logo-brand-dark.png"
+            alt="ASSO Logo"
+            width={140}
+            height={40}
+            className="h-9 w-auto object-contain filter drop-shadow-md"
+            priority
+          />
         </Link>
 
         <div className="hidden sm:flex items-center gap-2 text-[12px] font-medium text-[var(--foreground-muted)] bg-[var(--card)] border border-[var(--border)] px-3 py-1.5 rounded-full shadow-xs">

@@ -44,29 +44,29 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
           href="/dashboard"
           className={cn(
             "flex items-center gap-2.5 rounded-[var(--radius-md)] p-1 -ml-1",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 group"
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 group"
           )}
           aria-label="ASSO Dashboard"
         >
           {collapsed ? (
-            <div className="h-8.5 w-8.5 rounded-xl bg-white/95 border border-white/20 shadow-md flex items-center justify-center p-1 hover:scale-105 transition-transform">
+            <div className="h-9 w-9 rounded-xl bg-white/[0.07] border border-white/[0.12] flex items-center justify-center p-1.5 shadow-inner hover:bg-white/[0.12] transition-colors">
               <Image
-                src="/images/logo-brand.png"
+                src="/images/logo-icon-dark.png"
                 alt="ASSO"
-                width={32}
-                height={32}
-                className="h-5.5 w-auto object-contain"
+                width={28}
+                height={28}
+                className="h-6 w-auto object-contain"
                 priority
               />
             </div>
           ) : (
-            <div className="bg-white/95 rounded-xl px-2.5 py-1 border border-white/20 shadow-md shadow-black/20 flex items-center justify-center hover:bg-white transition-all hover:scale-[1.02]">
+            <div className="flex items-center px-1.5 py-0.5 hover:opacity-90 transition-opacity">
               <Image
-                src="/images/logo-brand.png"
+                src="/images/logo-brand-dark.png"
                 alt="ASSO Logo"
-                width={120}
-                height={36}
-                className="h-7.5 w-auto object-contain"
+                width={130}
+                height={38}
+                className="h-8.5 w-auto object-contain filter drop-shadow-md"
                 priority
               />
             </div>

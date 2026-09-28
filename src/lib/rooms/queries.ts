@@ -278,7 +278,7 @@ export async function fetchRooms(
           guestName: guestName || "Registered Guest",
           guestEmail: g?.email || null,
           guestPhone: g?.phone || null,
-          guestVip: Boolean(g?.vip_status),
+          guestVip: false,
           adults: stay.adults || 1,
           children: stay.children || 0,
           checkInDate: stay.actual_check_in_at || stay.created_at,

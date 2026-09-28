@@ -85,7 +85,6 @@ export async function fetchGuests(
       nationality,
       status,
       company_name,
-      vip_status,
       created_at,
       stays:stays(id, status, actual_check_in_at, expected_check_out_date, room_id, room:rooms(room_number))
     `,

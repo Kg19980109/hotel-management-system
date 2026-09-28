@@ -62,13 +62,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return [];
   });
 
-  // Sync to localStorage
-  const saveCart = (rId: string | null, rName: string | null, nextItems: GuestCartItem[]) => {
+  // Asynchronous deferred persistence to localStorage (non-blocking for UI interactions)
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
     try {
-      if (rId && nextItems.length > 0) {
+      if (restaurantId && items.length > 0) {
         localStorage.setItem(
           CART_STORAGE_KEY,
-          JSON.stringify({ restaurantId: rId, restaurantName: rName, items: nextItems })
+          JSON.stringify({ restaurantId, restaurantName, items })
         );
       } else {
         localStorage.removeItem(CART_STORAGE_KEY);
@@ -76,35 +77,36 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Ignore storage errors
     }
-  };
+  }, [restaurantId, restaurantName, items]);
 
-  const addItem = (newRestaurantId: string, newRestaurantName: string, item: GuestCartItem) => {
-    setItems((prev) => {
-      // If switching restaurants, clear previous restaurant's cart
-      let targetItems = prev;
-      if (restaurantId && restaurantId !== newRestaurantId) {
-        targetItems = [];
-      }
+  const addItem = React.useCallback(
+    (newRestaurantId: string, newRestaurantName: string, item: GuestCartItem) => {
+      setItems((prev) => {
+        let targetItems = prev;
+        if (restaurantId && restaurantId !== newRestaurantId) {
+          targetItems = [];
+        }
 
-      const existingIndex = targetItems.findIndex((i) => i.menu_item_id === item.menu_item_id);
-      let updated: GuestCartItem[];
+        const existingIndex = targetItems.findIndex((i) => i.menu_item_id === item.menu_item_id);
+        let updated: GuestCartItem[];
 
-      if (existingIndex > -1) {
-        updated = targetItems.map((i, idx) =>
-          idx === existingIndex ? { ...i, quantity: i.quantity + item.quantity } : i
-        );
-      } else {
-        updated = [...targetItems, item];
-      }
+        if (existingIndex > -1) {
+          updated = targetItems.map((i, idx) =>
+            idx === existingIndex ? { ...i, quantity: i.quantity + item.quantity } : i
+          );
+        } else {
+          updated = [...targetItems, item];
+        }
 
-      setRestaurantId(newRestaurantId);
-      setRestaurantName(newRestaurantName);
-      saveCart(newRestaurantId, newRestaurantName, updated);
-      return updated;
-    });
-  };
+        setRestaurantId(newRestaurantId);
+        setRestaurantName(newRestaurantName);
+        return updated;
+      });
+    },
+    [restaurantId]
+  );
 
-  const updateQuantity = (menuItemId: string, quantity: number) => {
+  const updateQuantity = React.useCallback((menuItemId: string, quantity: number) => {
     setItems((prev) => {
       let updated: GuestCartItem[];
       if (quantity <= 0) {
@@ -118,42 +120,54 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (updated.length === 0) {
         setRestaurantId(null);
         setRestaurantName(null);
-        saveCart(null, null, []);
-      } else {
-        saveCart(restaurantId, restaurantName, updated);
       }
       return updated;
     });
-  };
+  }, []);
 
-  const removeItem = (menuItemId: string) => {
-    updateQuantity(menuItemId, 0);
-  };
+  const removeItem = React.useCallback(
+    (menuItemId: string) => {
+      updateQuantity(menuItemId, 0);
+    },
+    [updateQuantity]
+  );
 
-  const clearCart = () => {
+  const clearCart = React.useCallback(() => {
     setRestaurantId(null);
     setRestaurantName(null);
     setItems([]);
-    saveCart(null, null, []);
-  };
+  }, []);
 
-  const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
-  const subtotal = items.reduce((acc, i) => acc + i.price * i.quantity, 0);
+  const totalItems = React.useMemo(() => items.reduce((acc, i) => acc + i.quantity, 0), [items]);
+  const subtotal = React.useMemo(() => items.reduce((acc, i) => acc + i.price * i.quantity, 0), [items]);
+
+  const contextValue = React.useMemo(
+    () => ({
+      restaurantId,
+      restaurantName,
+      items,
+      addItem,
+      updateQuantity,
+      removeItem,
+      clearCart,
+      totalItems,
+      subtotal,
+    }),
+    [
+      restaurantId,
+      restaurantName,
+      items,
+      addItem,
+      updateQuantity,
+      removeItem,
+      clearCart,
+      totalItems,
+      subtotal,
+    ]
+  );
 
   return (
-    <CartContext.Provider
-      value={{
-        restaurantId,
-        restaurantName,
-        items,
-        addItem,
-        updateQuantity,
-        removeItem,
-        clearCart,
-        totalItems,
-        subtotal,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

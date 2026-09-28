@@ -29,6 +29,8 @@ import {
   Crown,
   BellRing,
   ArrowRight,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
 import { ServiceRequestCategory, ServiceRequestPriority } from "@/lib/guest-services/types";
 import { createGuestServiceRequestAction } from "@/lib/guest-services/actions";
@@ -47,6 +49,7 @@ interface ServicesViewProps {
 interface ServiceCategoryMeta {
   id: ServiceRequestCategory;
   name: string;
+  group: "ROOM" | "ASSISTANCE" | "EXPERIENCE";
   icon: React.ComponentType<{ className?: string }>;
   iconColor: string;
   iconBg: string;
@@ -60,205 +63,225 @@ interface ServiceCategoryMeta {
 }
 
 const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
-  // 1. Housekeeping
+  // ROOM GROUP
   {
     id: "HOUSEKEEPING",
     name: "Housekeeping",
+    group: "ROOM",
     icon: Sparkles,
-    iconColor: "text-emerald-400",
-    iconBg: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-    badgeBg: "bg-emerald-500/15",
-    badgeText: "text-emerald-300",
-    badgeBorder: "border-emerald-500/30",
-    description: "Linens, towels, room cleaning & fresh toiletries",
+    iconColor: "text-[#D4AF37]",
+    iconBg: "bg-[#FAF4E6] text-[#A67C1E] border-[#D4AF37]/30",
+    badgeBg: "bg-emerald-50",
+    badgeText: "text-emerald-700",
+    badgeBorder: "border-emerald-200",
+    description: "Linens, fresh towels, turndown & toiletries replenishment",
     isPaid: false,
     tag: "Complimentary",
     commonQuickOptions: [
       "Fresh bath towels & hand towels",
-      "Extra pillows & blankets",
-      "Full room cleaning & turnover",
-      "Toiletries & shampoo refill",
-      "Complimentary water bottles",
-      "Trash clearance & bin change",
+      "Extra pillows & duvet",
+      "Full room refresh & cleaning",
+      "Luxury toiletries & shampoo refill",
+      "Complimentary mineral water",
+      "Waste bin clearance",
     ],
   },
-  // 2. Front Desk
-  {
-    id: "FRONT_DESK",
-    name: "Front Desk & Reception",
-    icon: BedDouble,
-    iconColor: "text-amber-400",
-    iconBg: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    badgeBg: "bg-amber-500/15",
-    badgeText: "text-amber-300",
-    badgeBorder: "border-amber-500/30",
-    description: "Checkout assistance, luggage, keys & inquiries",
-    isPaid: false,
-    tag: "Front Desk",
-    commonQuickOptions: [
-      "Late check-out request",
-      "Wake-up call setup",
-      "Luggage & bellboy assistance",
-      "Keycard replacement / PIN",
-      "General reception inquiry",
-      "Invoice / Folio summary request",
-    ],
-  },
-  // 3. Maintenance
   {
     id: "MAINTENANCE",
-    name: "Room Maintenance",
+    name: "Engineering & Maintenance",
+    group: "ROOM",
     icon: Wrench,
-    iconColor: "text-sky-400",
-    iconBg: "bg-sky-500/20 text-sky-400 border-sky-500/30",
-    badgeBg: "bg-sky-500/15",
-    badgeText: "text-sky-300",
-    badgeBorder: "border-sky-500/30",
-    description: "In-room AC cooling, plumbing, TV & electrical fixes",
+    iconColor: "text-sky-600",
+    iconBg: "bg-sky-50 text-sky-700 border-sky-200",
+    badgeBg: "bg-sky-50",
+    badgeText: "text-sky-700",
+    badgeBorder: "border-sky-200",
+    description: "In-room climate control, electronics, plumbing & repairs",
     isPaid: false,
     tag: "Engineering",
     commonQuickOptions: [
-      "Air Conditioning (AC) cooling issue",
-      "Bathroom door / lock repair",
-      "Plumbing & drainage blockage",
-      "Hot water & shower pressure",
-      "Television / Cable / Wi-Fi issue",
-      "Lighting & electrical switch issue",
+      "AC climate & temperature control",
+      "Plumbing & shower water pressure",
+      "TV, streaming & Wi-Fi assistance",
+      "Lighting & electrical switches",
+      "Door lock & keycard check",
+      "Safe & electronic locker assistance",
     ],
   },
-  // 4. Laundry & Pressing
   {
     id: "LAUNDRY",
     name: "Laundry & Dry Cleaning",
+    group: "ROOM",
     icon: Shirt,
-    iconColor: "text-indigo-400",
-    iconBg: "bg-indigo-500/20 text-indigo-400 border-indigo-500/30",
-    badgeBg: "bg-indigo-500/15",
-    badgeText: "text-indigo-300",
-    badgeBorder: "border-indigo-500/30",
-    description: "Dry cleaning, steam pressing, wash & fold",
+    iconColor: "text-indigo-600",
+    iconBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    badgeBg: "bg-[#FAF4E6]",
+    badgeText: "text-[#A67C1E]",
+    badgeBorder: "border-[#D4AF37]/30",
+    description: "Express valet, garment pressing, wash & dry cleaning",
     isPaid: true,
     tag: "Billed to Folio",
     commonQuickOptions: [
       "Express same-day laundry pickup",
-      "Wash & Fold service",
-      "Shirt & trouser steam pressing",
-      "Suit & blazer dry cleaning",
-      "Delicate garment care",
-      "Shoe polish & leather care",
+      "Shirt & suit steam pressing",
+      "Premium dry cleaning care",
+      "Wash & fold bag service",
+      "Shoe shine & leather care",
+      "Delicate garment service",
     ],
   },
-  // 5. Spa & Wellness
+
+  // ASSISTANCE GROUP
+  {
+    id: "FRONT_DESK",
+    name: "Front Desk & Reception",
+    group: "ASSISTANCE",
+    icon: BedDouble,
+    iconColor: "text-amber-700",
+    iconBg: "bg-amber-50 text-amber-800 border-amber-200",
+    badgeBg: "bg-emerald-50",
+    badgeText: "text-emerald-700",
+    badgeBorder: "border-emerald-200",
+    description: "Luggage assistance, wake-up calls, keys & reception inquiries",
+    isPaid: false,
+    tag: "Complimentary",
+    commonQuickOptions: [
+      "Late check-out request",
+      "Luggage & bellman assistance",
+      "Wake-up call coordination",
+      "Keycard reprint / PIN reset",
+      "Folio summary & billing inquiry",
+      "Courier & parcel receipt",
+    ],
+  },
+  {
+    id: "CONCIERGE",
+    name: "Concierge & City Tours",
+    group: "ASSISTANCE",
+    icon: Compass,
+    iconColor: "text-purple-600",
+    iconBg: "bg-purple-50 text-purple-700 border-purple-200",
+    badgeBg: "bg-purple-50",
+    badgeText: "text-purple-700",
+    badgeBorder: "border-purple-200",
+    description: "Fine dining reservations, city itineraries & VIP tickets",
+    isPaid: false,
+    tag: "Concierge Desk",
+    commonQuickOptions: [
+      "Fine dining table reservation",
+      "City sightseeing & curated tour",
+      "Local museum & monument passes",
+      "Florist & celebration arrangements",
+      "Flight & rail travel rebooking",
+      "Pharmacy & medical assistance",
+    ],
+  },
+  {
+    id: "TRANSPORT",
+    name: "Chauffeur & Airport Transfers",
+    group: "ASSISTANCE",
+    icon: Car,
+    iconColor: "text-teal-600",
+    iconBg: "bg-teal-50 text-teal-700 border-teal-200",
+    badgeBg: "bg-[#FAF4E6]",
+    badgeText: "text-[#A67C1E]",
+    badgeBorder: "border-[#D4AF37]/30",
+    description: "Airport limousine, private driver & station transfers",
+    isPaid: true,
+    tag: "Billed to Folio",
+    commonQuickOptions: [
+      "Airport private limousine transfer",
+      "Full-day private chauffeur",
+      "Local city taxi dispatch",
+      "Railway station drop / pickup",
+      "Valet car retrieval to main porch",
+      "Intercity luxury travel cab",
+    ],
+  },
+
+  // EXPERIENCE GROUP
+  {
+    id: "ROOM_SERVICE",
+    name: "In-Room Dining Amenities",
+    group: "EXPERIENCE",
+    icon: Coffee,
+    iconColor: "text-rose-600",
+    iconBg: "bg-rose-50 text-rose-700 border-rose-200",
+    badgeBg: "bg-emerald-50",
+    badgeText: "text-emerald-700",
+    badgeBorder: "border-emerald-200",
+    description: "Ice buckets, extra cutlery, glassware & minibar refills",
+    isPaid: false,
+    tag: "Complimentary",
+    commonQuickOptions: [
+      "Fresh ice bucket & crystal glassware",
+      "Extra cutlery, plates & wine glasses",
+      "Used dining tray clearance",
+      "Nespresso coffee & tea box replenishment",
+      "Minibar restock request",
+      "Celebration cake & candle setup",
+    ],
+  },
   {
     id: "SPA",
-    name: "Spa & Wellness",
+    name: "Spa, Wellness & Massages",
+    group: "EXPERIENCE",
     icon: Flower2,
-    iconColor: "text-pink-400",
-    iconBg: "bg-pink-500/20 text-pink-400 border-pink-500/30",
-    badgeBg: "bg-pink-500/15",
-    badgeText: "text-pink-300",
-    badgeBorder: "border-pink-500/30",
-    description: "Full body massages, facial therapies & pool passes",
+    iconColor: "text-pink-600",
+    iconBg: "bg-pink-50 text-pink-700 border-pink-200",
+    badgeBg: "bg-[#FAF4E6]",
+    badgeText: "text-[#A67C1E]",
+    badgeBorder: "border-[#D4AF37]/30",
+    description: "Holistic massages, aromatherapy, sauna & beauty therapies",
     isPaid: true,
     tag: "Wellness Service",
     commonQuickOptions: [
-      "Full body Swedish massage (60m)",
-      "Deep tissue muscle therapy (90m)",
-      "Luxury facial & skin care",
-      "Couple wellness spa package",
-      "Swimming pool & health club pass",
-      "Spa therapist consultation",
+      "Signature Swedish massage (60 min)",
+      "Deep tissue recovery therapy (90 min)",
+      "Luxury facial & radiant skin treatment",
+      "Couples rejuvenation spa suite",
+      "Heated pool & health club session",
+      "Ayurvedic wellness consultation",
     ],
   },
-  // 6. Transport & Cabs
-  {
-    id: "TRANSPORT",
-    name: "Transport & Cabs",
-    icon: Car,
-    iconColor: "text-teal-400",
-    iconBg: "bg-teal-500/20 text-teal-400 border-teal-500/30",
-    badgeBg: "bg-teal-500/15",
-    badgeText: "text-teal-300",
-    badgeBorder: "border-teal-500/30",
-    description: "Airport private transfers, city cabs & chauffeur",
-    isPaid: true,
-    tag: "Cab / Transfer",
-    commonQuickOptions: [
-      "Airport private cab transfer",
-      "Local city taxi booking",
-      "Full-day private chauffeur",
-      "Railway station pickup / drop",
-      "Valet car retrieval to porch",
-      "Intercity outstation cab",
-    ],
-  },
-  // 7. Room Dining Amenities
-  {
-    id: "ROOM_SERVICE",
-    name: "In-Room Dining Extras",
-    icon: Coffee,
-    iconColor: "text-rose-400",
-    iconBg: "bg-rose-500/20 text-rose-400 border-rose-500/30",
-    badgeBg: "bg-rose-500/15",
-    badgeText: "text-rose-300",
-    badgeBorder: "border-rose-500/30",
-    description: "Cutlery, ice bucket, glassware & minibar refill",
-    isPaid: false,
-    tag: "Dining Extras",
-    commonQuickOptions: [
-      "Fresh ice bucket & glasses",
-      "Extra cutlery, plates & wine glasses",
-      "Used dining tray & plate clearance",
-      "Coffee & tea refill kit",
-      "Birthday / celebration setup",
-      "Minibar restock request",
-    ],
-  },
-  // 8. Concierge & Local Guides
-  {
-    id: "CONCIERGE",
-    name: "Concierge & Tours",
-    icon: Compass,
-    iconColor: "text-purple-400",
-    iconBg: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-    badgeBg: "bg-purple-500/15",
-    badgeText: "text-purple-300",
-    badgeBorder: "border-purple-500/30",
-    description: "Sightseeing tours, table bookings & local guidance",
-    isPaid: false,
-    tag: "Concierge",
-    commonQuickOptions: [
-      "Restaurant table reservation",
-      "Sightseeing & day tour booking",
-      "Local attraction guide & passes",
-      "Medical / pharmacy assistance",
-      "Flight / Train travel assistance",
-      "Special occasion arrangement",
-    ],
-  },
-  // 9. Special Requests & Banquet
   {
     id: "OTHER",
-    name: "Special Amenities & Upgrades",
+    name: "Bespoke Requests & Upgrades",
+    group: "EXPERIENCE",
     icon: Crown,
-    iconColor: "text-amber-400",
-    iconBg: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-    badgeBg: "bg-amber-500/15",
-    badgeText: "text-amber-300",
-    badgeBorder: "border-amber-500/30",
-    description: "Banquet halls, rollaway cots & custom hotel needs",
+    iconColor: "text-amber-600",
+    iconBg: "bg-amber-50 text-amber-700 border-amber-200",
+    badgeBg: "bg-[#FAF4E6]",
+    badgeText: "text-[#A67C1E]",
+    badgeBorder: "border-[#D4AF37]/30",
+    description: "Rollaway beds, banquet suites, room upgrades & special needs",
     isPaid: true,
     tag: "Custom / Upgrade",
     commonQuickOptions: [
-      "Conference & banquet hall rental",
-      "Day use tariff & room extension",
-      "VIP room welcome setup",
       "Extra bed / rollaway cot setup",
-      "Special dietary consultation",
-      "Custom hotel service",
+      "VIP room welcome setup & amenities",
+      "Conference & meeting hall rental",
+      "Extended day-use tariff request",
+      "Special dietary chef consultation",
+      "Custom hotel concierge request",
     ],
   },
 ];
+
+const GROUP_LABELS: Record<"ROOM" | "ASSISTANCE" | "EXPERIENCE", { title: string; subtitle: string }> = {
+  ROOM: {
+    title: "Room & Comfort",
+    subtitle: "Housekeeping, linens, repairs and laundry care",
+  },
+  ASSISTANCE: {
+    title: "Concierge & Front Desk",
+    subtitle: "Luggage, city reservations and private chauffeur services",
+  },
+  EXPERIENCE: {
+    title: "Wellness & Amenities",
+    subtitle: "In-room dining extras, spa sessions and tailored upgrades",
+  },
+};
 
 export function ServicesView({ session, payableServices = [], initialCategory }: ServicesViewProps) {
   const router = useRouter();
@@ -294,34 +317,37 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
   }, [matchedInitialCat]);
 
   // Helper to filter POS items strictly relevant to the active category
-  const getCategoryPaidItems = (cat: ServiceCategoryMeta): PayableServiceItem[] => {
-    if (!payableServices || payableServices.length === 0) return [];
+  const getCategoryPaidItems = React.useCallback(
+    (cat: ServiceCategoryMeta): PayableServiceItem[] => {
+      if (!payableServices || payableServices.length === 0) return [];
 
-    const id = cat.id;
-    return payableServices.filter((item) => {
-      const name = item.name.toLowerCase();
-      const catName = (item.category_name || "").toLowerCase();
+      const id = cat.id;
+      return payableServices.filter((item) => {
+        const name = item.name.toLowerCase();
+        const catName = (item.category_name || "").toLowerCase();
 
-      if (id === "LAUNDRY") {
-        return name.includes("laundry") || name.includes("dry clean") || name.includes("press") || name.includes("iron") || catName.includes("laundry");
-      }
-      if (id === "SPA") {
-        return name.includes("spa") || name.includes("massage") || name.includes("therapy") || name.includes("pool") || name.includes("health club") || catName.includes("spa");
-      }
-      if (id === "TRANSPORT") {
-        return name.includes("cab") || name.includes("transfer") || name.includes("taxi") || name.includes("airport") || name.includes("car") || catName.includes("transport");
-      }
-      if (id === "ROOM_SERVICE") {
-        return name.includes("minibar") || name.includes("beverage") || name.includes("basket") || catName.includes("amenit");
-      }
-      if (id === "OTHER") {
-        return name.includes("banquet") || name.includes("conference") || name.includes("hall") || name.includes("tariff") || name.includes("extra bed");
-      }
-      return false;
-    });
-  };
+        if (id === "LAUNDRY") {
+          return name.includes("laundry") || name.includes("dry clean") || name.includes("press") || name.includes("iron") || catName.includes("laundry");
+        }
+        if (id === "SPA") {
+          return name.includes("spa") || name.includes("massage") || name.includes("therapy") || name.includes("pool") || name.includes("health club") || catName.includes("spa");
+        }
+        if (id === "TRANSPORT") {
+          return name.includes("cab") || name.includes("transfer") || name.includes("taxi") || name.includes("airport") || name.includes("car") || catName.includes("transport");
+        }
+        if (id === "ROOM_SERVICE") {
+          return name.includes("minibar") || name.includes("beverage") || name.includes("basket") || catName.includes("amenit");
+        }
+        if (id === "OTHER") {
+          return name.includes("banquet") || name.includes("conference") || name.includes("hall") || name.includes("tariff") || name.includes("extra bed");
+        }
+        return false;
+      });
+    },
+    [payableServices]
+  );
 
-  const openCategoryModal = (cat: ServiceCategoryMeta, preselectOption?: string) => {
+  const openCategoryModal = React.useCallback((cat: ServiceCategoryMeta, preselectOption?: string) => {
     setSelectedCat(cat);
     setSelectedQuickOption(preselectOption || "");
     setSelectedPaidItem(null);
@@ -329,15 +355,15 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     setPriority("MEDIUM");
     setErrorMsg(null);
     setSuccessNotice(null);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = React.useCallback(() => {
     setSelectedCat(null);
     setSelectedQuickOption("");
     setSelectedPaidItem(null);
     setCustomMessage("");
     setErrorMsg(null);
-  };
+  }, []);
 
   const handleSubmitRequest = async () => {
     if (!selectedCat) return;
@@ -358,7 +384,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     }
 
     if (!selectedPaidItem && !selectedQuickOption && !customMessage.trim()) {
-      setErrorMsg("Please select an option or type your custom message.");
+      setErrorMsg("Please select an option or specify your request.");
       return;
     }
 
@@ -388,7 +414,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
       return;
     }
 
-    // Sub-50ms Realtime WebSocket Broadcast
+    // Sub-50ms Realtime WebSocket Broadcast to staff
     const targetPropId = res.propertyId || session?.property_id;
     if (targetPropId) {
       try {
@@ -422,7 +448,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     setTimeout(() => {
       closeModal();
       router.push(`/guest/requests/${res.requestId}`);
-    }, 1500);
+    }, 1400);
   };
 
   // Filter categories based on search & active tab
@@ -442,215 +468,292 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     });
   }, [activeTab, searchQuery]);
 
+  // Group filtered categories
+  const groupedCategories = React.useMemo(() => {
+    const groups: { key: "ROOM" | "ASSISTANCE" | "EXPERIENCE"; items: ServiceCategoryMeta[] }[] = [
+      { key: "ROOM", items: [] },
+      { key: "ASSISTANCE", items: [] },
+      { key: "EXPERIENCE", items: [] },
+    ];
+
+    displayedCategories.forEach((cat) => {
+      const g = groups.find((grp) => grp.key === cat.group);
+      if (g) g.items.push(cat);
+    });
+
+    return groups.filter((g) => g.items.length > 0);
+  }, [displayedCategories]);
+
   return (
-    <div className="p-4 space-y-4 pb-28 max-w-lg mx-auto">
-      {/* ── HEADER HERO BANNER ── */}
-      <div className="p-5 rounded-3xl bg-[#0F172A] border border-slate-800 shadow-xl space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10.5px] font-extrabold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Guest Services Concierge</span>
+    <div className="space-y-5 pb-28">
+      {/* ── 1. EDITORIAL HEADER BANNER ── */}
+      <div className="relative overflow-hidden bg-[#0B1526] text-white">
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0B1526] via-[#111D31] to-[#0B1526]">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Digital Hotel Concierge</span>
+            </div>
+
+            {isVerifiedStay && session?.room_number && (
+              <span className="text-xs px-3 py-1 rounded-full bg-[#FAF4E6]/15 text-[#E4C980] font-semibold border border-[#D4AF37]/30 backdrop-blur-xs">
+                Room {session.room_number}
+              </span>
+            )}
           </div>
 
-          {isVerifiedStay && (
-            <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 font-extrabold border border-emerald-500/30">
-              Room {session?.room_number}
+          <div className="space-y-1 pt-1">
+            <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
+              Guest Services
+            </h1>
+            <p className="text-xs text-slate-300/80 leading-relaxed max-w-md">
+              {isVerifiedStay
+                ? `Immediate assistance and bespoke hotel services for Room ${session?.room_number}.`
+                : "Experience effortless luxury service with 24/7 dedicated hotel staff."}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-500/25 backdrop-blur-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Staff on Duty · Fast Dispatch
             </span>
-          )}
-        </div>
 
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">
-            Hotel Services &amp; Requests
-          </h1>
-          <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-            {isVerifiedStay
-              ? `Instant service dispatch for Room ${session?.room_number}. Choose a category below:`
-              : "Contactless digital service requests for verified hotel guests."}
-          </p>
+            <Link
+              href="/guest/requests"
+              className="text-[11px] font-semibold text-[#E4C980] hover:text-white bg-white/10 hover:bg-white/15 px-3 py-1 rounded-full border border-[#D4AF37]/30 flex items-center gap-1.5 transition shadow-2xs"
+            >
+              <BellRing className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Active Requests</span>
+            </Link>
+          </div>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 pt-1">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-emerald-950/50 px-2.5 py-1 rounded-xl border border-emerald-500/25">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Staff on Duty · Fast Dispatch
-          </span>
+      <div className="px-4 space-y-5">
+        {/* ── 2. IN-ROOM DINING PROMOTION BANNER ── */}
+        <div className="p-4 rounded-2xl bg-white border border-[#EAE3D2] shadow-sm flex items-center justify-between gap-3 hover:border-[#D4AF37]/40 transition-all">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/30 flex items-center justify-center font-bold shadow-2xs shrink-0">
+              <Utensils className="w-5 h-5 text-[#D4AF37]" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#A67C1E] uppercase tracking-wider">
+                <span>In-Room Dining</span>
+              </div>
+              <h3 className="text-xs sm:text-sm font-serif font-semibold text-slate-900 truncate">
+                Chef-Crafted Room Delivery
+              </h3>
+              <p className="text-[11px] text-slate-500 line-clamp-1">Freshly prepared gourmet dishes &amp; drinks</p>
+            </div>
+          </div>
+
           <Link
-            href="/guest/requests"
-            className="text-[11px] font-bold text-slate-300 hover:text-white bg-slate-800 px-3 py-1 rounded-xl border border-slate-700 flex items-center gap-1 transition"
+            href="/guest/dining"
+            className="px-3.5 py-2 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs transition shadow-2xs shrink-0 flex items-center gap-1 active:scale-95"
           >
-            <BellRing className="w-3.5 h-3.5 text-amber-400" />
-            <span>Track Requests</span>
+            <span>View Menu</span>
+            <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
           </Link>
         </div>
-      </div>
 
-      {/* ── FOOD & ROOM SERVICE CTA BANNER ── */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#0F172A] to-[#0F172A] border border-amber-500/30 flex items-center justify-between gap-3 shadow-md">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow shrink-0">
-            <Utensils className="w-5 h-5" />
+        {/* ── 3. SEARCH & REFINED FILTER TABS ── */}
+        <div className="space-y-3">
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search towels, room cleaning, AC, laundry, spa, taxi..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl text-xs bg-white border border-[#EAE3D2] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] shadow-2xs transition"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-          <div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
-              <span>Dining &amp; Room Delivery</span>
-            </div>
-            <h3 className="text-xs font-black text-white">Order Food &amp; Beverages</h3>
-            <p className="text-[10.5px] text-slate-400">Delivered hot directly to your room</p>
-          </div>
-        </div>
 
-        <Link
-          href="/guest/dining"
-          className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition shadow shrink-0 flex items-center gap-1 active:scale-95"
-        >
-          <span>Menu</span>
-          <ChevronRight className="w-3.5 h-3.5 stroke-[3]" />
-        </Link>
-      </div>
-
-      {/* ── SEARCH & FILTER TABS ── */}
-      <div className="space-y-2.5">
-        {/* Search input */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search towels, cleaning, AC, laundry, spa, taxi..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl text-xs bg-[#0F172A] border border-slate-800 text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-          />
-        </div>
-
-        {/* Filter buttons */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab("ALL")}
-            className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold transition",
-              activeTab === "ALL"
-                ? "bg-amber-500 text-slate-950 font-black shadow"
-                : "bg-[#0F172A] text-slate-400 hover:text-white border border-slate-800"
-            )}
-          >
-            All ({SERVICE_CATEGORIES.length})
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("COMPLIMENTARY")}
-            className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1",
-              activeTab === "COMPLIMENTARY"
-                ? "bg-emerald-500 text-slate-950 font-black shadow"
-                : "bg-[#0F172A] text-slate-400 hover:text-emerald-300 border border-slate-800"
-            )}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Free / Complimentary (5)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("PAID")}
-            className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1",
-              activeTab === "PAID"
-                ? "bg-amber-500 text-slate-950 font-black shadow"
-                : "bg-[#0F172A] text-slate-400 hover:text-amber-300 border border-slate-800"
-            )}
-          >
-            <Tag className="w-3.5 h-3.5" />
-            <span>Chargeable (4)</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ── CRISP HIGH-CONTRAST SERVICE CARDS ── */}
-      <div className="space-y-3">
-        {displayedCategories.map((cat) => {
-          const Icon = cat.icon;
-
-          return (
-            <div
-              key={cat.id}
-              className="p-4 rounded-2xl bg-[#0F172A] border border-slate-800 hover:border-slate-700 shadow-md space-y-3 transition-all"
+          {/* Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setActiveTab("ALL")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition",
+                activeTab === "ALL"
+                  ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
+                  : "bg-white text-slate-600 hover:text-slate-900 border border-[#EAE3D2]"
+              )}
             >
-              {/* Top Row: Icon, Title & Badge */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow shrink-0", cat.iconBg)}>
-                    <Icon className="w-5 h-5" />
+              All Services ({SERVICE_CATEGORIES.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("COMPLIMENTARY")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5",
+                activeTab === "COMPLIMENTARY"
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "bg-white text-slate-600 hover:text-emerald-800 border border-[#EAE3D2]"
+              )}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Complimentary (5)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("PAID")}
+              className={cn(
+                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5",
+                activeTab === "PAID"
+                  ? "bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/50 font-bold shadow-xs"
+                  : "bg-white text-slate-600 hover:text-[#A67C1E] border border-[#EAE3D2]"
+              )}
+            >
+              <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Chargeable Services (4)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── 4. REFINED SERVICE GROUPS & CARDS ── */}
+        {groupedCategories.length === 0 ? (
+          <div className="p-8 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] mx-auto flex items-center justify-center">
+              <Search className="w-5 h-5" />
+            </div>
+            <h3 className="text-sm font-serif font-semibold text-slate-900">No Services Found</h3>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto">
+              No matching hotel service found for &ldquo;{searchQuery}&rdquo;. Try another keyword or clear search.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setActiveTab("ALL");
+              }}
+              className="px-4 py-2 rounded-full bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/30 text-xs font-semibold transition"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {groupedCategories.map((group) => {
+              const meta = GROUP_LABELS[group.key];
+              return (
+                <div key={group.key} className="space-y-3">
+                  {/* Section Title */}
+                  <div className="px-0.5">
+                    <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
+                      {meta.title}
+                    </h2>
+                    <p className="text-[11px] text-slate-500">{meta.subtitle}</p>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-black text-white leading-tight">
-                      {cat.name}
-                    </h3>
-                    <p className="text-[11.5px] text-slate-300 mt-0.5 leading-snug">
-                      {cat.description}
-                    </p>
+
+                  {/* Cards Grid */}
+                  <div className="space-y-3">
+                    {group.items.map((cat) => {
+                      const Icon = cat.icon;
+
+                      return (
+                        <div
+                          key={cat.id}
+                          className="p-4 rounded-2xl bg-white border border-[#EAE3D2] hover:border-[#D4AF37]/50 shadow-2xs hover:shadow-sm space-y-3 transition-all"
+                        >
+                          {/* Top Row */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow-2xs shrink-0", cat.iconBg)}>
+                                <Icon className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                <h3 className="text-sm font-serif font-semibold text-slate-900 leading-snug">
+                                  {cat.name}
+                                </h3>
+                                <p className="text-[11.5px] text-slate-500 mt-0.5 leading-snug line-clamp-2">
+                                  {cat.description}
+                                </p>
+                              </div>
+                            </div>
+
+                            <span className={cn("text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0", cat.badgeBg, cat.badgeText, cat.badgeBorder)}>
+                              {cat.tag}
+                            </span>
+                          </div>
+
+                          {/* Quick Options Chips */}
+                          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                            {cat.commonQuickOptions.slice(0, 3).map((opt) => (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => openCategoryModal(cat, opt)}
+                                className="text-[11px] font-medium text-slate-700 bg-[#FAF8F5] hover:bg-[#FAF4E6] hover:text-[#A67C1E] px-2.5 py-1 rounded-lg border border-[#EAE3D2] hover:border-[#D4AF37]/50 transition-all active:scale-95"
+                              >
+                                + {opt}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Action Row */}
+                          <div className="pt-2.5 border-t border-[#EAE3D2]/70 flex items-center justify-between">
+                            <span className="text-[10.5px] text-slate-500">
+                              {cat.isPaid ? "Billed directly to room folio" : "Provided with compliments"}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => openCategoryModal(cat)}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-[#A67C1E] hover:text-[#886214] transition"
+                            >
+                              <span>Request Service</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-
-                <span className={cn("text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border shrink-0", cat.badgeBg, cat.badgeText, cat.badgeBorder)}>
-                  {cat.tag}
-                </span>
-              </div>
-
-              {/* Quick Clickable Options Chips */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                {cat.commonQuickOptions.slice(0, 3).map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => openCategoryModal(cat, opt)}
-                    className="text-[11px] font-bold text-slate-200 bg-[#1E293B] hover:bg-amber-500 hover:text-slate-950 px-2.5 py-1 rounded-lg border border-slate-700 hover:border-amber-500 transition-all active:scale-95"
-                  >
-                    + {opt}
-                  </button>
-                ))}
-              </div>
-
-              {/* Bottom Action Row */}
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                <span className="text-[10.5px] text-slate-400 font-medium">
-                  {cat.isPaid ? "Billed directly to room folio" : "Provided with compliments"}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => openCategoryModal(cat)}
-                  className="inline-flex items-center gap-1 text-xs font-black text-amber-400 hover:text-amber-300 transition"
-                >
-                  <span>Request {cat.name}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* ── MODAL DIALOG FOR SELECTED SERVICE ── */}
+      {/* ── 5. LUXURY REQUEST CREATION SHEET / MODAL ── */}
       {selectedCat && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-[#0F172A] border-t sm:border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-[#0B1526]/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-white border-t sm:border border-[#EAE3D2] rounded-t-3xl sm:rounded-3xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3.5 border-b border-[#EAE3D2]">
               <div className="flex items-center gap-3">
-                <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow shrink-0", selectedCat.iconBg)}>
+                <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow-2xs shrink-0", selectedCat.iconBg)}>
                   <selectedCat.icon className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-black text-white">{selectedCat.name}</h3>
-                    <span className={cn("px-2 py-0.5 rounded-md text-[9.5px] font-bold border", selectedCat.badgeBg, selectedCat.badgeText, selectedCat.badgeBorder)}>
+                    <h3 className="text-sm font-serif font-semibold text-slate-900">{selectedCat.name}</h3>
+                    <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-semibold border", selectedCat.badgeBg, selectedCat.badgeText, selectedCat.badgeBorder)}>
                       {selectedCat.tag}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
                     Room {session?.room_number || "—"} • {selectedCat.description}
                   </p>
                 </div>
@@ -659,7 +762,8 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
               <button
                 type="button"
                 onClick={closeModal}
-                className="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs transition"
+                aria-label="Close modal"
               >
                 ✕
               </button>
@@ -667,15 +771,17 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
             {successNotice ? (
               <div className="py-8 text-center space-y-3">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center animate-bounce shadow-lg">
+                <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center shadow-md border border-emerald-200">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h4 className="text-sm font-extrabold text-white">Your request has been dispatched to hotel staff!</h4>
-                <p className="text-xs text-amber-400 font-mono font-bold bg-amber-500/10 py-1 px-3 rounded-lg border border-amber-500/20 inline-block">
+                <h4 className="text-sm font-serif font-bold text-slate-900">
+                  Request Dispatched to Hotel Staff
+                </h4>
+                <p className="text-xs text-[#A67C1E] font-medium bg-[#FAF4E6] py-1.5 px-3 rounded-lg border border-[#D4AF37]/30 inline-block">
                   {successNotice.title}
                 </p>
-                <p className="text-xs text-slate-400">
-                  Staff acknowledged. Redirecting to live tracking...
+                <p className="text-xs text-slate-500">
+                  Acknowledged by concierge desk. Opening live tracking...
                 </p>
               </div>
             ) : (
@@ -687,12 +793,12 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
                   return (
                     <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <Tag className="w-3.5 h-3.5" />
+                      <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
+                        <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
                         <span>Select Service / Package (Billed to Room Folio)</span>
                       </label>
 
-                      <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto p-1 rounded-2xl bg-slate-950/50 border border-slate-800 scrollbar-thin">
+                      <div className="grid grid-cols-1 gap-2 max-h-44 overflow-y-auto p-1 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] scrollbar-thin">
                         {paidItems.map((item) => {
                           const isSelected = selectedPaidItem?.id === item.id;
                           return (
@@ -710,27 +816,27 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                               className={cn(
                                 "p-3 rounded-xl text-left transition flex items-center justify-between gap-3 border",
                                 isSelected
-                                  ? "bg-amber-500/20 border-amber-500 text-white shadow-md font-bold"
-                                  : "bg-[#1E293B] border-slate-800 hover:border-slate-700 text-slate-300"
+                                  ? "bg-[#FAF4E6] border-[#D4AF37] text-slate-900 shadow-2xs font-semibold"
+                                  : "bg-white border-[#EAE3D2] hover:border-slate-300 text-slate-700"
                               )}
                             >
                               <div className="space-y-0.5 min-w-0">
-                                <p className="text-xs font-bold text-white truncate">{item.name}</p>
+                                <p className="text-xs font-semibold text-slate-900 truncate">{item.name}</p>
                                 {item.description && (
-                                  <p className="text-[10px] text-slate-400 line-clamp-1">{item.description}</p>
+                                  <p className="text-[10px] text-slate-500 line-clamp-1">{item.description}</p>
                                 )}
                               </div>
 
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="font-mono text-xs font-black text-amber-400">
+                                <span className="font-mono text-xs font-bold text-slate-900">
                                   ₹{item.price.toFixed(2)}
                                 </span>
                                 {isSelected ? (
-                                  <div className="w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center">
+                                  <div className="w-5 h-5 rounded-full bg-[#0B1526] text-[#E4C980] flex items-center justify-center">
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                                   </div>
                                 ) : (
-                                  <div className="w-5 h-5 rounded-full border border-slate-700" />
+                                  <div className="w-5 h-5 rounded-full border border-slate-300" />
                                 )}
                               </div>
                             </button>
@@ -743,9 +849,9 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
                 {/* 2. Quick Options Chips */}
                 <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{selectedCat.isPaid ? "Or Choose Request Type" : "Quick Selection"}</span>
+                  <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
+                    <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>{selectedCat.isPaid ? "Or Choose Common Option" : "Select Requirement"}</span>
                   </label>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -766,12 +872,12 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                           className={cn(
                             "p-2.5 rounded-xl text-xs text-left transition flex items-center justify-between border",
                             isSelected
-                              ? "bg-amber-500 text-slate-950 font-black border-amber-500 shadow"
-                              : "bg-[#1E293B] border-slate-700 text-slate-200 hover:bg-slate-700/80"
+                              ? "bg-[#0B1526] text-[#E4C980] font-semibold border-[#D4AF37]/50 shadow-2xs"
+                              : "bg-[#FAF8F5] border-[#EAE3D2] text-slate-700 hover:bg-slate-100"
                           )}
                         >
                           <span className="line-clamp-2 leading-tight">{opt}</span>
-                          {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ml-1 stroke-[3]" />}
+                          {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ml-1 stroke-[3] text-[#D4AF37]" />}
                         </button>
                       );
                     })}
@@ -779,11 +885,11 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                 </div>
 
                 {/* 3. Custom message box */}
-                <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+                <div className="space-y-1.5 p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2]">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-white flex items-center gap-1.5">
-                      <MessageSquarePlus className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Custom Instructions / Notes</span>
+                    <label className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5 font-serif">
+                      <MessageSquarePlus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                      <span>Additional Instructions / Timing</span>
                     </label>
                   </div>
 
@@ -791,25 +897,25 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                     rows={3}
                     value={customMessage}
                     onChange={(e) => setCustomMessage(e.target.value)}
-                    placeholder="E.g., Please bring extra bath towels around 6 PM, or specify any other requirement..."
-                    className="w-full px-3 py-2 rounded-xl bg-[#1E293B] border border-slate-700 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400 resize-none transition"
+                    placeholder="E.g., Please deliver around 6:00 PM, or mention any specific preferences..."
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] resize-none transition"
                   />
                 </div>
 
                 {/* 4. Priority selection */}
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                    Priority
+                  <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider font-serif">
+                    Dispatch Priority
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setPriority("MEDIUM")}
                       className={cn(
-                        "py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border",
+                        "py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 border",
                         priority === "MEDIUM"
-                          ? "bg-amber-500 text-slate-950 border-amber-500 font-black shadow"
-                          : "bg-[#1E293B] text-slate-300 border-slate-700 hover:bg-slate-700"
+                          ? "bg-[#0B1526] text-[#E4C980] border-[#D4AF37]/50 shadow-2xs"
+                          : "bg-[#FAF8F5] text-slate-600 border-[#EAE3D2] hover:bg-slate-100"
                       )}
                     >
                       <Clock className="w-3.5 h-3.5" />
@@ -820,10 +926,10 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                       type="button"
                       onClick={() => setPriority("URGENT")}
                       className={cn(
-                        "py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 border",
+                        "py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 border",
                         priority === "URGENT"
-                          ? "bg-rose-500 text-white border-rose-500 font-black shadow-lg"
-                          : "bg-[#1E293B] text-slate-300 border-slate-700 hover:bg-slate-700"
+                          ? "bg-amber-600 text-white border-amber-600 shadow-2xs"
+                          : "bg-[#FAF8F5] text-slate-600 border-[#EAE3D2] hover:bg-slate-100"
                       )}
                     >
                       <Zap className="w-3.5 h-3.5" />
@@ -833,8 +939,8 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                 </div>
 
                 {errorMsg && (
-                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
@@ -844,16 +950,16 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   type="button"
                   onClick={handleSubmitRequest}
                   disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-50 text-slate-950 font-black text-xs shadow-xl flex items-center justify-center gap-2 transition active:scale-[0.99]"
+                  className="w-full py-3.5 px-4 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 disabled:opacity-50 font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition active:scale-[0.99]"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
                       <span>Sending Request to Staff...</span>
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
+                      <Send className="w-4 h-4 text-[#D4AF37]" />
                       <span>
                         {selectedPaidItem
                           ? `Request ${selectedPaidItem.name} • ₹${selectedPaidItem.price.toFixed(2)}`

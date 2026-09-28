@@ -1,6 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, AlertCircle, Utensils } from "lucide-react";
+import { ArrowLeft, AlertCircle, UtensilsCrossed } from "lucide-react";
 import { cookies } from "next/headers";
 import { getActiveGuestSession } from "@/lib/guest-portal/actions";
 import { getGuestFoodOrderDetail } from "@/lib/guest-ordering/queries";
@@ -32,27 +32,27 @@ export default async function GuestOrderDetailPage({
       <div className="p-4 space-y-6 max-w-lg mx-auto pb-28">
         <Link
           href="/guest/orders"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-amber-300 transition"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Orders</span>
         </Link>
 
-        <div className="p-8 rounded-3xl bg-gradient-to-b from-[#0E1B2E] to-[#08111F] border border-slate-800 text-center space-y-4 shadow-xl">
-          <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 mx-auto flex items-center justify-center">
+        <div className="p-10 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-4 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 mx-auto flex items-center justify-center">
             <AlertCircle className="w-7 h-7" />
           </div>
-          <div className="space-y-1.5">
-            <h3 className="text-base font-bold text-white">Order Not Found</h3>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+          <div className="space-y-1">
+            <h3 className="text-base font-serif font-semibold text-slate-900">Order Not Found</h3>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
               This order could not be located or does not belong to your verified room session.
             </p>
           </div>
           <Link
             href="/guest/dining"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-md"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs shadow-md transition"
           >
-            <Utensils className="w-4 h-4" />
+            <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
             <span>Explore Dining Menus</span>
           </Link>
         </div>

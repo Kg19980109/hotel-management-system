@@ -1,16 +1,30 @@
 import * as React from "react";
+import Link from "next/link";
 import { 
   MapPin, 
   Phone, 
   Mail, 
   Wifi, 
   Sparkles, 
-  Utensils, 
-  CheckCircle2 
+  UtensilsCrossed, 
+  CheckCircle2,
+  Building2,
+  Clock,
+  ShieldCheck,
+  PhoneCall,
+  ChevronRight,
+  Compass,
+  BedDouble,
+  Car,
 } from "lucide-react";
 import { getActiveGuestSession } from "@/lib/guest-portal/actions";
 import { getPublicRestaurants } from "@/lib/guest-portal/queries";
 import { WifiCopyButton } from "@/components/guest/wifi-copy-button";
+
+export const metadata = {
+  title: "StayHub — Hotel Directory & Guide",
+  description: "Explore property overview, amenities, dining outlets, operating hours, and front desk assistance.",
+};
 
 export default async function GuestHotelPage() {
   const session = await getActiveGuestSession();
@@ -20,133 +34,181 @@ export default async function GuestHotelPage() {
     : [];
 
   const defaultAmenities = [
-    "24/7 Front Desk Concierge",
-    "High-Speed Fiber Wi-Fi",
-    "On-Site Fine Dining & Bar",
-    "Daily Housekeeping Service",
-    "Valet Parking & Luggage Storage",
-    "Express Check-In & Check-Out",
+    { title: "24/7 Front Desk Concierge", desc: "Round-the-clock guest support and inquiries." },
+    { title: "High-Speed Fiber Wi-Fi", desc: "Seamless connectivity across all rooms and public areas." },
+    { title: "On-Site Fine Dining & Lounge", desc: "Curated culinary experiences and premium beverages." },
+    { title: "Daily Housekeeping & Turndown", desc: "Attentive room cleaning and linen replenishment." },
+    { title: "Valet Parking & Luggage Care", desc: "Complimentary valet parking and secure bag storage." },
+    { title: "Express Check-In & Check-Out", desc: "Frictionless digital check-in and room billing." },
   ];
 
   return (
-    <div className="p-4 space-y-5">
-      {/* Hotel Title & Overview */}
-      <div className="space-y-1">
-        <h2 className="text-xl font-extrabold text-white tracking-tight">
-          {session?.property_name || "Hotel Directory"}
-        </h2>
-        <p className="text-xs text-slate-400">
-          Property overview, amenities, dining, and operating hours.
-        </p>
-      </div>
-
-      {/* Property Details Card */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-lg">
-        <div className="space-y-2 text-xs">
-          {session?.address && (
-            <div className="flex items-start gap-2.5 text-slate-300">
-              <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <span>{session.address}</span>
-            </div>
-          )}
-
-          {session?.phone && (
-            <div className="flex items-center gap-2.5 text-slate-300">
-              <Phone className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <a href={`tel:${session.phone}`} className="hover:underline text-amber-400 font-medium">
-                {session.phone}
-              </a>
-            </div>
-          )}
-
-          {session?.email && (
-            <div className="flex items-center gap-2.5 text-slate-300">
-              <Mail className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <a href={`mailto:${session.email}`} className="hover:underline">
-                {session.email}
-              </a>
-            </div>
-          )}
+    <div className="space-y-5 pb-28">
+      {/* ── 1. EDITORIAL HEADER BANNER ── */}
+      <div className="relative overflow-hidden bg-[#0B1526] text-white">
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0B1526] via-[#111D31] to-[#0B1526]">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
         </div>
 
-        {/* Operating Hours */}
-        <div className="grid grid-cols-2 gap-2 pt-3 border-t border-slate-800/80 text-xs">
-          <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/60">
-            <span className="text-[10px] text-slate-500 uppercase font-semibold block">Standard Check-In</span>
-            <span className="text-slate-200 font-bold">{session?.check_in_time || "14:00"}</span>
+        <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide">
+            <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <span>Hotel Guide &amp; Directory</span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/60">
-            <span className="text-[10px] text-slate-500 uppercase font-semibold block">Standard Check-Out</span>
-            <span className="text-slate-200 font-bold">{session?.check_out_time || "11:00"}</span>
+
+          <div className="space-y-1 pt-1">
+            <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
+              {session?.property_name || "Hotel Information"}
+            </h1>
+            <p className="text-xs text-slate-300/80 leading-relaxed max-w-md">
+              Where every detail of your stay is taken care of. Explore hotel amenities, dining, and concierge services.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Wi-Fi Details Card */}
-      {session?.wifi_ssid && (
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-md">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
-              <Wifi className="w-5 h-5" />
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] text-slate-400 uppercase font-semibold">Wi-Fi Network</span>
-              <h4 className="text-xs font-bold text-white">{session.wifi_ssid}</h4>
-            </div>
+      <div className="px-4 space-y-5 max-w-lg mx-auto">
+        {/* ── 2. PROPERTY DETAILS & CONTACT CARD ── */}
+        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-4 shadow-sm">
+          <div className="flex items-center gap-2 pb-2 border-b border-[#EAE3D2]">
+            <Building2 className="w-4 h-4 text-[#D4AF37]" />
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
+              About The Property
+            </h2>
           </div>
 
-          <WifiCopyButton ssid={session.wifi_ssid} password={session.wifi_password || ""} />
+          <div className="space-y-2.5 text-xs">
+            {session?.address && (
+              <div className="flex items-start gap-2.5 text-slate-700">
+                <MapPin className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{session.address}</span>
+              </div>
+            )}
+
+            {session?.phone && (
+              <div className="flex items-center gap-2.5 text-slate-700">
+                <Phone className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <a href={`tel:${session.phone}`} className="hover:underline text-[#A67C1E] font-semibold">
+                  {session.phone}
+                </a>
+              </div>
+            )}
+
+            {session?.email && (
+              <div className="flex items-center gap-2.5 text-slate-700">
+                <Mail className="w-4 h-4 text-[#D4AF37] shrink-0" />
+                <a href={`mailto:${session.email}`} className="hover:underline text-slate-800 font-medium">
+                  {session.email}
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Operating Hours */}
+          <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-[#EAE3D2] text-xs">
+            <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-0.5">
+              <span className="text-[10px] text-slate-500 uppercase font-semibold block font-serif">
+                Standard Check-In
+              </span>
+              <span className="text-slate-900 font-bold">{session?.check_in_time || "14:00"}</span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-0.5">
+              <span className="text-[10px] text-slate-500 uppercase font-semibold block font-serif">
+                Standard Check-Out
+              </span>
+              <span className="text-slate-900 font-bold">{session?.check_out_time || "11:00 AM"}</span>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Dining Outlets */}
-      <div className="space-y-2.5">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 flex items-center gap-1.5">
-          <Utensils className="w-3.5 h-3.5 text-amber-400" />
-          <span>Dining & Restaurants</span>
-        </h3>
+        {/* ── 3. WI-FI CARD ── */}
+        {session?.wifi_ssid && (
+          <div className="p-4 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 flex items-center justify-center">
+                <Wifi className="w-5 h-5 text-sky-600" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold font-serif">High-Speed Wi-Fi</span>
+                <h3 className="text-xs font-bold text-slate-900 font-mono">{session.wifi_ssid}</h3>
+              </div>
+            </div>
 
-        {restaurants.length === 0 ? (
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-center text-xs text-slate-400">
-            In-house dining and room service available via front desk.
+            <WifiCopyButton ssid={session.wifi_ssid} password={session.wifi_password || ""} />
           </div>
-        ) : (
-          <div className="space-y-2">
-            {restaurants.map((rest) => (
-              <div
-                key={rest.id}
-                className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5"
-              >
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-white">{rest.name}</h4>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-semibold">
-                    Active Outlet
-                  </span>
+        )}
+
+        {/* ── 4. DINING OUTLETS ── */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-0.5">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center gap-1.5">
+              <UtensilsCrossed className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Dining &amp; Restaurants</span>
+            </h2>
+            <Link href="/guest/dining" className="text-[10.5px] text-[#A67C1E] font-semibold hover:underline">
+              View Menus →
+            </Link>
+          </div>
+
+          {restaurants.length === 0 ? (
+            <div className="p-5 rounded-2xl bg-white border border-[#EAE3D2] text-center text-xs text-slate-500">
+              In-house dining and room service available via concierge and front desk.
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {restaurants.map((rest) => (
+                <div
+                  key={rest.id}
+                  className="p-4 rounded-2xl bg-white border border-[#EAE3D2] space-y-1.5 shadow-2xs hover:border-[#D4AF37]/40 transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-serif font-semibold text-slate-900">{rest.name}</h3>
+                    <span className="text-[9.5px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+                      Active Outlet
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    {rest.description || "Gourmet dining, artisanal beverages, and signature dishes."}
+                  </p>
                 </div>
-                <p className="text-xs text-slate-400">
-                  {rest.description || "Fine dining, cocktails, and refreshments."}
-                </p>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── 5. HOTEL AMENITIES ── */}
+        <div className="space-y-3">
+          <div className="px-0.5">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Hotel Amenities &amp; Highlights</span>
+            </h2>
+          </div>
+
+          <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] space-y-3 shadow-2xs">
+            {defaultAmenities.map((amenity, idx) => (
+              <div key={idx} className="flex items-start gap-3 text-xs">
+                <CheckCircle2 className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <h3 className="font-semibold text-slate-900">{amenity.title}</h3>
+                  <p className="text-[11px] text-slate-500 leading-snug">{amenity.desc}</p>
+                </div>
               </div>
             ))}
           </div>
-        )}
-      </div>
-
-      {/* Hotel Amenities */}
-      <div className="space-y-2.5">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>Hotel Amenities & Highlights</span>
-        </h3>
-
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-          {defaultAmenities.map((amenity, idx) => (
-            <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-              <span>{amenity}</span>
-            </div>
-          ))}
         </div>
+
+        {/* ── 6. FRONT DESK CALLOUT ── */}
+        {session?.phone && (
+          <a
+            href={`tel:${session.phone}`}
+            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] border border-[#D4AF37]/35 text-[#E4C980] font-semibold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.99]"
+          >
+            <PhoneCall className="w-4 h-4 text-[#D4AF37]" />
+            <span>Contact Concierge Desk ({session.phone})</span>
+          </a>
+        )}
       </div>
     </div>
   );

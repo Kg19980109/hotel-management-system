@@ -105,15 +105,12 @@ export async function placeGuestFoodOrderAction(input: CreateGuestFoodOrderInput
     console.warn("Could not sync food order to guest service requests:", syncErr);
   }
 
-  revalidatePath("/guest-requests");
-  revalidatePath("/guest/requests");
   revalidatePath("/guest/orders");
-  revalidatePath("/guest/dining");
-  revalidatePath("/rooms");
-  revalidatePath("/dashboard");
   if (data.order_id) {
     revalidatePath(`/guest/orders/${data.order_id}`);
   }
+  revalidatePath("/guest/requests");
+  revalidatePath("/guest-requests");
 
   return {
     success: true,

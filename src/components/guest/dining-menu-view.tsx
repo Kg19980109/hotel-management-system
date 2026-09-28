@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================
-// STAYHUB GUEST QR DINING & CULINARY MENU (Phase 6)
+// STAYHUB GUEST QR DINING & CULINARY MENU (Phase 3 & 4 Luxury Design)
 // ============================================================
 
 import * as React from "react";
@@ -15,14 +15,12 @@ import {
   Sparkles,
   Search,
   CheckCircle2,
-  X,
-  Info,
   ChevronRight,
-  Flame,
+  UtensilsCrossed,
 } from "lucide-react";
 import { GuestRestaurant, GuestMenuCategory, GuestMenuItem } from "@/lib/guest-ordering/types";
 import { useCart } from "./cart-context";
-import { Modal } from "@/components/ui/modal";
+import { FoodDetailSheet } from "./food-detail-sheet";
 
 interface DiningMenuViewProps {
   restaurant: GuestRestaurant;
@@ -31,44 +29,58 @@ interface DiningMenuViewProps {
   roomNumber?: string;
 }
 
-// Curated high-res culinary image catalog for luxury food cards
+// Fast memory-cached culinary image catalog for luxury food cards
+const foodImageCache = new Map<string, string>();
 const getFoodImageForDish = (dishName: string, categoryName: string): string => {
+  const key = `${dishName}:${categoryName}`;
+  const cached = foodImageCache.get(key);
+  if (cached) return cached;
+
   const text = `${dishName} ${categoryName}`.toLowerCase();
+  let url = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80";
   if (text.includes("burger")) {
-    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80";
+    url = "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("pizza")) {
+    url = "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("biryani") || text.includes("rice")) {
+    url = "https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("paneer") || text.includes("tikka") || text.includes("curry") || text.includes("masala")) {
+    url = "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("coffee") || text.includes("tea") || text.includes("latte") || text.includes("cappuccino")) {
+    url = "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("drink") || text.includes("cocktail") || text.includes("beverage") || text.includes("juice") || text.includes("wine")) {
+    url = "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("cake") || text.includes("dessert") || text.includes("sweet") || text.includes("chocolate") || text.includes("ice cream")) {
+    url = "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("pasta") || text.includes("noodle") || text.includes("spaghetti")) {
+    url = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("salad") || text.includes("soup") || text.includes("starter")) {
+    url = "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("steak") || text.includes("chicken") || text.includes("grill") || text.includes("meat") || text.includes("kebab")) {
+    url = "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("fish") || text.includes("seafood") || text.includes("prawn")) {
+    url = "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=600&q=80";
   }
-  if (text.includes("pizza")) {
-    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("biryani") || text.includes("rice")) {
-    return "https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("paneer") || text.includes("tikka") || text.includes("curry") || text.includes("masala")) {
-    return "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("coffee") || text.includes("tea") || text.includes("latte") || text.includes("cappuccino")) {
-    return "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("drink") || text.includes("cocktail") || text.includes("beverage") || text.includes("juice") || text.includes("wine")) {
-    return "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("cake") || text.includes("dessert") || text.includes("sweet") || text.includes("chocolate") || text.includes("ice cream")) {
-    return "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("pasta") || text.includes("noodle") || text.includes("spaghetti")) {
-    return "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("salad") || text.includes("soup") || text.includes("starter")) {
-    return "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("steak") || text.includes("chicken") || text.includes("grill") || text.includes("meat") || text.includes("kebab")) {
-    return "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=700&q=80";
-  }
-  if (text.includes("fish") || text.includes("seafood") || text.includes("prawn")) {
-    return "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=700&q=80";
-  }
-  return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=700&q=80";
+  foodImageCache.set(key, url);
+  return url;
 };
+
+// Curated restaurant banner image
+function getRestaurantHeaderImage(name: string, cuisine?: string | null): string {
+  const text = `${name} ${cuisine || ""}`.toLowerCase();
+  if (text.includes("grill") || text.includes("bbq") || text.includes("steak")) {
+    return "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80";
+  } else if (text.includes("cafe") || text.includes("bistro")) {
+    return "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80";
+  } else if (text.includes("bar") || text.includes("lounge")) {
+    return "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=800&q=80";
+  } else if (text.includes("italian") || text.includes("pizza") || text.includes("pasta")) {
+    return "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80";
+  } else if (text.includes("asian") || text.includes("sushi")) {
+    return "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=800&q=80";
+  }
+  return "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80";
+}
 
 export function DiningMenuView({
   restaurant,
@@ -76,16 +88,14 @@ export function DiningMenuView({
   isVerifiedStay,
   roomNumber,
 }: DiningMenuViewProps) {
-  const { addItem, items, updateQuantity, totalItems, subtotal } = useCart();
+  const { addItem, items, updateQuantity } = useCart();
   const [selectedCategory, setSelectedCategory] = React.useState<string>("ALL");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [addedItemNotice, setAddedItemNotice] = React.useState<string | null>(null);
 
-  // Selected item for Food Detail Modal
+  // Selected item for Food Detail Modal/Sheet
   const [detailItem, setDetailItem] = React.useState<GuestMenuItem | null>(null);
   const [detailItemCategory, setDetailItemCategory] = React.useState<string>("");
-  const [detailQuantity, setDetailQuantity] = React.useState<number>(1);
-  const [detailInstructions, setDetailInstructions] = React.useState<string>("");
 
   const filteredCategories = React.useMemo(() => {
     let list = selectedCategory === "ALL"
@@ -106,349 +116,327 @@ export function DiningMenuView({
     return list;
   }, [categories, selectedCategory, searchQuery]);
 
-  const getItemQuantityInCart = (menuItemId: string) => {
-    const found = items.find((i) => i.menu_item_id === menuItemId);
-    return found ? found.quantity : 0;
-  };
+  const itemsMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    for (const item of items) {
+      map.set(item.menu_item_id, item.quantity);
+    }
+    return map;
+  }, [items]);
 
-  const handleAddItem = (item: GuestMenuItem, customQty = 1, instructions = "") => {
-    if (!item.is_available) return;
+  const getItemQuantityInCart = React.useCallback(
+    (menuItemId: string) => itemsMap.get(menuItemId) || 0,
+    [itemsMap]
+  );
 
-    addItem(restaurant.id, restaurant.name, {
-      menu_item_id: item.id,
-      name: item.name,
-      price: Number(item.price),
-      quantity: customQty,
-      category_id: item.category_id,
-      currency: item.currency || restaurant.currency || "INR",
-      special_instructions: instructions.trim() || undefined,
-    });
+  const handleAddItem = React.useCallback(
+    (item: GuestMenuItem, customQty = 1, instructions = "") => {
+      if (!item.is_available) return;
 
-    setAddedItemNotice(item.name);
-    setTimeout(() => setAddedItemNotice(null), 1800);
-  };
+      addItem(restaurant.id, restaurant.name, {
+        menu_item_id: item.id,
+        name: item.name,
+        price: Number(item.price),
+        quantity: customQty,
+        category_id: item.category_id,
+        currency: item.currency || restaurant.currency || "INR",
+        special_instructions: instructions.trim() || undefined,
+      });
 
-  const handleOpenDetail = (item: GuestMenuItem, categoryName: string) => {
-    setDetailItem(item);
-    setDetailItemCategory(categoryName);
-    const existingQty = getItemQuantityInCart(item.id);
-    setDetailQuantity(existingQty > 0 ? existingQty : 1);
-    setDetailInstructions("");
-  };
+      setAddedItemNotice(item.name);
+      setTimeout(() => setAddedItemNotice(null), 1800);
+    },
+    [addItem, restaurant.id, restaurant.name, restaurant.currency]
+  );
+
+  const handleOpenDetail = React.useCallback(
+    (item: GuestMenuItem, categoryName: string) => {
+      setDetailItem(item);
+      setDetailItemCategory(categoryName);
+    },
+    []
+  );
 
   const currencySymbol = "₹";
+  const headerCover = getRestaurantHeaderImage(restaurant.name, restaurant.cuisine_type);
 
   return (
-    <div className="p-4 space-y-5 pb-36">
-      {/* ── TOP NAV BAR ── */}
-      <div className="flex items-center justify-between">
-        <Link
-          href="/guest/dining"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>All Restaurants</span>
-        </Link>
-        {isVerifiedStay && (
-          <span className="text-[11px] font-bold text-[var(--brand-gold)] flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-[var(--brand-gold)]" />
-            Delivering to Room {roomNumber}
-          </span>
-        )}
-      </div>
-
-      {/* ── RESTAURANT HEADER CARD ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#08111F] via-[#0E1A38] to-[#121B3B] border border-white/10 p-5 shadow-2xl space-y-2.5">
-        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 rounded-full bg-[var(--brand-gold)]/10 blur-2xl pointer-events-none" />
-
-        <div className="flex items-center justify-between">
-          <span className="px-2.5 py-0.5 rounded-full bg-[var(--brand-gold)]/15 border border-[var(--brand-gold)]/25 text-[var(--brand-gold)] text-[10px] font-black uppercase tracking-wider">
-            {restaurant.cuisine_type || "Fine Dining"}
-          </span>
-          <span className="text-[11px] text-emerald-400 font-bold flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Kitchen Active
-          </span>
+    <div className="space-y-5 pb-36">
+      {/* ── 1. RESTAURANT HERO HEADER ── */}
+      <div className="relative overflow-hidden bg-[#0B1526] text-white">
+        <div className="absolute inset-0 z-0">
+          <img
+            src={headerCover}
+            alt={restaurant.name}
+            className="w-full h-full object-cover object-center opacity-30 mix-blend-luminosity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B1526] via-[#0B1526]/80 to-[#0B1526]/40" />
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight font-heading">
-          {restaurant.name}
-        </h2>
+        <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
+          {/* Top Quick Navigation Bar */}
+          <div className="flex items-center justify-between">
+            <Link
+              href="/guest/dining"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition"
+              aria-label="Back to Dining Outlets"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>All Dining</span>
+            </Link>
 
-        {restaurant.description && (
-          <p className="text-xs text-slate-300/80 leading-relaxed">
-            {restaurant.description}
-          </p>
-        )}
-
-        {(restaurant.opening_time || restaurant.closing_time) && (
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 pt-1 border-t border-white/10">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <span>
-              Service Hours: {restaurant.opening_time || "07:00"} – {restaurant.closing_time || "23:00"}
-            </span>
+            {isVerifiedStay && (
+              <span className="text-[10.5px] font-medium text-[#E4C980] flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                Room {roomNumber} · Room Service
+              </span>
+            )}
           </div>
-        )}
+
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10px] font-semibold uppercase tracking-wider">
+                {restaurant.cuisine_type || "Fine Dining"}
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Kitchen Active
+              </span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
+              {restaurant.name}
+            </h2>
+
+            {restaurant.description && (
+              <p className="text-xs text-slate-300/80 leading-relaxed max-w-sm">
+                {restaurant.description}
+              </p>
+            )}
+
+            {(restaurant.opening_time || restaurant.closing_time) && (
+              <div className="flex items-center gap-1.5 text-[11px] text-[#E4C980]/80 pt-1">
+                <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                <span>
+                  Service Hours: {restaurant.opening_time || "07:00"} – {restaurant.closing_time || "23:00"}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* ── SEARCH INPUT ── */}
-      <div className="relative">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-        <input
-          type="text"
-          placeholder="Search culinary dishes, drinks..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--brand-gold)] transition"
-        />
-      </div>
+      <div className="px-4 space-y-5">
+        {/* ── 2. MENU SEARCH INPUT ── */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search culinary dishes, beverages, ingredients..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] transition shadow-2xs"
+          />
+        </div>
 
-      {/* ── CATEGORY PILLS BAR ── */}
-      {categories.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none no-scrollbar">
-          <button
-            onClick={() => setSelectedCategory("ALL")}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
-              selectedCategory === "ALL"
-                ? "bg-[var(--brand-gold)] text-slate-950 shadow-md shadow-amber-500/20"
-                : "bg-white/[0.04] text-slate-300 border border-white/10 hover:bg-white/[0.08]"
-            }`}
-          >
-            All Dishes
-          </button>
-          {categories.map((cat) => (
+        {/* ── 3. HORIZONTAL CATEGORY NAVIGATION ── */}
+        {categories.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition ${
-                selectedCategory === cat.id
-                  ? "bg-[var(--brand-gold)] text-slate-950 shadow-md shadow-amber-500/20"
-                  : "bg-white/[0.04] text-slate-300 border border-white/10 hover:bg-white/[0.08]"
+              type="button"
+              onClick={() => setSelectedCategory("ALL")}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
+                selectedCategory === "ALL"
+                  ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
+                  : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
               }`}
             >
-              {cat.name}
+              All Dishes
             </button>
-          ))}
-        </div>
-      )}
-
-      {/* ── DISHES LIST ── */}
-      <div className="space-y-6">
-        {filteredCategories.length === 0 ? (
-          <div className="p-10 rounded-2xl bg-white/[0.04] border border-white/10 text-center space-y-2">
-            <p className="text-xs text-slate-400">No dishes match your search.</p>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
+                  selectedCategory === cat.id
+                    ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
+                    : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
           </div>
-        ) : (
-          filteredCategories.map((cat) => {
-            const categoryItems = cat.items || [];
-            if (categoryItems.length === 0) return null;
+        )}
 
-            return (
-              <div key={cat.id} className="space-y-3">
-                <div className="border-b border-white/10 pb-1.5 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-extrabold text-white tracking-wide">{cat.name}</h3>
-                    {cat.description && (
-                      <p className="text-[11px] text-slate-400">{cat.description}</p>
-                    )}
+        {/* ── 4. MENU SECTIONS & DISHES LIST ── */}
+        <div className="space-y-6">
+          {filteredCategories.length === 0 ? (
+            <div className="p-10 rounded-2xl bg-white border border-[#EAE3D2] text-center space-y-2.5 shadow-2xs">
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF4E6] text-[#A67C1E] mx-auto flex items-center justify-center">
+                <UtensilsCrossed className="w-6 h-6" />
+              </div>
+              <h4 className="text-xs font-bold text-slate-900 font-serif">No Menu Items Found</h4>
+              <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
+                {searchQuery
+                  ? `No dishes match "${searchQuery}". Please check the spelling or browse other categories.`
+                  : "No dishes are currently configured in this menu category."}
+              </p>
+            </div>
+          ) : (
+            filteredCategories.map((cat) => {
+              const categoryItems = cat.items || [];
+              if (categoryItems.length === 0) return null;
+
+              return (
+                <div key={cat.id} className="space-y-3">
+                  {/* Category Header */}
+                  <div className="border-b border-[#EAE3D2] pb-2 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-serif font-bold text-slate-900 tracking-wide">
+                        {cat.name}
+                      </h3>
+                      {cat.description && (
+                        <p className="text-[11px] text-slate-500">{cat.description}</p>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-semibold text-slate-400">
+                      {categoryItems.length} {categoryItems.length === 1 ? "dish" : "dishes"}
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-500">
-                    {categoryItems.length} items
-                  </span>
-                </div>
 
-                <div className="space-y-3">
-                  {categoryItems.map((item) => {
-                    const qty = getItemQuantityInCart(item.id);
-                    const isAvailable = item.is_available;
-                    const foodImg = getFoodImageForDish(item.name, cat.name);
+                  {/* Dishes Grid/Rows */}
+                  <div className="space-y-3">
+                    {categoryItems.map((item) => {
+                      const qty = getItemQuantityInCart(item.id);
+                      const isAvailable = item.is_available;
+                      const foodImg = getFoodImageForDish(item.name, cat.name);
 
-                    return (
-                      <div
-                        key={item.id}
-                        className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-lg ${
-                          isAvailable
-                            ? "bg-white/[0.04] border-white/10 hover:border-[var(--brand-gold)]/40 hover:bg-white/[0.07]"
-                            : "bg-black/30 border-white/5 opacity-55"
-                        }`}
-                      >
-                        <div className="flex items-stretch gap-3">
-                          {/* Food Photo (clickable to open detail) */}
-                          <div
-                            onClick={() => isAvailable && handleOpenDetail(item, cat.name)}
-                            className="relative w-28 sm:w-32 bg-slate-900 shrink-0 cursor-pointer overflow-hidden group"
-                          >
-                            <img
-                              src={foodImg}
-                              alt={item.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              loading="lazy"
-                            />
-                            {!isAvailable && (
-                              <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-1">
-                                <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-rose-500 text-white shadow-sm">
-                                  Sold Out
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Food Details & Pricing */}
-                          <div className="p-3 flex-1 flex flex-col justify-between space-y-2">
+                      return (
+                        <div
+                          key={item.id}
+                          className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-2xs ${
+                            isAvailable
+                              ? "bg-white border-[#EAE3D2] hover:border-[#D4AF37]/50 hover:shadow-xs"
+                              : "bg-slate-50 border-[#EAE3D2]/60 opacity-60"
+                          }`}
+                        >
+                          <div className="flex items-stretch gap-3.5">
+                            {/* Food Thumbnail (Clickable to open Food Detail) */}
                             <div
                               onClick={() => isAvailable && handleOpenDetail(item, cat.name)}
-                              className="cursor-pointer space-y-1"
+                              className="relative w-28 sm:w-32 aspect-square bg-slate-100 shrink-0 cursor-pointer overflow-hidden group"
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-1">
-                                  {item.name}
-                                </h4>
-                              </div>
-
-                              {item.description && (
-                                <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                                  {item.description}
-                                </p>
+                              <img
+                                src={foodImg}
+                                alt={item.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                              {!isAvailable && (
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-1">
+                                  <span className="px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-rose-600 text-white shadow-xs">
+                                    Sold Out
+                                  </span>
+                                </div>
                               )}
                             </div>
 
-                            <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                              <span className="text-sm font-black text-[var(--brand-gold)] font-mono">
-                                {currencySymbol}{Number(item.price).toFixed(2)}
-                              </span>
+                            {/* Food Details, Price & Add Stepper */}
+                            <div className="p-3 flex-1 flex flex-col justify-between space-y-2 min-w-0">
+                              <div
+                                onClick={() => isAvailable && handleOpenDetail(item, cat.name)}
+                                className="cursor-pointer space-y-1 min-w-0"
+                              >
+                                <h4 className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-[#A67C1E] transition-colors truncate">
+                                  {item.name}
+                                </h4>
 
-                              {/* Quantity Controls */}
-                              {isAvailable ? (
-                                qty === 0 ? (
-                                  <button
-                                    onClick={() => handleAddItem(item)}
-                                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[var(--brand-gold)] to-amber-500 hover:brightness-105 active:scale-95 text-slate-950 font-black text-xs flex items-center gap-1 shadow-md shadow-amber-500/20 transition"
-                                  >
-                                    <Plus className="w-3.5 h-3.5" />
-                                    <span>Add</span>
-                                  </button>
-                                ) : (
-                                  <div className="flex items-center gap-2 bg-slate-950/80 border border-[var(--brand-gold)]/50 rounded-xl p-1 shadow-sm">
-                                    <button
-                                      onClick={() => updateQuantity(item.id, qty - 1)}
-                                      className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center active:scale-90 transition"
-                                      title="Decrease quantity"
-                                    >
-                                      <Minus className="w-3 h-3" />
-                                    </button>
-                                    <span className="text-xs font-black text-[var(--brand-gold)] w-4 text-center">
-                                      {qty}
-                                    </span>
-                                    <button
-                                      onClick={() => updateQuantity(item.id, qty + 1)}
-                                      className="w-6 h-6 rounded-lg bg-[var(--brand-gold)] hover:brightness-105 text-slate-950 flex items-center justify-center active:scale-90 transition font-bold"
-                                      title="Increase quantity"
-                                    >
-                                      <Plus className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                )
-                              ) : (
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                  Unavailable
+                                {item.description && (
+                                  <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                                    {item.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="flex items-center justify-between pt-1.5 border-t border-[#EAE3D2]/70">
+                                <span className="text-sm font-bold text-slate-900 font-mono">
+                                  {currencySymbol}{Number(item.price).toFixed(2)}
                                 </span>
-                              )}
+
+                                {/* Quantity / Add Control */}
+                                {isAvailable ? (
+                                  qty === 0 ? (
+                                    <button
+                                      onClick={() => handleAddItem(item)}
+                                      className="px-3.5 py-1.5 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition"
+                                      aria-label={`Add ${item.name} to order`}
+                                    >
+                                      <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                                      <span>Add</span>
+                                    </button>
+                                  ) : (
+                                    <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#D4AF37]/40 rounded-xl p-1 shadow-2xs">
+                                      <button
+                                        onClick={() => updateQuantity(item.id, qty - 1)}
+                                        className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition"
+                                        title="Decrease quantity"
+                                        aria-label="Decrease quantity"
+                                      >
+                                        <Minus className="w-3 h-3" />
+                                      </button>
+                                      <span className="text-xs font-bold text-[#A67C1E] w-4 text-center">
+                                        {qty}
+                                      </span>
+                                      <button
+                                        onClick={() => updateQuantity(item.id, qty + 1)}
+                                        className="w-6 h-6 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold"
+                                        title="Increase quantity"
+                                        aria-label="Increase quantity"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )
+                                ) : (
+                                  <span className="text-[10px] font-semibold text-rose-600 uppercase tracking-wider">
+                                    Unavailable
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
 
-      {/* ── FOOD DETAIL MODAL ── */}
+      {/* ── 5. FOOD DETAIL BOTTOM SHEET ── */}
       {detailItem && (
-        <Modal
+        <FoodDetailSheet
           open={!!detailItem}
           onClose={() => setDetailItem(null)}
-          title={detailItem.name}
-          description={`${detailItemCategory} • ${currencySymbol}${Number(detailItem.price).toFixed(2)}`}
-        >
-          <div className="space-y-4 text-xs">
-            {/* Modal Image */}
-            <div className="relative h-48 w-full rounded-2xl overflow-hidden bg-slate-900 border border-white/10">
-              <img
-                src={getFoodImageForDish(detailItem.name, detailItemCategory)}
-                alt={detailItem.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] font-bold text-[var(--brand-gold)]">
-                {detailItemCategory}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {detailItem.description || "Authentic culinary preparation made fresh with premium seasonal ingredients."}
-              </p>
-            </div>
-
-            {/* Special Instructions Note */}
-            <div>
-              <label className="block font-bold text-slate-200 mb-1">
-                Special Instructions (Optional)
-              </label>
-              <textarea
-                rows={2}
-                placeholder="e.g. Extra spicy, dressing on side, allergy note..."
-                value={detailInstructions}
-                onChange={(e) => setDetailInstructions(e.target.value)}
-                className="w-full p-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--brand-gold)] resize-none"
-              />
-            </div>
-
-            {/* Stepper & Add Button */}
-            <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 bg-slate-950 border border-white/10 rounded-xl p-1.5">
-                <button
-                  type="button"
-                  onClick={() => setDetailQuantity(Math.max(1, detailQuantity - 1))}
-                  className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold"
-                >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-                <span className="text-sm font-black text-white w-5 text-center">
-                  {detailQuantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setDetailQuantity(detailQuantity + 1)}
-                  className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddItem(detailItem, detailQuantity, detailInstructions);
-                  setDetailItem(null);
-                }}
-                className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[var(--brand-gold)] to-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition flex items-center justify-center gap-1.5"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span>Add {detailQuantity} to Order • {currencySymbol}{(Number(detailItem.price) * detailQuantity).toFixed(2)}</span>
-              </button>
-            </div>
-          </div>
-        </Modal>
+          item={detailItem}
+          categoryName={detailItemCategory}
+          currencySymbol={currencySymbol}
+          initialQuantity={getItemQuantityInCart(detailItem.id) || 1}
+          foodImage={getFoodImageForDish(detailItem.name, detailItemCategory)}
+          onAddToCart={handleAddItem}
+        />
       )}
 
-      {/* ── TOAST NOTIFICATION ON ADD ── */}
+      {/* ── 6. TOAST NOTIFICATION ON ADD ── */}
       {addedItemNotice && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-emerald-500 text-slate-950 font-black text-xs shadow-xl flex items-center gap-1.5 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle2 className="w-3.5 h-3.5" />
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-emerald-600 text-white font-medium text-xs shadow-xl flex items-center gap-1.5 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
           <span>Added &quot;{addedItemNotice}&quot; to order</span>
         </div>
       )}

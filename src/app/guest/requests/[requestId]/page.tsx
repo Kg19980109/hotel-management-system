@@ -26,25 +26,31 @@ export default async function GuestRequestDetailPage({
 
   if (!request) {
     return (
-      <div className="p-4 space-y-6">
+      <div className="p-4 space-y-6 pb-28 max-w-lg mx-auto">
         <Link
           href="/guest/requests"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Requests</span>
         </Link>
 
-        <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-3">
-          <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-400 mx-auto flex items-center justify-center">
-            <AlertCircle className="w-6 h-6" />
+        <div className="p-8 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-3 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 mx-auto flex items-center justify-center">
+            <AlertCircle className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-white">Request Not Found</h3>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto">
-              This request could not be located or does not belong to your verified room session.
+            <h1 className="text-base font-serif font-semibold text-slate-900">Request Not Found</h1>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+              This service request could not be located or does not belong to your verified room session.
             </p>
           </div>
+          <Link
+            href="/guest/requests"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 text-xs font-semibold transition"
+          >
+            Return to Requests
+          </Link>
         </div>
       </div>
     );

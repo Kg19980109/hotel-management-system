@@ -9,7 +9,11 @@ import {
   CheckCircle2, 
   Building2, 
   PhoneCall,
-  Loader2
+  Loader2,
+  BedDouble,
+  UtensilsCrossed,
+  ShieldCheck,
+  KeyRound,
 } from "lucide-react";
 import { GuestQrResolutionResult } from "@/lib/guest-portal/types";
 import { 
@@ -93,7 +97,6 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
   const handleVerifyStay = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confirmationNumber.trim()) {
-      // Fallback to seamless unlock if empty
       void handleSeamlessUnlock();
       return;
     }
@@ -124,13 +127,13 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
   // 1. Invalid or Expired QR
   if (!resolution.valid) {
     return (
-      <div className="p-8 text-center space-y-5 rounded-3xl bg-gradient-to-b from-[#0E1B2E] to-[#08111F] border border-slate-800 shadow-2xl max-w-sm mx-auto">
-        <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 mx-auto flex items-center justify-center shadow-lg">
+      <div className="p-8 text-center space-y-5 rounded-3xl bg-white border border-[#EAE3D2] shadow-xl max-w-sm mx-auto">
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 mx-auto flex items-center justify-center shadow-xs">
           <AlertCircle className="w-8 h-8" />
         </div>
         <div className="space-y-1.5">
-          <h2 className="text-xl font-black text-white">Invalid or Expired QR Code</h2>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <h2 className="text-xl font-serif font-bold text-slate-900">Invalid or Expired QR Code</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
             {resolution.error || "This QR code is no longer active. Please scan the current QR code in your room or contact the front desk."}
           </p>
         </div>
@@ -141,29 +144,27 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
   // 2. Hotel General QR Experience
   if (resolution.qr_type === "HOTEL_GENERAL") {
     return (
-      <div className="p-6 space-y-6 text-center rounded-3xl bg-gradient-to-b from-[#0E1B2E] via-[#0B1526] to-[#08111F] border border-amber-500/20 shadow-2xl max-w-md mx-auto relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-full blur-2xl pointer-events-none" />
-
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 mx-auto flex items-center justify-center shadow-xl shadow-amber-500/20">
-          <Building2 className="w-8 h-8" />
+      <div className="p-6 space-y-6 text-center rounded-3xl bg-white border border-[#EAE3D2] shadow-xl max-w-md mx-auto relative overflow-hidden">
+        <div className="w-16 h-16 rounded-2xl bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 mx-auto flex items-center justify-center shadow-md">
+          <Building2 className="w-8 h-8 text-[#D4AF37]" />
         </div>
 
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
-            <Sparkles className="w-3 h-3 text-amber-400" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] text-[10px] font-semibold uppercase tracking-wider font-serif">
+            <Sparkles className="w-3 h-3 text-[#D4AF37]" />
             <span>Luxury Hotel Portal</span>
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">
+          <h2 className="text-2xl font-serif font-bold text-slate-900 tracking-tight">
             Welcome to {resolution.property_name}
           </h2>
-          <p className="text-xs text-slate-300/80 leading-relaxed max-w-xs mx-auto">
-            Explore our hotel directory, fine dining restaurants, room service menus, and guest amenities.
+          <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+            Explore our hotel directory, fine dining restaurants, in-room service menus, and guest amenities.
           </p>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2 text-left">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 text-left">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
         )}
@@ -171,53 +172,51 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
         <button
           onClick={handlePublicEntry}
           disabled={loading}
-          className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50"
+          className="w-full py-4 px-6 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
         >
           {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
           ) : (
             <>
               <span>Explore Guest Experience</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 text-[#D4AF37]" />
             </>
           )}
         </button>
 
-        <div className="pt-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-center gap-1.5">
-          <PhoneCall className="w-3.5 h-3.5 text-amber-400" />
-          <span>Concierge & Front Desk: {resolution.phone || "Available 24/7"}</span>
+        <div className="pt-4 border-t border-[#EAE3D2] text-xs text-slate-500 flex items-center justify-center gap-1.5">
+          <PhoneCall className="w-3.5 h-3.5 text-[#A67C1E]" />
+          <span>Concierge &amp; Front Desk: {resolution.phone || "Available 24/7"}</span>
         </div>
       </div>
     );
   }
 
-  // 3. Room QR — Seamless Frictionless Demo Experience
+  // 3. Room QR — Seamless Frictionless Experience
   if (resolution.qr_type === "ROOM") {
     return (
-      <div className="p-6 space-y-6 rounded-3xl bg-gradient-to-b from-[#0E1B2E] via-[#0B1526] to-[#08111F] border border-amber-500/20 shadow-2xl max-w-md mx-auto relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-bl from-amber-500/15 to-transparent rounded-full blur-2xl pointer-events-none" />
-
+      <div className="p-6 space-y-6 rounded-3xl bg-white border border-[#EAE3D2] shadow-xl max-w-md mx-auto relative overflow-hidden">
         {/* Room Header Hero */}
         <div className="text-center space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF4E6] border border-[#D4AF37]/35 text-[#A67C1E] text-xs font-semibold uppercase tracking-wider font-serif">
+            <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
             Room {resolution.room_number} • {resolution.room_type || "Deluxe Suite"}
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">
+          <h2 className="text-2xl font-serif font-bold text-slate-900 tracking-tight">
             {resolution.has_active_stay
               ? `Welcome to Room ${resolution.room_number}`
               : `Room ${resolution.room_number} — Check-In Required`}
           </h2>
-          <p className="text-xs text-slate-300/80 max-w-xs mx-auto leading-relaxed">
+          <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
             {resolution.has_active_stay
-              ? "Instant digital portal for in-room gourmet dining, housekeeping, and concierge assistance."
+              ? "Your private digital portal for in-room gourmet dining, housekeeping, and concierge assistance."
               : `No guest is currently checked into Room ${resolution.room_number}. Please check in at the Front Desk to activate in-room services.`}
           </p>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
         )}
@@ -228,18 +227,18 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
             <button
               onClick={handleSeamlessUnlock}
               disabled={loading}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-xl shadow-amber-500/25 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-4 px-6 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin text-[#D4AF37]" />
                   <span>Entering Room {resolution.room_number}...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-slate-950" />
+                  <Sparkles className="w-4 h-4 text-[#D4AF37]" />
                   <span>Enter Room {resolution.room_number} Portal</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <ArrowRight className="w-4 h-4 ml-1 text-[#D4AF37]" />
                 </>
               )}
             </button>
@@ -247,20 +246,20 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
             <button
               onClick={handlePublicEntry}
               disabled={loading}
-              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-4 px-6 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] disabled:opacity-50"
             >
               {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
               ) : (
                 <>
-                  <span>Browse Hotel & Dining (Public View)</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>Browse Hotel &amp; Dining (Public View)</span>
+                  <ArrowRight className="w-4 h-4 text-[#D4AF37]" />
                 </>
               )}
             </button>
           )}
 
-          <p className="text-center text-[11px] text-slate-400">
+          <p className="text-center text-[11px] text-slate-500">
             {resolution.has_active_stay
               ? loading
                 ? "Establishing encrypted in-room guest session..."
@@ -271,33 +270,33 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
 
         {/* Service Feature Highlights */}
         <div className="grid grid-cols-1 gap-2.5 pt-2 relative z-10">
-          <div className="p-3.5 rounded-2xl bg-[#08111F]/70 border border-slate-800 hover:border-amber-500/20 text-left flex items-center gap-3 transition">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
-              🍽️
+          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-left flex items-center gap-3 transition">
+            <div className="w-9 h-9 rounded-xl bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/30 flex items-center justify-center font-bold text-sm shrink-0">
+              <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs font-bold text-white">In-Room Dining & Bar</p>
-              <p className="text-[10px] text-slate-400">Browse live menus, order chef dishes, and track kitchen prep in real time</p>
+              <p className="text-xs font-semibold text-slate-900 font-serif">In-Room Dining &amp; Bar</p>
+              <p className="text-[10.5px] text-slate-500">Browse live menus, order chef dishes, and track kitchen prep in real time</p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#08111F]/70 border border-slate-800 hover:border-amber-500/20 text-left flex items-center gap-3 transition">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
-              🛎️
+          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-left flex items-center gap-3 transition">
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-sm shrink-0">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs font-bold text-white">Housekeeping & Amenities</p>
-              <p className="text-[10px] text-slate-400">Request extra towels, toiletries, or room cleaning with one tap</p>
+              <p className="text-xs font-semibold text-slate-900 font-serif">Housekeeping &amp; Amenities</p>
+              <p className="text-[10.5px] text-slate-500">Request extra towels, toiletries, or room cleaning with one tap</p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#08111F]/70 border border-slate-800 hover:border-amber-500/20 text-left flex items-center gap-3 transition">
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm shrink-0">
-              ⚡
+          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-left flex items-center gap-3 transition">
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold text-sm shrink-0">
+              <KeyRound className="w-4 h-4 text-indigo-600" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs font-bold text-white">Maintenance & Concierge</p>
-              <p className="text-[10px] text-slate-400">Direct instant alerts to hotel staff with real-time tracking</p>
+              <p className="text-xs font-semibold text-slate-900 font-serif">Maintenance &amp; Concierge</p>
+              <p className="text-[10.5px] text-slate-500">Direct instant alerts to hotel staff with real-time tracking</p>
             </div>
           </div>
         </div>
@@ -308,26 +307,26 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
             <button
               type="button"
               onClick={() => setShowManualForm(true)}
-              className="text-[11px] text-slate-400 hover:text-amber-300 underline transition"
+              className="text-[11px] text-slate-500 hover:text-[#A67C1E] underline transition"
             >
               Manual reservation lookup (optional)
             </button>
           ) : (
-            <form onSubmit={handleVerifyStay} className="space-y-3 pt-3 border-t border-slate-800 text-left">
+            <form onSubmit={handleVerifyStay} className="space-y-3 pt-3 border-t border-[#EAE3D2] text-left">
               <div className="space-y-1">
-                <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Confirmation Code</label>
+                <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider font-serif">Confirmation Code</label>
                 <input
                   type="text"
                   placeholder="e.g. GA-26-100103"
                   value={confirmationNumber}
                   onChange={(e) => setConfirmationNumber(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-[#08111F] border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 uppercase font-mono"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] uppercase font-mono"
                 />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition"
+                className="w-full py-2.5 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs transition"
               >
                 Submit Code
               </button>
@@ -336,8 +335,8 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
         </div>
 
         {/* Security & Privacy Notice */}
-        <div className="p-3 rounded-2xl bg-[#08111F]/50 border border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-center gap-2">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+        <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-[11px] text-slate-600 flex items-center justify-center gap-2">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span>Encrypted Guest Access • Active In-Room Session</span>
         </div>
       </div>

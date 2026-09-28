@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================
-// STAYHUB GUEST CART & ROOM SERVICE CHECKOUT (Phase 6)
-// With Rich Live Order Alert Confirmation Screen
+// STAYHUB GUEST CART & ROOM SERVICE CHECKOUT (Phase 4 Luxury Design)
+// With Editorial Confirmation Screen & Direct KDS Integration
 // ============================================================
 
 import * as React from "react";
@@ -23,6 +23,8 @@ import {
   ChefHat,
   Receipt,
   ArrowRight,
+  Trash2,
+  ShieldCheck,
 } from "lucide-react";
 import { useCart } from "./cart-context";
 import { placeGuestFoodOrderAction } from "@/lib/guest-ordering/actions";
@@ -51,9 +53,34 @@ interface OrderSuccessData {
   placedAt: string;
 }
 
+// Fast cached image fallback for cart items
+const cartThumbCache = new Map<string, string>();
+function getCartItemThumb(name: string): string {
+  if (cartThumbCache.has(name)) return cartThumbCache.get(name)!;
+  const text = name.toLowerCase();
+  let url = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=75";
+  if (text.includes("burger")) {
+    url = "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=200&q=75";
+  } else if (text.includes("pizza")) {
+    url = "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=200&q=75";
+  } else if (text.includes("biryani") || text.includes("rice")) {
+    url = "https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=200&q=75";
+  } else if (text.includes("pasta") || text.includes("noodle")) {
+    url = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=200&q=75";
+  } else if (text.includes("coffee") || text.includes("tea")) {
+    url = "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=200&q=75";
+  } else if (text.includes("drink") || text.includes("cocktail") || text.includes("juice")) {
+    url = "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=200&q=75";
+  } else if (text.includes("dessert") || text.includes("cake") || text.includes("sweet")) {
+    url = "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=200&q=75";
+  }
+  cartThumbCache.set(name, url);
+  return url;
+}
+
 export function CartView({ session }: CartViewProps) {
   const router = useRouter();
-  const { restaurantId, restaurantName, items, updateQuantity, clearCart, subtotal } = useCart();
+  const { restaurantId, restaurantName, items, updateQuantity, removeItem, clearCart, subtotal } = useCart();
   const [notes, setNotes] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
@@ -64,7 +91,7 @@ export function CartView({ session }: CartViewProps) {
   const total = subtotal + tax;
 
   const handlePlaceOrder = async () => {
-    if (!restaurantId || items.length === 0) return;
+    if (!restaurantId || items.length === 0 || isSubmitting) return;
     if (!isVerifiedStay) {
       setErrorMsg("You must be an active in-house guest with a verified room session to place room service orders. Please scan your room QR code.");
       return;
@@ -145,102 +172,101 @@ export function CartView({ session }: CartViewProps) {
     });
   };
 
-  // SUCCESS ALERT / CONFIRMATION SCREEN
+  // ── 1. SUCCESS ALERT / CONFIRMATION SCREEN ──
   if (successOrder) {
     return (
-      <div className="p-4 sm:p-6 space-y-6 max-w-lg mx-auto pb-24 animate-in fade-in zoom-in-95 duration-200">
+      <div className="p-4 sm:p-5 space-y-5 max-w-lg mx-auto pb-24 animate-in fade-in zoom-in-95 duration-200">
         {/* Top Status Hero Card */}
-        <div className="p-6 rounded-3xl bg-gradient-to-b from-[#0F1E3D] via-[#091326] to-[#040914] border border-[var(--brand-gold)]/30 text-center space-y-4 shadow-2xl relative overflow-hidden">
-          {/* Subtle Ambient Glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-[var(--brand-gold)]/10 blur-2xl rounded-full pointer-events-none" />
+        <div className="p-6 rounded-3xl bg-gradient-to-b from-[#0B1526] via-[#111D31] to-[#0B1526] border border-[#D4AF37]/35 text-center space-y-4 shadow-2xl relative overflow-hidden text-white">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-[#D4AF37]/10 blur-2xl rounded-full pointer-events-none" />
 
-          {/* Animated Success Badge */}
-          <div className="relative mx-auto w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <CheckCircle2 className="w-11 h-11 animate-pulse" />
+          {/* Success Badge */}
+          <div className="relative mx-auto w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/10">
+            <CheckCircle2 className="w-9 h-9 animate-pulse" />
           </div>
 
-          <div className="space-y-1.5 relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--brand-gold)]/15 border border-[var(--brand-gold)]/30 text-[var(--brand-gold)] text-[11px] font-black uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
-              Order Confirmed & Sent to Kitchen
+          <div className="space-y-1 relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+              Order Confirmed &amp; Sent to Kitchen
             </div>
-            <h2 className="text-2xl font-black text-white font-heading tracking-tight">
-              Food Order Received!
+            <h2 className="text-2xl font-serif font-semibold text-white tracking-tight">
+              Order Received
             </h2>
-            <p className="text-sm font-mono font-extrabold text-[var(--brand-gold)]">
+            <p className="text-xs font-mono font-bold text-[#E4C980]">
               Order #{successOrder.orderNumber}
             </p>
           </div>
 
           {/* Live Kitchen Status Banner */}
-          <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between text-left">
+          <div className="p-3.5 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-between text-left">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 text-[#E4C980] flex items-center justify-center shrink-0">
                 <ChefHat className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400">Kitchen KDS Status</span>
-                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-semibold text-slate-300">Kitchen KDS Status</span>
+                <p className="text-xs font-semibold text-white flex items-center gap-1.5">
                   <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                   QUEUED • Culinary Team Preparing
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-mono text-slate-400 font-bold">{successOrder.placedAt}</span>
+            <span className="text-[11px] font-mono text-slate-300 font-semibold">{successOrder.placedAt}</span>
           </div>
 
-          {/* Room Service Delivery Destination */}
-          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-left">
-            <BedDouble className="w-5 h-5 text-amber-400 shrink-0" />
+          {/* Delivery Target Destination */}
+          <div className="p-3 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-3 text-left">
+            <BedDouble className="w-5 h-5 text-[#E4C980] shrink-0" />
             <div className="text-xs">
-              <span className="text-[10px] uppercase font-bold text-amber-300/80">Delivery Target</span>
-              <p className="font-extrabold text-amber-200">
-                Room {successOrder.roomNumber ? successOrder.roomNumber : "Your Room"} • Estimated ETA: 15–25 Mins
+              <span className="text-[10px] uppercase font-semibold text-slate-300">Delivery Destination</span>
+              <p className="font-semibold text-white">
+                Room {successOrder.roomNumber ? successOrder.roomNumber : "Your Suite"} • Estimated Delivery: 15–25 Mins
               </p>
             </div>
           </div>
         </div>
 
         {/* Itemized Order Summary */}
-        <div className="p-5 rounded-3xl bg-white/[0.04] border border-white/10 space-y-3.5 shadow-xl text-xs">
-          <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-            <span className="font-extrabold text-white uppercase text-[10.5px] tracking-wider flex items-center gap-1.5">
-              <Receipt className="w-3.5 h-3.5 text-[var(--brand-gold)]" />
+        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-3.5 shadow-sm text-xs">
+          <div className="flex items-center justify-between border-b border-[#EAE3D2] pb-2.5">
+            <span className="font-bold text-slate-900 uppercase text-[10.5px] tracking-wider font-serif flex items-center gap-1.5">
+              <Receipt className="w-3.5 h-3.5 text-[#A67C1E]" />
               Ordered Items Summary
             </span>
-            <span className="text-slate-400 text-[11px]">
+            <span className="text-slate-500 text-[11px] font-medium">
               {successOrder.items.length} {successOrder.items.length === 1 ? "Item" : "Items"}
             </span>
           </div>
 
           <div className="space-y-2.5">
             {successOrder.items.map((item) => (
-              <div key={item.menu_item_id} className="flex justify-between items-center text-slate-300">
-                <div className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-md bg-white/10 text-white font-bold flex items-center justify-center text-[10px]">
+              <div key={item.menu_item_id} className="flex justify-between items-center text-slate-700">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="w-5 h-5 rounded-md bg-[#FAF4E6] text-[#A67C1E] font-bold flex items-center justify-center text-[10px] shrink-0">
                     {item.quantity}×
                   </span>
-                  <span className="font-semibold text-white text-xs">{item.name}</span>
+                  <span className="font-medium text-slate-900 text-xs truncate">{item.name}</span>
                 </div>
-                <span className="font-mono font-bold text-white">
+                <span className="font-mono font-semibold text-slate-900 shrink-0">
                   ₹{(item.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="pt-2 border-t border-white/10 space-y-1.5 text-slate-400">
+          <div className="pt-2 border-t border-[#EAE3D2] space-y-1.5 text-slate-600">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="font-bold text-slate-200">₹{successOrder.subtotal.toFixed(2)}</span>
+              <span className="font-semibold text-slate-800">₹{successOrder.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>GST & Taxes (5%)</span>
-              <span className="font-bold text-slate-200">₹{successOrder.tax.toFixed(2)}</span>
+              <span>GST &amp; Taxes (5%)</span>
+              <span className="font-semibold text-slate-800">₹{successOrder.tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between pt-1 border-t border-white/10 text-sm font-black text-white">
-              <span>Total Charged to Room</span>
-              <span className="text-base text-[var(--brand-gold)] font-mono">
+            <div className="flex justify-between pt-1 border-t border-[#EAE3D2] text-sm font-bold text-slate-900">
+              <span>Total (Charged to Room Folio)</span>
+              <span className="text-base text-slate-900 font-mono">
                 ₹{successOrder.total.toFixed(2)}
               </span>
             </div>
@@ -251,24 +277,24 @@ export function CartView({ session }: CartViewProps) {
         <div className="space-y-2.5">
           <Link
             href={`/guest/orders/${successOrder.orderId}`}
-            className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-[var(--brand-gold)] via-amber-400 to-[var(--brand-gold)] text-slate-950 font-black text-sm text-center shadow-xl shadow-amber-500/25 active:scale-[0.98] transition flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs text-center shadow-md active:scale-[0.98] transition flex items-center justify-center gap-2"
           >
-            <Clock className="w-4 h-4" />
+            <Clock className="w-4 h-4 text-[#D4AF37]" />
             <span>Track Food Preparation Live</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
 
           <Link
             href="/guest/dining"
-            className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-xs text-center transition flex items-center justify-center gap-1.5"
+            className="w-full py-3 px-4 rounded-xl bg-white hover:bg-slate-50 border border-[#EAE3D2] text-slate-700 font-semibold text-xs text-center transition flex items-center justify-center gap-1.5 shadow-2xs"
           >
-            <UtensilsCrossed className="w-3.5 h-3.5" />
-            <span>Order More Food & Beverages</span>
+            <UtensilsCrossed className="w-3.5 h-3.5 text-[#A67C1E]" />
+            <span>Order More Food &amp; Beverages</span>
           </Link>
 
           <Link
             href="/guest/home"
-            className="w-full py-2.5 px-4 rounded-xl bg-transparent hover:bg-white/5 text-slate-400 font-semibold text-xs text-center transition"
+            className="w-full py-2.5 px-4 rounded-xl bg-transparent hover:bg-slate-100 text-slate-500 font-medium text-xs text-center transition"
           >
             Return to Room Portal
           </Link>
@@ -277,33 +303,33 @@ export function CartView({ session }: CartViewProps) {
     );
   }
 
-  // EMPTY CART STATE
+  // ── 2. EMPTY CART STATE ──
   if (items.length === 0) {
     return (
       <div className="p-4 space-y-6">
         <Link
           href="/guest/dining"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Dining</span>
         </Link>
 
-        <div className="p-12 rounded-3xl bg-white/[0.04] border border-white/10 text-center space-y-4 shadow-xl">
-          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 text-slate-500 mx-auto flex items-center justify-center">
+        <div className="p-10 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-4 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] mx-auto flex items-center justify-center">
             <ShoppingBag className="w-8 h-8" />
           </div>
-          <div className="space-y-1.5">
-            <h3 className="text-base font-black text-white">Your Cart is Empty</h3>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+          <div className="space-y-1">
+            <h3 className="text-base font-serif font-semibold text-slate-900">Your Cart is Empty</h3>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
               Explore our culinary menus and add freshly prepared dishes to your in-room dining order.
             </p>
           </div>
           <Link
             href="/guest/dining"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[var(--brand-gold)] to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 active:scale-95 transition"
+            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs shadow-md active:scale-95 transition"
           >
-            <UtensilsCrossed className="w-4 h-4" />
+            <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
             <span>Explore Dining Menus</span>
           </Link>
         </div>
@@ -311,188 +337,218 @@ export function CartView({ session }: CartViewProps) {
     );
   }
 
+  // ── 3. MAIN CART & CHECKOUT VIEW ──
   return (
     <div className="p-4 space-y-5 pb-28">
-      {/* ── TOP HEADER ── */}
+      {/* Top Header Controls */}
       <div className="flex items-center justify-between">
         <Link
           href={restaurantId ? `/guest/dining/${restaurantId}` : "/guest/dining"}
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Continue Ordering</span>
         </Link>
         <button
           onClick={clearCart}
-          className="text-xs text-rose-400 hover:text-rose-300 font-semibold transition"
+          className="text-xs text-rose-600 hover:text-rose-700 font-semibold transition"
         >
           Clear Cart
         </button>
       </div>
 
-      {/* ── RESTAURANT & DELIVERY DESTINATION ── */}
-      <div className="p-4 rounded-3xl bg-gradient-to-br from-[#08111F] via-[#0E1A38] to-[#121B3B] border border-white/10 shadow-xl space-y-3">
+      {/* Restaurant & Delivery Destination Card */}
+      <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[var(--brand-gold)]">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#A67C1E]">
             Room Service Order
           </span>
-          <span className="text-[10px] font-bold text-slate-400">
+          <span className="text-[11px] font-medium text-slate-500">
             {restaurantName || "Restaurant"}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 pt-1 border-t border-white/10">
-          <div className="w-10 h-10 rounded-2xl bg-[var(--brand-gold)]/10 border border-[var(--brand-gold)]/20 text-[var(--brand-gold)] flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 pt-2 border-t border-[#EAE3D2]">
+          <div className="w-10 h-10 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] flex items-center justify-center shrink-0">
             <BedDouble className="w-5 h-5" />
           </div>
           <div className="space-y-0.5">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Delivery Destination</span>
-            <h4 className="text-sm font-extrabold text-white">
+            <span className="text-[10px] uppercase font-semibold text-slate-400">Delivery Target</span>
+            <h4 className="text-xs sm:text-sm font-bold text-slate-900">
               {isVerifiedStay ? `Delivering to Room ${session?.room_number}` : "Room Service Delivery"}
             </h4>
           </div>
         </div>
       </div>
 
-      {/* ── VERIFICATION WARNING IF NOT VERIFIED ── */}
+      {/* Unverified Stay Warning */}
       {!isVerifiedStay && (
-        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3 shadow-md">
-          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3 shadow-2xs">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
-            <p className="font-bold text-amber-300">Room Verification Required</p>
-            <p className="text-slate-400 text-[11px] leading-relaxed">
-              Please scan your in-room QR code to verify your reservation so our kitchen staff can dispatch food to your suite.
+            <p className="font-bold text-amber-900 font-serif">Room Verification Required</p>
+            <p className="text-amber-700 text-[11px] leading-relaxed">
+              Please scan your in-room QR code to link your stay so our culinary team can dispatch food to your suite.
             </p>
           </div>
         </div>
       )}
 
-      {/* ── ORDER ITEMS LIST ── */}
+      {/* Selected Items List */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
-          Your Selected Dishes ({items.length})
+        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider px-0.5 font-serif">
+          Selected Dishes ({items.length})
         </h3>
 
         <div className="space-y-2.5">
-          {items.map((item) => (
-            <div
-              key={item.menu_item_id}
-              className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 shadow-md flex items-center justify-between gap-3"
-            >
-              <div className="space-y-1 flex-1">
-                <h4 className="text-xs sm:text-sm font-bold text-white">
-                  {item.name}
-                </h4>
-                {item.special_instructions && (
-                  <p className="text-[10.5px] text-amber-300/80 italic line-clamp-1">
-                    Note: {item.special_instructions}
-                  </p>
-                )}
-                <p className="text-xs font-black text-[var(--brand-gold)] font-mono">
-                  ₹{(item.price * item.quantity).toFixed(2)}{" "}
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    (₹{item.price.toFixed(2)} each)
-                  </span>
-                </p>
-              </div>
+          {items.map((item) => {
+            const thumb = getCartItemThumb(item.name);
 
-              {/* Quantity Stepper */}
-              <div className="flex items-center gap-2 bg-slate-950 border border-white/10 rounded-xl p-1 shrink-0">
-                <button
-                  onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
-                  className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center active:scale-90 transition"
-                  title="Reduce quantity"
-                >
-                  <Minus className="w-3 h-3" />
-                </button>
-                <span className="text-xs font-black text-white w-4 text-center">
-                  {item.quantity}
-                </span>
-                <button
-                  onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
-                  className="w-6 h-6 rounded-lg bg-[var(--brand-gold)] text-slate-950 flex items-center justify-center active:scale-90 transition font-bold"
-                  title="Increase quantity"
-                >
-                  <Plus className="w-3 h-3" />
-                </button>
+            return (
+              <div
+                key={item.menu_item_id}
+                className="p-3 rounded-2xl bg-white border border-[#EAE3D2] shadow-2xs flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-[#EAE3D2]">
+                    <img
+                      src={thumb}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+
+                  <div className="space-y-0.5 min-w-0">
+                    <h4 className="text-xs sm:text-sm font-semibold text-slate-900 truncate">
+                      {item.name}
+                    </h4>
+                    {item.special_instructions && (
+                      <p className="text-[10.5px] text-[#A67C1E] italic line-clamp-1">
+                        Note: {item.special_instructions}
+                      </p>
+                    )}
+                    <p className="text-xs font-bold text-slate-900 font-mono">
+                      ₹{(item.price * item.quantity).toFixed(2)}{" "}
+                      <span className="text-[10px] text-slate-400 font-normal">
+                        (₹{item.price.toFixed(2)} each)
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quantity Stepper & Remove */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#EAE3D2] rounded-xl p-1 shadow-2xs">
+                    <button
+                      onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
+                      className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition"
+                      title="Reduce quantity"
+                      aria-label="Reduce quantity"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="text-xs font-bold text-slate-900 w-4 text-center font-mono">
+                      {item.quantity}
+                    </span>
+                    <button
+                      onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
+                      className="w-6 h-6 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold"
+                      title="Increase quantity"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => removeItem(item.menu_item_id)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition"
+                    title="Remove item"
+                    aria-label={`Remove ${item.name}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* ── SPECIAL INSTRUCTIONS / KITCHEN NOTES ── */}
-      <div className="space-y-2">
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider px-1">
-          Delivery Notes & Dietary Requests
+      {/* Special Delivery Notes / Dietary Requests */}
+      <div className="space-y-1.5">
+        <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider px-0.5 font-serif">
+          Delivery Notes &amp; Dietary Requests
         </label>
         <textarea
           rows={2}
           placeholder="e.g. Please knock softly, extra cutlery, dressing on side..."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full p-3 rounded-2xl bg-white/[0.04] border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--brand-gold)] resize-none"
+          className="w-full p-3 rounded-2xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] transition resize-none shadow-2xs"
         />
       </div>
 
-      {/* ── BILL BREAKDOWN ── */}
-      <div className="p-4 rounded-3xl bg-white/[0.04] border border-white/10 space-y-2.5 shadow-md text-xs">
-        <h4 className="font-extrabold text-white uppercase text-[10.5px] tracking-wider pb-2 border-b border-white/10">
-          Payment & Charge Summary
+      {/* Bill & Charge Breakdown */}
+      <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] space-y-2.5 shadow-2xs text-xs">
+        <h4 className="font-bold text-slate-900 uppercase text-[10.5px] tracking-wider pb-2 border-b border-[#EAE3D2] font-serif">
+          Payment &amp; Folio Summary
         </h4>
 
-        <div className="flex justify-between text-slate-400">
+        <div className="flex justify-between text-slate-600">
           <span>Subtotal</span>
-          <span className="font-bold text-slate-200">₹{subtotal.toFixed(2)}</span>
+          <span className="font-semibold text-slate-800">₹{subtotal.toFixed(2)}</span>
         </div>
 
-        <div className="flex justify-between text-slate-400">
-          <span>Taxes & GST (5%)</span>
-          <span className="font-bold text-slate-200">₹{tax.toFixed(2)}</span>
+        <div className="flex justify-between text-slate-600">
+          <span>Taxes &amp; GST (5%)</span>
+          <span className="font-semibold text-slate-800">₹{tax.toFixed(2)}</span>
         </div>
 
-        <div className="flex justify-between text-slate-400">
-          <span>Delivery / Room Service Charge</span>
-          <span className="font-bold text-emerald-400">FREE</span>
+        <div className="flex justify-between text-slate-600">
+          <span>Room Service Delivery</span>
+          <span className="font-semibold text-emerald-600 uppercase">COMPLIMENTARY</span>
         </div>
 
-        <div className="pt-2 border-t border-white/10 flex justify-between items-center text-sm font-black text-white">
+        <div className="pt-2 border-t border-[#EAE3D2] flex justify-between items-center text-sm font-bold text-slate-900">
           <span>Total (Charged to Room Folio)</span>
-          <span className="text-base text-[var(--brand-gold)] font-mono">
+          <span className="text-base text-slate-900 font-mono">
             ₹{total.toFixed(2)}
           </span>
         </div>
       </div>
 
-      {/* ── ERROR NOTICE ── */}
+      {/* Error Message Notice */}
       {errorMsg && (
-        <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/25 flex items-center gap-2.5 text-xs text-rose-300">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-center gap-2.5 text-xs text-rose-700">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* ── PRIMARY PLACE ORDER BUTTON ── */}
-      <div className="pt-2">
+      {/* Primary Order Submission Button */}
+      <div className="pt-1 space-y-2">
         <button
           onClick={handlePlaceOrder}
           disabled={isSubmitting || !isVerifiedStay}
-          className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-[var(--brand-gold)] via-amber-400 to-[var(--brand-gold)] text-slate-950 font-black text-sm text-center shadow-xl shadow-amber-500/25 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-sm text-center shadow-xl shadow-black/10 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
               <span>Sending Order to Kitchen...</span>
             </>
           ) : (
             <>
-              <UtensilsCrossed className="w-4 h-4" />
-              <span>Place Room Service Order • ₹{total.toFixed(2)}</span>
+              <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
+              <span>Place Room Service Order · ₹{total.toFixed(2)}</span>
             </>
           )}
         </button>
-        <p className="text-[10px] text-slate-500 text-center mt-2">
-          Charges are automatically applied to your room folio. Server-authoritative checkout.
+        <p className="text-[10.5px] text-slate-500 text-center">
+          Charges are applied directly to your in-house room folio. Server-authoritative checkout.
         </p>
       </div>
     </div>

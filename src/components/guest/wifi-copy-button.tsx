@@ -25,18 +25,23 @@ export function WifiCopyButton({ password }: WifiCopyButtonProps) {
   return (
     <button
       onClick={handleCopy}
-      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-amber-400 font-semibold flex items-center gap-1.5 transition active:scale-95 border border-slate-700/60"
+      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 border ${
+        copied
+          ? "bg-emerald-50 border-emerald-200 text-emerald-700 shadow-2xs"
+          : "bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border-[#D4AF37]/30 shadow-xs"
+      }`}
       title="Copy Wi-Fi Password"
+      aria-label="Copy Wi-Fi Password"
     >
       {copied ? (
         <>
-          <Check className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-emerald-400">Copied</span>
+          <Check className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="text-emerald-700 font-medium">Copied</span>
         </>
       ) : (
         <>
-          <Copy className="w-3.5 h-3.5" />
-          <span>Copy Pass</span>
+          <Copy className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <span className="font-medium">Copy Pass</span>
         </>
       )}
     </button>

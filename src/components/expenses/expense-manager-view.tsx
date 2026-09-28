@@ -212,19 +212,87 @@ export function ExpenseManagerView({
 
   return (
     <div className="space-y-5 pb-12">
-      {/* Header */}
-      <PageHeader
-        title="Hotel Expense Management"
-        description={`Record operational expenditures, vendor invoices, utility receipts, and departmental costs for ${propertyName}.`}
-        breadcrumbs={[{ label: "Business", href: "/expenses" }, { label: "Expenses" }]}
-        actions={
-          <div className="flex items-center gap-2">
+      {/* ── LUXURY HERO BANNER ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10 shadow-2xl"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial glows */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.10) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            {/* Pill Badge */}
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.30)",
+                background: "rgba(214,168,90,0.10)",
+              }}
+            >
+              <Receipt className="h-3.5 w-3.5" />
+              FINANCIAL AUDIT & EXPENDITURES
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+              Expense Management
+              <span className="block text-white/60 text-sm font-normal mt-1">
+                Operational expenditures, vendor invoices, utility bills & departmental costs for {propertyName}
+              </span>
+            </h1>
+
+            {/* Quick KPI stats in banner */}
+            <div className="flex items-center gap-4 mt-4 flex-wrap text-xs text-white/80">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="font-bold text-white text-sm">
+                  {analytics.summary.expenseCount}
+                </span>{" "}
+                records logged
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="h-2 w-2 rounded-full bg-amber-400"></span>
+                Total:{" "}
+                <span className="font-bold text-amber-300">
+                  {currency === "INR" ? "₹" : currency}{" "}
+                  {Number(analytics.summary.totalExpenses || 0).toLocaleString("en-IN", {
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="h-2 w-2 rounded-full bg-cyan-400"></span>
+                This Month:{" "}
+                <span className="font-bold text-cyan-200">
+                  {currency === "INR" ? "₹" : currency}{" "}
+                  {Number(analytics.summary.thisMonthExpenses || 0).toLocaleString("en-IN", {
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
+              </span>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
             <Button
               variant="outline"
               size="sm"
               disabled={isExporting}
               onClick={handleExportCsv}
-              className="h-9 text-xs gap-1.5"
+              className="h-10 text-xs font-semibold px-4 border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white backdrop-blur-xs gap-2"
             >
               <Download className="w-3.5 h-3.5" />
               {isExporting ? "Exporting..." : "Export CSV"}
@@ -235,14 +303,18 @@ export function ExpenseManagerView({
                 setExpenseToEdit(null);
                 setIsAddModalOpen(true);
               }}
-              className="h-9 text-xs gap-1.5 font-semibold bg-primary text-primary-foreground shadow-xs"
+              className="h-10 text-xs px-4 gap-2 font-bold shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #D4AF37 0%, #F59E0B 100%)",
+                color: "#08111F",
+              }}
             >
               <Plus className="w-4 h-4" />
               Record Expense
             </Button>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {/* 1. Executive KPI Strip */}
       <ExpenseKpiSummaryView

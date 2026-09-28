@@ -117,35 +117,97 @@ export default function FoliosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link
-              href="/billing"
-              className="text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground flex items-center gap-1 transition"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Billing Hub
-            </Link>
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2.5">
-            <Receipt className="w-6 h-6 text-amber-500" />
-            <span>Guest Stay Folios</span>
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Master financial ledger for all in-house rooms, incidental charges, and check-out settlements.
-          </p>
-        </div>
+      {/* ── LUXURY HERO BANNER ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10 shadow-2xl"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial glows */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.10) 0%, transparent 70%)" }}
+        />
 
-        <div className="flex items-center gap-2">
-          <Link href="/billing">
-            <Button size="sm" variant="outline" className="text-xs font-bold">
-              View All Bills
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            {/* Back link & Pill Badge */}
+            <div className="flex items-center gap-3 mb-3">
+              <Link
+                href="/billing"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 hover:text-white transition"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Billing Hub
+              </Link>
+              <span className="text-white/30">•</span>
+              <div
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border"
+                style={{
+                  color: "var(--brand-gold)",
+                  borderColor: "rgba(214,168,90,0.30)",
+                  background: "rgba(214,168,90,0.10)",
+                }}
+              >
+                <Receipt className="h-3.5 w-3.5" />
+                ROOM & STAY FINANCIAL LEDGERS
+              </div>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+              Guest Stay Folios
+              <span className="block text-white/60 text-sm font-normal mt-1">
+                Master financial ledger for all in-house rooms, incidental charges & checkout settlements
+              </span>
+            </h1>
+
+            {/* Quick stats in banner */}
+            <div className="flex items-center gap-4 mt-4 flex-wrap text-xs text-white/80">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="font-bold text-white text-sm">{folios.length}</span> total folios
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="flex items-center gap-1.5 font-medium text-amber-300">
+                <span className="h-2 w-2 rounded-full bg-amber-400"></span>
+                <span className="font-bold">{openCount}</span> open in-house
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="flex items-center gap-1.5 font-medium text-emerald-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+                <span className="font-bold">{settledCount}</span> settled
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+            <Link href="/billing">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 text-xs font-semibold px-4 border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white backdrop-blur-xs"
+              >
+                View All Bills
+              </Button>
+            </Link>
+            <Button
+              size="sm"
+              onClick={loadData}
+              className="h-10 text-xs px-4 gap-2 font-bold shadow-lg"
+              style={{
+                background: "linear-gradient(135deg, #D4AF37 0%, #F59E0B 100%)",
+                color: "#08111F",
+              }}
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Refresh
             </Button>
-          </Link>
-          <Button size="sm" variant="outline" onClick={loadData} title="Refresh Folios">
-            <RotateCcw className="w-3.5 h-3.5 mr-1" />
-            Refresh
-          </Button>
+          </div>
         </div>
       </div>
 

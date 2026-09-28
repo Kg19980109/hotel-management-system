@@ -111,40 +111,100 @@ export default function KitchenDisplayPage() {
 
   return (
     <div className="p-6 space-y-5 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <PageHeader
-        title="Kitchen Display System (KDS)"
-        description="Live order production queue, cook timers, station routing, and meal expedition."
-        actions={
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-bold text-foreground shadow-xs">
-              <Store className="h-3.5 w-3.5 text-amber-500" />
-              <span>{selectedRestaurant.name}</span>
+      {/* ── LUXURY HERO BANNER ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10 shadow-2xl"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial glows */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.10) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div>
+            {/* Pill Badge */}
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.30)",
+                background: "rgba(214,168,90,0.10)",
+              }}
+            >
+              <UtensilsCrossed className="h-3.5 w-3.5" />
+              KITCHEN EXPEDITION & TICKETS
             </div>
 
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+              Kitchen Display System (KDS)
+              <span className="block text-white/60 text-sm font-normal mt-1">
+                Live order production queue, cook timers, station routing & meal expedition
+              </span>
+            </h1>
+
+            {/* Outlet and info */}
+            <div className="flex items-center gap-3 mt-4 flex-wrap text-xs text-white/80">
+              <span className="inline-flex items-center gap-1.5 font-semibold bg-white/10 px-2.5 py-1 rounded-lg border border-white/10 text-white">
+                <Store className="h-3.5 w-3.5 text-amber-400" />
+                {selectedRestaurant.name}
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="text-emerald-300 font-semibold flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+                Active Station Link
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
             <Link href="/restaurant/kitchen/stations">
-              <Button variant="outline" size="sm" className="text-xs h-9">
-                <Layers className="h-3.5 w-3.5 mr-1.5" />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 text-xs font-semibold px-4 border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white backdrop-blur-xs gap-1.5"
+              >
+                <Layers className="h-3.5 w-3.5" />
                 Stations
               </Button>
             </Link>
 
             <Link href="/restaurant/kds/history">
-              <Button variant="outline" size="sm" className="text-xs h-9">
-                <History className="h-3.5 w-3.5 mr-1.5" />
-                Kitchen History
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 text-xs font-semibold px-4 border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white backdrop-blur-xs gap-1.5"
+              >
+                <History className="h-3.5 w-3.5" />
+                History
               </Button>
             </Link>
 
             <Link href="/restaurant/pos">
-              <Button size="sm" className="text-xs h-9">
-                <UtensilsCrossed className="h-3.5 w-3.5 mr-1.5" />
+              <Button
+                size="sm"
+                className="h-10 text-xs px-4 gap-2 font-bold shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, #D4AF37 0%, #F59E0B 100%)",
+                  color: "#08111F",
+                }}
+              >
+                <UtensilsCrossed className="h-3.5 w-3.5" />
                 Open POS
               </Button>
             </Link>
           </div>
-        }
-      />
+        </div>
+      </div>
 
       {/* KDS Terminal Component */}
       <KdsTerminal

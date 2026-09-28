@@ -555,85 +555,125 @@ export default function KitchenKdsPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-4 max-w-7xl mx-auto">
-      {/* ── TOP BAR / HEADER ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-amber-500/20">
-            <ChefHat className="h-5 w-5" />
-          </div>
+      {/* ── LUXURY HERO BANNER ── */}
+      <div
+        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10 shadow-2xl"
+        style={{
+          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
+          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+        }}
+      >
+        {/* Ambient radial glows */}
+        <div
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.10) 0%, transparent 70%)" }}
+        />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
-                Kitchen Display System (KDS)
-              </h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 animate-pulse">
+            {/* Pill Badge */}
+            <div
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              style={{
+                color: "var(--brand-gold)",
+                borderColor: "rgba(214,168,90,0.30)",
+                background: "rgba(214,168,90,0.10)",
+              }}
+            >
+              <ChefHat className="h-3.5 w-3.5" />
+              KITCHEN DISPLAY SYSTEM & DISPATCH
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight flex items-center gap-3 flex-wrap">
+              <span>Kitchen Display (KDS)</span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 animate-pulse">
                 ● Live Sync
               </span>
+              <span className="block w-full text-white/60 text-sm font-normal mt-1">
+                Real-time kitchen ticket queue & meal expedition for QR In-Room Dining & POS Orders
+              </span>
+            </h1>
+
+            {/* Quick stats & outlet indicator in banner */}
+            <div className="flex items-center gap-3 mt-4 flex-wrap text-xs text-white/80">
+              <span className="inline-flex items-center gap-1.5 font-semibold bg-white/10 px-2.5 py-1 rounded-lg border border-white/10 text-white">
+                <Store className="h-3.5 w-3.5 text-amber-400" />
+                {selectedRestaurant.name}
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="flex items-center gap-1.5 font-mono text-white/90 bg-white/5 px-2 py-1 rounded border border-white/10">
+                <Clock className="h-3.5 w-3.5 text-amber-400" />
+                {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              </span>
+              <span className="text-white/30">•</span>
+              <span className="flex items-center gap-1.5 font-medium text-white/80">
+                <span className="font-bold text-amber-300">{kpis.queuedTickets + kpis.inProgressTickets}</span> active orders
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Real-time kitchen ticket queue for QR In-Room Dining & POS Orders
-            </p>
-          </div>
-        </div>
-
-        {/* Right Header Controls */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Unified Outlet Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-card border border-border text-xs font-bold text-foreground">
-            <Store className="h-3.5 w-3.5 text-amber-500" />
-            <span>{selectedRestaurant.name}</span>
           </div>
 
-          {/* Live Digital Clock */}
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted text-xs font-mono font-bold text-foreground border border-border">
-            <Clock className="h-3.5 w-3.5 text-amber-500" />
-            <span>
-              {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-            </span>
-          </div>
-
-          {/* Sound Toggle */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSoundEnabled(!soundEnabled);
-              if (!soundEnabled) playAlertSound();
-            }}
-            className={`h-8 px-2.5 text-xs ${soundEnabled ? "text-emerald-500 border-emerald-500/30 bg-emerald-500/10" : "text-muted-foreground"}`}
-            title={soundEnabled ? "Alert chimes enabled (click to mute)" : "Alert chimes muted (click to unmute)"}
-          >
-            {soundEnabled ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-          </Button>
-
-          {/* Fullscreen */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleFullscreen}
-            className="h-8 px-2.5 text-xs text-muted-foreground hidden md:inline-flex"
-            title="Toggle full-screen kitchen monitor"
-          >
-            {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void refreshTickets(false)}
-            disabled={loading}
-            className="h-8 px-2.5 text-xs font-bold"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin text-amber-500" : ""}`} />
-            Refresh
-          </Button>
-
-          <Link href="/pos">
-            <Button size="sm" className="h-8 text-xs font-bold bg-primary text-primary-foreground">
-              <UtensilsCrossed className="h-3.5 w-3.5 mr-1.5" />
-              Open POS
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            {/* Sound Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSoundEnabled(!soundEnabled);
+                if (!soundEnabled) playAlertSound();
+              }}
+              className={`h-10 px-3 text-xs border-white/20 bg-white/5 backdrop-blur-xs font-semibold ${
+                soundEnabled ? "text-emerald-400 border-emerald-400/40 bg-emerald-500/10" : "text-white/70 hover:text-white hover:bg-white/10"
+              }`}
+              title={soundEnabled ? "Alert chimes enabled (click to mute)" : "Alert chimes muted (click to unmute)"}
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4 mr-1.5 text-emerald-400" /> : <VolumeX className="h-4 w-4 mr-1.5 text-white/50" />}
+              {soundEnabled ? "Audio On" : "Muted"}
             </Button>
-          </Link>
+
+            {/* Fullscreen */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleFullscreen}
+              className="h-10 px-3 text-xs border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white backdrop-blur-xs hidden md:inline-flex"
+              title="Toggle full-screen kitchen monitor"
+            >
+              {isFullscreen ? <Minimize2 className="h-3.5 w-3.5 mr-1" /> : <Maximize2 className="h-3.5 w-3.5 mr-1" />}
+              {isFullscreen ? "Exit Full" : "Full Screen"}
+            </Button>
+
+            {/* Refresh */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void refreshTickets(false)}
+              disabled={loading}
+              className="h-10 px-3.5 text-xs font-semibold border-white/20 bg-white/5 text-white hover:bg-white/15 hover:text-white backdrop-blur-xs"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin text-amber-300" : ""}`} />
+              Refresh
+            </Button>
+
+            {/* POS Shortcut */}
+            <Link href="/pos">
+              <Button
+                size="sm"
+                className="h-10 px-4 text-xs font-bold shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, #D4AF37 0%, #F59E0B 100%)",
+                  color: "#08111F",
+                }}
+              >
+                <UtensilsCrossed className="h-3.5 w-3.5 mr-1.5" />
+                Open POS
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

@@ -185,40 +185,11 @@ export const navigationConfig: NavGroup[] = [
         icon: TrendingUp,
         permission: "reports.view",
       },
-      {
-        label: "Marketing",
-        href: "/marketing",
-        icon: Megaphone,
-        permission: "marketing.view",
-      },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      {
-        label: "AI Buddy",
-        href: "/ai",
-        icon: BrainCircuit,
-        permission: "ai.view",
-      },
     ],
   },
   {
     label: "System",
     items: [
-      {
-        label: "Notifications",
-        href: "/notifications",
-        icon: Bell,
-        permission: "notifications.view",
-      },
-      {
-        label: "Integrations",
-        href: "/integrations",
-        icon: Blocks,
-        permission: "integrations.view",
-      },
       {
         label: "Settings",
         href: "/settings",

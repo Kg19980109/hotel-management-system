@@ -206,15 +206,15 @@ export function NotificationsDropdown() {
           {/* Footer */}
           <div className="px-4 py-2.5 bg-black/20 border-t border-white/[0.08] flex items-center justify-between">
             <span className="text-[11px] text-slate-400">
-              Operational alerts
+              Live operational alerts
             </span>
-            <a
-              href="/notifications"
-              onClick={() => setIsOpen(false)}
-              className="text-[12px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+            <button
+              type="button"
+              onClick={() => markAllAsRead()}
+              className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
             >
-              View all &rarr;
-            </a>
+              Mark all as read
+            </button>
           </div>
         </div>
       )}

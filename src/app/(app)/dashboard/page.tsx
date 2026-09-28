@@ -12,7 +12,6 @@ import {
   OperationalAttention,
   RecentActivity,
   RevenueOccupancyOverview,
-  AIBuddyPreview,
   DashboardGuestRequests,
 } from "@/components/dashboard";
 import { ErrorState, EmptyState } from "@/components/ui/states";
@@ -251,8 +250,6 @@ export default function DashboardPage() {
             activities={recentActivity}
             loading={dataLoading && !dashboardData}
           />
-
-          <AIBuddyPreview />
         </div>
       </div>
     </div>

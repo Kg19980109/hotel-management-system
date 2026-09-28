@@ -6,5 +6,4 @@ export * from "./today-arrivals-departures";
 export * from "./operational-attention";
 export * from "./recent-activity";
 export * from "./revenue-occupancy-overview";
-export * from "./ai-buddy-preview";
 export * from "./dashboard-guest-requests";

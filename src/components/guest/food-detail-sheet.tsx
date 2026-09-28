@@ -74,25 +74,25 @@ export function FoodDetailSheet({
       />
 
       {/* Sheet / Modal Container */}
-      <div className="relative w-full max-w-md md:max-w-lg bg-[#FAF8F5] rounded-t-3xl sm:rounded-3xl border border-[#EAE3D2] shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300 z-10">
+      <div className="relative w-full max-w-md md:max-w-lg bg-[#0B132B] rounded-t-3xl sm:rounded-3xl border border-violet-500/30 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300 z-10 text-slate-100">
         {/* Mobile Drag Indicator Handle */}
         <div className="sm:hidden flex justify-center pt-2.5 pb-1">
-          <div className="w-10 h-1 rounded-full bg-slate-300" />
+          <div className="w-10 h-1 rounded-full bg-violet-500/30" />
         </div>
 
         {/* Food Cover Image Banner */}
-        <div className="relative h-52 sm:h-60 w-full bg-slate-900 shrink-0 overflow-hidden">
+        <div className="relative h-52 sm:h-60 w-full bg-slate-950 shrink-0 overflow-hidden">
           <img
             src={foodImage}
             alt={item.name}
             className="w-full h-full object-cover object-center"
             decoding="async"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#0B132B]/50 to-transparent" />
 
           {/* Category Badge */}
           <div className="absolute top-3.5 left-3.5">
-            <span className="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#E4C980] border border-white/15">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#08111F]/80 backdrop-blur-md text-violet-200 border border-violet-400/30 shadow-xs">
               {categoryName}
             </span>
           </div>
@@ -111,13 +111,13 @@ export function FoodDetailSheet({
             <div className="min-w-0">
               <h2
                 id="food-detail-title"
-                className="text-lg sm:text-xl font-serif font-semibold text-white tracking-tight leading-snug drop-shadow-sm"
+                className="text-lg sm:text-xl font-serif font-bold text-white tracking-tight leading-snug drop-shadow-sm"
               >
                 {item.name}
               </h2>
             </div>
             <div className="text-right shrink-0">
-              <span className="text-base sm:text-lg font-bold text-[#E4C980] font-mono drop-shadow-sm">
+              <span className="text-base sm:text-lg font-bold text-violet-300 font-mono drop-shadow-sm">
                 {currencySymbol}{itemPrice.toFixed(2)}
               </span>
             </div>
@@ -128,10 +128,10 @@ export function FoodDetailSheet({
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
           {/* Description */}
           <div className="space-y-1">
-            <h3 className="text-[11px] uppercase tracking-wider font-semibold text-slate-500">
+            <h3 className="text-[11px] uppercase tracking-wider font-bold text-violet-300">
               About This Dish
             </h3>
-            <p className="text-xs text-slate-700 leading-relaxed">
+            <p className="text-xs text-slate-300 leading-relaxed">
               {item.description || "Prepared to perfection by our culinary team with fresh seasonal ingredients and served hot to your suite."}
             </p>
           </div>
@@ -140,7 +140,7 @@ export function FoodDetailSheet({
           <div className="space-y-1.5">
             <label
               htmlFor="special-notes-input"
-              className="block text-[11px] uppercase tracking-wider font-semibold text-slate-700"
+              className="block text-[11px] uppercase tracking-wider font-bold text-slate-300"
             >
               Special Instructions (Optional)
             </label>
@@ -150,29 +150,29 @@ export function FoodDetailSheet({
               placeholder="e.g. Extra spicy, dressing on side, allergy note, extra napkins..."
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              className="w-full p-3 rounded-2xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] transition resize-none shadow-2xs"
+              className="w-full p-3 rounded-2xl bg-[#111C38]/90 border border-violet-500/30 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400 transition resize-none shadow-md"
             />
           </div>
 
           {/* Quantity Selector Section */}
-          <div className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between shadow-2xs">
-            <span className="text-xs font-semibold text-slate-800">Select Quantity</span>
-            <div className="flex items-center gap-3 bg-[#FAF8F5] border border-[#EAE3D2] rounded-xl p-1 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 flex items-center justify-between shadow-md">
+            <span className="text-xs font-bold text-white">Select Quantity</span>
+            <div className="flex items-center gap-3 bg-[#0B132B] border border-violet-500/30 rounded-xl p-1 shadow-md">
               <button
                 type="button"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-8 h-8 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition font-bold"
+                className="w-8 h-8 rounded-lg bg-white/10 text-slate-300 hover:text-white flex items-center justify-center active:scale-90 transition font-bold"
                 aria-label="Decrease quantity"
               >
                 <Minus className="w-3.5 h-3.5" />
               </button>
-              <span className="text-sm font-bold text-slate-900 w-6 text-center font-mono">
+              <span className="text-sm font-bold text-white w-6 text-center font-mono">
                 {quantity}
               </span>
               <button
                 type="button"
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-8 h-8 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold shadow-2xs"
+                className="w-8 h-8 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white flex items-center justify-center active:scale-90 transition font-bold shadow-xs"
                 aria-label="Increase quantity"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -182,13 +182,13 @@ export function FoodDetailSheet({
         </div>
 
         {/* Sticky Action Footer */}
-        <div className="p-4 bg-white border-t border-[#EAE3D2] flex items-center gap-3">
+        <div className="p-4 bg-[#08111F]/95 backdrop-blur-md border-t border-violet-500/20 flex items-center gap-3">
           <button
             type="button"
             onClick={handleConfirmAdd}
-            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs shadow-lg shadow-black/10 active:scale-[0.98] transition flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-xl shadow-violet-600/30 active:scale-[0.98] transition flex items-center justify-center gap-2"
           >
-            <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
+            <ShoppingBag className="w-4 h-4 text-white" />
             <span>
               Add {quantity} to Order · {currencySymbol}{totalPrice.toFixed(2)}
             </span>

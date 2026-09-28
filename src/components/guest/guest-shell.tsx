@@ -54,25 +54,25 @@ export function GuestShell({ children, session }: GuestShellProps) {
   const showFloatingCart = totalItems > 0 && !pathname.startsWith("/guest/cart");
 
   return (
-    <div className="min-h-screen bg-[#F0EBE1] text-slate-900 flex flex-col font-sans selection:bg-[#D4AF37]/30">
+    <div className="min-h-screen bg-[#060B14] text-slate-100 flex flex-col font-sans selection:bg-violet-600/30">
       {/* Mobile Max-Width Container (390px - 480px, responsive on tablet/desktop) */}
-      <div className="w-full max-w-md md:max-w-lg mx-auto flex-1 flex flex-col bg-[#FAF8F5] border-x border-[#EAE3D2] shadow-2xl relative min-h-screen">
+      <div className="w-full max-w-md md:max-w-lg mx-auto flex-1 flex flex-col bg-[#0B132B] border-x border-violet-950/60 shadow-[0_0_50px_rgba(81,70,229,0.12)] relative min-h-screen">
         
         {/* Luxury Hospitality Global Header */}
-        <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D2] px-4 py-3 flex items-center justify-between transition-colors">
+        <header className="sticky top-0 z-40 bg-[#08111F]/90 backdrop-blur-xl border-b border-violet-500/15 px-4 py-3 flex items-center justify-between transition-colors shadow-sm">
           <div className="flex items-center space-x-3 min-w-0">
             {/* Property Luxury Monogram Mark */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0B1526] to-[#111D31] border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] shadow-sm shrink-0">
-              <Compass className="w-4 h-4 text-[#E4C980]" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-700 border border-violet-400/30 flex items-center justify-center text-white shadow-md shadow-violet-600/25 shrink-0">
+              <Compass className="w-4 h-4 text-white" />
             </div>
             
             {/* Title & Verified In-House Guest Status */}
             <div className="min-w-0">
-              <h1 className="text-sm font-semibold tracking-tight text-slate-900 line-clamp-1 font-serif">
+              <h1 className="text-sm font-bold tracking-tight text-white line-clamp-1 font-serif">
                 {session?.property_name || "StayHub Resort & Spa"}
               </h1>
-              <p className="text-[10px] text-[#A67C1E] font-medium tracking-wide flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 inline text-[#B88E2F] shrink-0" />
+              <p className="text-[10.5px] text-violet-300 font-semibold tracking-wide flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 inline text-violet-400 shrink-0" />
                 <span className="truncate">
                   {isVerifiedStay ? `Room ${session?.room_number} · In-House Guest` : "Digital Concierge"}
                 </span>
@@ -85,7 +85,7 @@ export function GuestShell({ children, session }: GuestShellProps) {
             {session?.front_desk_phone && (
               <a
                 href={`tel:${session.front_desk_phone}`}
-                className="w-8 h-8 rounded-full bg-white border border-[#EAE3D2] text-[#A67C1E] hover:bg-[#F3EEE5] hover:text-[#8C6819] flex items-center justify-center shadow-2xs transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-300 hover:bg-violet-600 hover:text-white flex items-center justify-center shadow-xs transition-all active:scale-95"
                 title="Call Front Desk Concierge"
                 aria-label="Call Front Desk Concierge"
               >
@@ -95,7 +95,7 @@ export function GuestShell({ children, session }: GuestShellProps) {
             {session && (
               <button
                 onClick={handleSignOut}
-                className="w-8 h-8 rounded-full bg-white border border-[#EAE3D2] text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 flex items-center justify-center shadow-2xs transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-rose-400 hover:border-rose-500/30 hover:bg-rose-500/10 flex items-center justify-center shadow-xs transition-all active:scale-95"
                 title="Exit Guest Session"
                 aria-label="Exit Guest Session"
               >
@@ -115,23 +115,23 @@ export function GuestShell({ children, session }: GuestShellProps) {
           <div className="fixed bottom-20 left-0 right-0 z-40 max-w-md md:max-w-lg mx-auto px-4 pointer-events-none animate-in fade-in slide-in-from-bottom-3 duration-300">
             <Link
               href="/guest/cart"
-              className="pointer-events-auto flex items-center justify-between p-3.5 rounded-2xl bg-[#0B1526] text-white border border-[#D4AF37]/35 shadow-xl shadow-black/20 active:scale-[0.98] transition group"
+              className="pointer-events-auto flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-[#0E1B38] via-[#141F45] to-[#1E1B4B] text-white border border-violet-500/40 shadow-2xl shadow-violet-900/40 active:scale-[0.98] transition group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#D4AF37] text-[#0B1526] flex items-center justify-center font-bold text-xs shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-violet-600/30">
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-white tracking-wide">
+                  <p className="text-xs font-bold text-white tracking-wide">
                     View Dining Cart
                   </p>
-                  <p className="text-[11px] font-medium text-[#E4C980]">
+                  <p className="text-[11px] font-semibold text-violet-300">
                     {totalItems} item{totalItems > 1 ? "s" : ""} · ₹{subtotal.toFixed(2)}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 text-xs font-semibold text-[#E4C980] group-hover:text-white transition-colors">
+              <div className="flex items-center gap-1 text-xs font-bold text-violet-300 group-hover:text-white transition-colors">
                 <span>Review &amp; Order</span>
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </div>
@@ -140,7 +140,7 @@ export function GuestShell({ children, session }: GuestShellProps) {
         )}
 
         {/* Bottom Mobile Navigation Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#EAE3D2] max-w-md md:max-w-lg mx-auto shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#08111F]/95 backdrop-blur-xl border-t border-violet-500/20 max-w-md md:max-w-lg mx-auto shadow-[0_-8px_30px_rgba(81,70,229,0.15)]">
           <div className="grid grid-cols-5 items-center h-16 px-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -151,13 +151,17 @@ export function GuestShell({ children, session }: GuestShellProps) {
                   href={item.href}
                   className={`flex flex-col items-center justify-center h-full min-h-[48px] space-y-1 transition-all select-none ${
                     isActive
-                      ? "text-[#A67C1E] font-semibold"
-                      : "text-slate-400 hover:text-slate-600"
+                      ? "text-violet-300 font-bold"
+                      : "text-slate-400 hover:text-slate-200"
                   }`}
                   aria-label={item.label}
                 >
-                  <div className={`p-1.5 rounded-xl transition ${isActive ? "bg-[#FAF4E6] text-[#A67C1E]" : ""}`}>
-                    <Icon className={`w-4 h-4 ${isActive ? "stroke-[2.25]" : "stroke-[1.75]"}`} />
+                  <div className={`p-1.5 rounded-xl transition-all duration-200 ${
+                    isActive 
+                      ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/30 scale-105" 
+                      : ""
+                  }`}>
+                    <Icon className={`w-4 h-4 ${isActive ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
                   </div>
                   <span className="text-[10.5px] tracking-tight">{item.label}</span>
                 </Link>

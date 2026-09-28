@@ -126,8 +126,8 @@
   --topbar-border: rgba(255, 255, 255, 0.08);
 
   /* ─── TYPOGRAPHY ─────────────────────────────────────────── */
-  --font-sans:  var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);
-  --font-body:  var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);
+  --font-sans:  var(--font-jakarta, var(--font-inter, "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif));
+  --font-body:  var(--font-jakarta, var(--font-inter, "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif));
   --font-serif: var(--font-serif, "Playfair Display", Georgia, serif);
 
   /* ─── TRANSITIONS ────────────────────────────────────────── */

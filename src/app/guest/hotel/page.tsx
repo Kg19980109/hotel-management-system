@@ -44,61 +44,60 @@ export default async function GuestHotelPage() {
 
   return (
     <div className="space-y-5 pb-28">
-      {/* ── 1. EDITORIAL HEADER BANNER ── */}
-      <div className="relative overflow-hidden bg-[#0B1526] text-white">
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0B1526] via-[#111D31] to-[#0B1526]">
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
-        </div>
+      {/* ── 1. LUXURY VIOLET HEADER BANNER ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-[#0B132B] border border-violet-500/30 text-white shadow-xl shadow-violet-950/40">
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-violet-900/30 via-[#0B132B] to-indigo-950/40 pointer-events-none" />
+        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-violet-600/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-indigo-600/15 blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide">
-            <Building2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+        <div className="relative z-10 p-5 sm:p-6 space-y-3.5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/20 border border-violet-400/40 text-violet-200 text-[10.5px] font-semibold tracking-wide backdrop-blur-xs">
+            <Building2 className="w-3.5 h-3.5 text-violet-400" />
             <span>Hotel Guide &amp; Directory</span>
           </div>
 
           <div className="space-y-1 pt-1">
-            <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight leading-tight">
               {session?.property_name || "Hotel Information"}
             </h1>
-            <p className="text-xs text-slate-300/80 leading-relaxed max-w-md">
+            <p className="text-xs text-slate-300/85 leading-relaxed max-w-md font-sans">
               Where every detail of your stay is taken care of. Explore hotel amenities, dining, and concierge services.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="px-4 space-y-5 max-w-lg mx-auto">
+      <div className="space-y-5 max-w-lg mx-auto">
         {/* ── 2. PROPERTY DETAILS & CONTACT CARD ── */}
-        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 pb-2 border-b border-[#EAE3D2]">
-            <Building2 className="w-4 h-4 text-[#D4AF37]" />
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
+        <div className="p-5 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 space-y-4 shadow-lg shadow-violet-950/20 backdrop-blur-md">
+          <div className="flex items-center gap-2 pb-2 border-b border-violet-500/20">
+            <Building2 className="w-4 h-4 text-violet-400" />
+            <h2 className="text-xs font-bold text-violet-300 uppercase tracking-wider font-sans">
               About The Property
             </h2>
           </div>
 
-          <div className="space-y-2.5 text-xs">
+          <div className="space-y-2.5 text-xs font-sans">
             {session?.address && (
-              <div className="flex items-start gap-2.5 text-slate-700">
-                <MapPin className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 text-slate-300">
+                <MapPin className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
                 <span className="leading-relaxed">{session.address}</span>
               </div>
             )}
 
             {session?.phone && (
-              <div className="flex items-center gap-2.5 text-slate-700">
-                <Phone className="w-4 h-4 text-[#D4AF37] shrink-0" />
-                <a href={`tel:${session.phone}`} className="hover:underline text-[#A67C1E] font-semibold">
+              <div className="flex items-center gap-2.5 text-slate-300">
+                <Phone className="w-4 h-4 text-violet-400 shrink-0" />
+                <a href={`tel:${session.phone}`} className="hover:underline text-violet-300 font-semibold">
                   {session.phone}
                 </a>
               </div>
             )}
 
             {session?.email && (
-              <div className="flex items-center gap-2.5 text-slate-700">
-                <Mail className="w-4 h-4 text-[#D4AF37] shrink-0" />
-                <a href={`mailto:${session.email}`} className="hover:underline text-slate-800 font-medium">
+              <div className="flex items-center gap-2.5 text-slate-300">
+                <Mail className="w-4 h-4 text-violet-400 shrink-0" />
+                <a href={`mailto:${session.email}`} className="hover:underline text-slate-200 font-medium">
                   {session.email}
                 </a>
               </div>
@@ -106,32 +105,32 @@ export default async function GuestHotelPage() {
           </div>
 
           {/* Operating Hours */}
-          <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-[#EAE3D2] text-xs">
-            <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-0.5">
-              <span className="text-[10px] text-slate-500 uppercase font-semibold block font-serif">
+          <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-violet-500/20 text-xs">
+            <div className="p-3 rounded-2xl bg-[#0B132B]/80 border border-violet-500/20 space-y-0.5">
+              <span className="text-[10px] text-violet-400 uppercase font-bold block font-sans">
                 Standard Check-In
               </span>
-              <span className="text-slate-900 font-bold">{session?.check_in_time || "14:00"}</span>
+              <span className="text-white font-bold">{session?.check_in_time || "14:00"}</span>
             </div>
-            <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-0.5">
-              <span className="text-[10px] text-slate-500 uppercase font-semibold block font-serif">
+            <div className="p-3 rounded-2xl bg-[#0B132B]/80 border border-violet-500/20 space-y-0.5">
+              <span className="text-[10px] text-violet-400 uppercase font-bold block font-sans">
                 Standard Check-Out
               </span>
-              <span className="text-slate-900 font-bold">{session?.check_out_time || "11:00 AM"}</span>
+              <span className="text-white font-bold">{session?.check_out_time || "11:00 AM"}</span>
             </div>
           </div>
         </div>
 
         {/* ── 3. WI-FI CARD ── */}
         {session?.wifi_ssid && (
-          <div className="p-4 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between shadow-2xs">
+          <div className="p-4 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 flex items-center justify-between shadow-md shadow-violet-950/15 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 flex items-center justify-center">
-                <Wifi className="w-5 h-5 text-sky-600" />
+              <div className="w-10 h-10 rounded-xl bg-sky-950/60 text-sky-300 border border-sky-500/30 flex items-center justify-center">
+                <Wifi className="w-5 h-5 text-sky-400" />
               </div>
               <div className="space-y-0.5">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold font-serif">High-Speed Wi-Fi</span>
-                <h3 className="text-xs font-bold text-slate-900 font-mono">{session.wifi_ssid}</h3>
+                <span className="text-[10px] text-violet-400 uppercase font-bold font-sans">High-Speed Wi-Fi</span>
+                <h3 className="text-xs font-bold text-white font-mono">{session.wifi_ssid}</h3>
               </div>
             </div>
 
@@ -142,17 +141,17 @@ export default async function GuestHotelPage() {
         {/* ── 4. DINING OUTLETS ── */}
         <div className="space-y-3">
           <div className="flex items-center justify-between px-0.5">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center gap-1.5">
-              <UtensilsCrossed className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <h2 className="text-xs font-bold text-violet-300 uppercase tracking-wider font-sans flex items-center gap-1.5">
+              <UtensilsCrossed className="w-3.5 h-3.5 text-violet-400" />
               <span>Dining &amp; Restaurants</span>
             </h2>
-            <Link href="/guest/dining" className="text-[10.5px] text-[#A67C1E] font-semibold hover:underline">
+            <Link href="/guest/dining" className="text-[10.5px] text-violet-300 font-semibold hover:underline">
               View Menus →
             </Link>
           </div>
 
           {restaurants.length === 0 ? (
-            <div className="p-5 rounded-2xl bg-white border border-[#EAE3D2] text-center text-xs text-slate-500">
+            <div className="p-5 rounded-2xl bg-[#111C38]/80 border border-violet-500/20 text-center text-xs text-slate-300">
               In-house dining and room service available via concierge and front desk.
             </div>
           ) : (
@@ -160,15 +159,15 @@ export default async function GuestHotelPage() {
               {restaurants.map((rest) => (
                 <div
                   key={rest.id}
-                  className="p-4 rounded-2xl bg-white border border-[#EAE3D2] space-y-1.5 shadow-2xs hover:border-[#D4AF37]/40 transition"
+                  className="p-4 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 space-y-1.5 shadow-md shadow-violet-950/15 hover:border-violet-400/50 transition backdrop-blur-md"
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-serif font-semibold text-slate-900">{rest.name}</h3>
-                    <span className="text-[9.5px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">
+                    <h3 className="text-sm font-serif font-bold text-white">{rest.name}</h3>
+                    <span className="text-[9.5px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
                       Active Outlet
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
                     {rest.description || "Gourmet dining, artisanal beverages, and signature dishes."}
                   </p>
                 </div>
@@ -180,19 +179,19 @@ export default async function GuestHotelPage() {
         {/* ── 5. HOTEL AMENITIES ── */}
         <div className="space-y-3">
           <div className="px-0.5">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+            <h2 className="text-xs font-bold text-violet-300 uppercase tracking-wider font-sans flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
               <span>Hotel Amenities &amp; Highlights</span>
             </h2>
           </div>
 
-          <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] space-y-3 shadow-2xs">
+          <div className="p-4 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 space-y-3 shadow-lg shadow-violet-950/20 backdrop-blur-md">
             {defaultAmenities.map((amenity, idx) => (
               <div key={idx} className="flex items-start gap-3 text-xs">
-                <CheckCircle2 className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <h3 className="font-semibold text-slate-900">{amenity.title}</h3>
-                  <p className="text-[11px] text-slate-500 leading-snug">{amenity.desc}</p>
+                  <h3 className="font-semibold text-white">{amenity.title}</h3>
+                  <p className="text-[11px] text-slate-300 leading-snug font-sans">{amenity.desc}</p>
                 </div>
               </div>
             ))}
@@ -203,9 +202,9 @@ export default async function GuestHotelPage() {
         {session?.phone && (
           <a
             href={`tel:${session.phone}`}
-            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] border border-[#D4AF37]/35 text-[#E4C980] font-semibold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.99]"
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-violet-950/40 transition active:scale-[0.99]"
           >
-            <PhoneCall className="w-4 h-4 text-[#D4AF37]" />
+            <PhoneCall className="w-4 h-4 text-violet-200" />
             <span>Contact Concierge Desk ({session.phone})</span>
           </a>
         )}

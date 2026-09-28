@@ -94,13 +94,12 @@ export function DiningDirectoryView({
   return (
     <div className="space-y-5 pb-8">
       {/* ── 1. EDITORIAL HEADER BANNER ── */}
-      <div className="relative overflow-hidden bg-[#0B1526] text-white">
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0B1526] via-[#111D31] to-[#0B1526]">
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
-        </div>
+      <div className="relative overflow-hidden bg-gradient-to-b from-[#070D18] via-[#0D1829] to-[#0A1322] text-white rounded-b-[2rem] shadow-xl border-b border-[#D4AF37]/25 pb-7 pt-5 px-5">
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:20px_20px]" />
 
-        <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
+        <div className="relative z-10 space-y-3.5">
           {/* Top Quick Navigation */}
           <div className="flex items-center justify-between">
             <Link
@@ -121,15 +120,15 @@ export function DiningDirectoryView({
           </div>
 
           <div className="space-y-1 pt-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10px] font-medium tracking-wide">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10px] font-medium tracking-wide shadow-xs">
               <Sparkles className="w-3 h-3 text-[#D4AF37]" />
-              <span>{isVerifiedStay ? `Room ${roomNumber} · In-Room Dining` : "Hotel Dining & Menus"}</span>
+              <span>{isVerifiedStay ? `Suite ${roomNumber} · In-Room Dining` : "Hotel Dining & Menus"}</span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight leading-tight">
               Culinary Experiences
             </h2>
-            <p className="text-xs text-slate-300/80 leading-relaxed max-w-sm">
+            <p className="text-xs text-slate-300/85 leading-relaxed max-w-sm">
               {isVerifiedStay
                 ? `Exceptional gourmet dining prepared fresh by our chefs and delivered hot directly to Room ${roomNumber}.`
                 : `Explore signature restaurants, seasonal menus, and culinary specialties at ${propertyName || "StayHub"}.`}

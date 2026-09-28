@@ -577,31 +577,30 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
   return (
     <div className="space-y-5 pb-28">
       {/* ── 1. EDITORIAL HEADER BANNER ── */}
-      <div className="relative overflow-hidden bg-[#0B1526] text-white">
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0B1526] via-[#111D31] to-[#0B1526]">
-          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
-        </div>
+      <div className="relative overflow-hidden bg-gradient-to-b from-[#070D18] via-[#0D1829] to-[#0A1322] text-white rounded-b-[2rem] shadow-xl border-b border-[#D4AF37]/25 pb-7 pt-5 px-5">
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:20px_20px]" />
 
-        <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
+        <div className="relative z-10 space-y-3.5">
           <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide shadow-xs">
               <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>Digital Hotel Concierge</span>
             </div>
 
             {isVerifiedStay && session?.room_number && (
-              <span className="text-xs px-3 py-1 rounded-full bg-[#FAF4E6]/15 text-[#E4C980] font-semibold border border-[#D4AF37]/30 backdrop-blur-xs">
-                Room {session.room_number}
+              <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-[#E4C980] font-semibold border border-[#D4AF37]/35 backdrop-blur-xs">
+                Suite {session.room_number}
               </span>
             )}
           </div>
 
           <div className="space-y-1 pt-1">
-            <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight leading-tight">
               Guest Services
             </h1>
-            <p className="text-xs text-slate-300/80 leading-relaxed max-w-md">
+            <p className="text-xs text-slate-300/85 leading-relaxed max-w-md">
               {isVerifiedStay
                 ? `Immediate assistance and bespoke hotel services for Room ${session?.room_number}.`
                 : "Experience effortless luxury service with 24/7 dedicated hotel staff."}

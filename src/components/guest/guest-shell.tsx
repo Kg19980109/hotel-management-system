@@ -59,35 +59,35 @@ export function GuestShell({ children, session }: GuestShellProps) {
       <div className="w-full max-w-md md:max-w-lg mx-auto flex-1 flex flex-col bg-[#FAF8F5] border-x border-[#EAE3D2] shadow-2xl relative min-h-screen">
         
         {/* Luxury Hospitality Global Header */}
-        <header className="sticky top-0 z-40 bg-[#0B1526]/95 backdrop-blur-xl border-b border-[#D4AF37]/25 px-4 py-3 flex items-center justify-between transition-colors shadow-sm">
-          <div className="flex items-center space-x-3 min-w-0">
+        <header className="sticky top-0 z-40 bg-[#070D18]/95 backdrop-blur-xl border-b border-[#D4AF37]/20 px-4 py-2.5 flex items-center justify-between transition-colors shadow-sm">
+          <div className="flex items-center space-x-2.5 min-w-0">
             {/* Property Luxury Monogram Mark */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] p-[1px] shadow-md shadow-amber-500/20 shrink-0">
-              <div className="w-full h-full rounded-[11px] bg-[#0B1526] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] p-[1px] shadow-md shadow-amber-500/20 shrink-0">
+              <div className="w-full h-full rounded-[11px] bg-[#070D18] flex items-center justify-center">
                 <Compass className="w-4 h-4 text-[#E4C980]" />
               </div>
             </div>
             
-            {/* Title & Verified In-House Guest Status */}
+            {/* Title & Clean Status */}
             <div className="min-w-0">
-              <h1 className="text-xs sm:text-sm font-semibold tracking-tight text-white line-clamp-1 font-serif">
+              <h1 className="text-xs sm:text-sm font-serif font-semibold tracking-wide text-white line-clamp-1">
                 {session?.property_name || "StayHub Luxury Resort & Spa"}
               </h1>
-              <p className="text-[10px] text-[#E4C980] font-medium tracking-wide flex items-center gap-1.5">
-                <ShieldCheck className="w-3 h-3 inline text-[#D4AF37] shrink-0" />
-                <span className="truncate">
-                  {isVerifiedStay ? `Suite ${session?.room_number} · In-House Guest` : "Digital Concierge Portal"}
+              <div className="flex items-center gap-1.5 text-[9.5px] font-medium text-slate-300/90">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="truncate text-[#E4C980]/90">
+                  {isVerifiedStay ? `Suite ${session?.room_number} · In-House` : "Digital Concierge"}
                 </span>
-              </p>
+              </div>
             </div>
           </div>
 
           {/* Quick Hospitality Actions */}
-          <div className="flex items-center space-x-2 shrink-0">
+          <div className="flex items-center space-x-1.5 shrink-0">
             {session?.front_desk_phone && (
               <a
                 href={`tel:${session.front_desk_phone}`}
-                className="w-8 h-8 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] hover:bg-white/20 hover:text-white flex items-center justify-center shadow-2xs transition-all active:scale-95 duration-75 tap-active"
+                className="w-7 h-7 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] hover:bg-[#D4AF37] hover:text-[#070D18] flex items-center justify-center shadow-2xs transition-all active:scale-95 duration-75 tap-active"
                 title="Call Front Desk Concierge"
                 aria-label="Call Front Desk Concierge"
               >
@@ -97,11 +97,11 @@ export function GuestShell({ children, session }: GuestShellProps) {
             {session && (
               <button
                 onClick={handleSignOut}
-                className="w-8 h-8 rounded-full bg-white/10 border border-white/15 text-slate-300 hover:text-rose-400 hover:border-rose-400/40 hover:bg-rose-950/40 flex items-center justify-center shadow-2xs transition-all active:scale-95 duration-75 tap-active"
+                className="w-7 h-7 rounded-full bg-white/10 border border-white/15 text-slate-300 hover:text-rose-400 hover:border-rose-400/40 hover:bg-rose-950/40 flex items-center justify-center shadow-2xs transition-all active:scale-95 duration-75 tap-active"
                 title="Exit Guest Session"
                 aria-label="Exit Guest Session"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-3 h-3" />
               </button>
             )}
           </div>

@@ -84,9 +84,14 @@ export default async function GuestHomePage() {
   return (
     <div className="space-y-5 pb-8">
       {/* ── 1. EDITORIAL LUXURY HERO SECTION ── */}
-      <div className="relative overflow-hidden bg-[#0B1526] text-white">
-        {/* Background Hotel Photography or Architectural Fallback */}
-        {session?.cover_image_url ? (
+      <div className="relative overflow-hidden bg-gradient-to-b from-[#070D18] via-[#0D1829] to-[#0A1322] text-white rounded-b-[2rem] shadow-xl border-b border-[#D4AF37]/25 pb-7 pt-5 px-5">
+        {/* Ambient Decorative Lighting & Radiant Aura */}
+        <div className="absolute top-0 right-0 w-72 h-72 rounded-full bg-[#D4AF37]/15 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:20px_20px]" />
+
+        {/* Background Hotel Photography if available */}
+        {session?.cover_image_url && (
           <div className="absolute inset-0 z-0">
             <Image
               src={session.cover_image_url}
@@ -94,40 +99,67 @@ export default async function GuestHomePage() {
               fill
               priority
               sizes="(max-width: 768px) 100vw, 480px"
-              className="object-cover object-center opacity-40 mix-blend-luminosity"
+              className="object-cover object-center opacity-25 mix-blend-luminosity"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B1526] via-[#0B1526]/70 to-transparent" />
-          </div>
-        ) : (
-          <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0B1526] via-[#111D31] to-[#0B1526]">
-            <div className="absolute -top-12 -right-12 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
-            {/* Subtle architectural geometry */}
-            <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:16px_16px]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1322] via-[#0A1322]/80 to-transparent" />
           </div>
         )}
 
         {/* Hero Content */}
-        <div className="relative z-10 px-5 pt-8 pb-7 space-y-4">
-          {/* Status Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" />
-            <span>{isVerifiedStay ? `Room ${session?.room_number} · In-House Guest` : "Digital Concierge"}</span>
+        <div className="relative z-10 space-y-4">
+          {/* Status Badge Row */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>Digital Concierge Active</span>
+            </div>
+
+            {isVerifiedStay && (
+              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold backdrop-blur-md">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Suite Key Active</span>
+              </div>
+            )}
           </div>
 
-          {/* Luxury Greeting & Property Name */}
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#E4C980]/80 font-medium">
-              {session?.property_name || "Luxury Resort & Spa"}
-            </p>
-            <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
-              {isVerifiedStay ? `${greeting}, ${session?.guest_first_name || "Guest"}` : `${greeting}, Welcome`}
+          {/* Luxury Greeting & Guest Name */}
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#E4C980]/90 font-bold font-serif">
+              <span>{greeting}</span>
+              <span className="w-1 h-1 rounded-full bg-[#D4AF37]/60" />
+              <span className="text-slate-300 font-sans tracking-widest text-[9.5px] uppercase">Welcome</span>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight leading-tight flex items-baseline gap-2">
+              <span>{isVerifiedStay && session?.guest_first_name ? session.guest_first_name : "Esteemed Guest"}</span>
+              {isVerifiedStay && session?.guest_last_name && (
+                <span className="text-lg font-serif font-normal text-slate-300">
+                  {session.guest_last_name}
+                </span>
+              )}
             </h2>
-            <p className="text-xs text-slate-300/80 leading-relaxed max-w-sm pt-1">
+
+            <p className="text-xs text-slate-300/85 leading-relaxed max-w-sm pt-0.5">
               {isVerifiedStay
-                ? "Your digital concierge is ready. Order gourmet room dining, request services, or view your live folio anytime."
-                : "Explore our dining menus, spa therapies, and hospitality services."}
+                ? `Welcome to ${session?.property_name || "your luxury retreat"}. Your personalized room dining, concierge, and folio are at your fingertips.`
+                : "Experience 5-star culinary menus, wellness therapies, and tailored hospitality services."}
             </p>
+          </div>
+
+          {/* Quick Luxury Features Micro-Strip */}
+          <div className="pt-1 flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none text-[10.5px]">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 shrink-0 backdrop-blur-xs">
+              <UtensilsCrossed className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span>In-Room Dining</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 shrink-0 backdrop-blur-xs">
+              <ConciergeBell className="w-3.5 h-3.5 text-emerald-400" />
+              <span>24/7 Butler Support</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 shrink-0 backdrop-blur-xs">
+              <Receipt className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Live Folio</span>
+            </div>
           </div>
         </div>
       </div>

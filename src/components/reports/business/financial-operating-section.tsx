@@ -15,6 +15,7 @@ import {
   PieChart,
   ArrowRight,
   ShieldCheck,
+  Percent,
 } from "lucide-react";
 
 interface FinancialOperatingSectionProps {
@@ -29,9 +30,17 @@ export function FinancialOperatingSection({
   currency = "INR",
 }: FinancialOperatingSectionProps) {
   const isPositiveResult = financials.operatingResult >= 0;
+  const netMarginPct =
+    financials.grossRevenue > 0
+      ? Number(((financials.operatingResult / financials.grossRevenue) * 100).toFixed(1))
+      : 0;
   const expenseRatio =
     financials.grossRevenue > 0
       ? Math.round((financials.totalExpenses / financials.grossRevenue) * 100)
+      : 0;
+  const cashRealizationRate =
+    financials.grossRevenue > 0
+      ? Math.min(100, Math.round((financials.paymentsCollected / financials.grossRevenue) * 100))
       : 0;
 
   return (
@@ -42,18 +51,29 @@ export function FinancialOperatingSection({
           <CardTitle className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              Operating Performance Equation
+              P&L Operating Equation
             </div>
-            <span className="text-[10px] text-muted-foreground font-mono font-normal">
-              Accrual Basis
+            <span
+              className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                netMarginPct >= 20
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : netMarginPct > 0
+                  ? "bg-amber-500/10 text-amber-600"
+                  : "bg-rose-500/10 text-rose-600"
+              }`}
+            >
+              {netMarginPct}% Net Margin
             </span>
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-4 space-y-3.5">
           {/* Revenue */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Total Operating Revenue</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-xs text-muted-foreground">Gross Operating Revenue</span>
+            </div>
             <span className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
               +{formatCurrency(financials.grossRevenue, currency)}
             </span>
@@ -61,16 +81,19 @@ export function FinancialOperatingSection({
 
           {/* Operating Expenses */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Total Operating Expenses</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="text-xs text-muted-foreground">Total Operating Expenses</span>
+            </div>
             <span className="text-sm font-bold font-mono text-rose-600 dark:text-rose-400">
               -{formatCurrency(financials.totalExpenses, currency)}
             </span>
           </div>
 
-          <div className="border-t border-border pt-3 flex items-center justify-between">
+          <div className="border-t border-border/60 pt-3 flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-foreground block">OPERATING RESULT</span>
-              <span className="text-[10px] text-muted-foreground">Operating margin: {100 - expenseRatio}%</span>
+              <span className="text-xs font-bold text-foreground block">NET OPERATING RESULT</span>
+              <span className="text-[10px] text-muted-foreground">Profit before tax & depreciation</span>
             </div>
             <span
               className={`text-base font-bold font-mono ${
@@ -83,14 +106,14 @@ export function FinancialOperatingSection({
           </div>
 
           {/* Progress Bar Expense Ratio */}
-          <div className="space-y-1.5 pt-2">
+          <div className="space-y-1.5 pt-1">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-muted-foreground">Expense Burn Ratio</span>
-              <span className="font-semibold text-foreground">{expenseRatio}% of revenue</span>
+              <span className="text-muted-foreground">Operating Expense Burn</span>
+              <span className="font-semibold text-foreground font-mono">{expenseRatio}% of income</span>
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${
+                className={`h-full rounded-full transition-all duration-500 ${
                   expenseRatio > 90
                     ? "bg-rose-500"
                     : expenseRatio > 70
@@ -109,7 +132,7 @@ export function FinancialOperatingSection({
         <CardHeader className="py-3 px-4 border-b border-border/50 bg-muted/20">
           <CardTitle className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
             <PieChart className="w-4 h-4 text-primary" />
-            Revenue Breakdown by Department
+            Revenue Distribution by Department
           </CardTitle>
         </CardHeader>
 
@@ -143,7 +166,7 @@ export function FinancialOperatingSection({
               Cash Collections & Receivables
             </div>
             <Link href="/billing">
-              <Button variant="ghost" size="sm" className="h-6 text-[11px] px-1.5 gap-1">
+              <Button variant="ghost" size="sm" className="h-6 text-[11px] px-1.5 gap-1 cursor-pointer">
                 Billing Hub <ArrowRight className="w-3 h-3" />
               </Button>
             </Link>
@@ -156,7 +179,9 @@ export function FinancialOperatingSection({
               <span className="text-xs font-semibold text-foreground block">
                 Cash & Card Captured
               </span>
-              <span className="text-[10px] text-muted-foreground">Settled payments in period</span>
+              <span className="text-[10px] text-muted-foreground font-mono">
+                {cashRealizationRate}% Realization
+              </span>
             </div>
             <span className="text-sm font-bold font-mono text-emerald-600 dark:text-emerald-400">
               {formatCurrency(financials.paymentsCollected, currency)}

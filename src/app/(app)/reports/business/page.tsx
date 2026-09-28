@@ -7,6 +7,7 @@ import { ReportNav } from "@/components/reports/report-nav";
 import { OwnerExecutiveKpisView } from "@/components/reports/business/owner-executive-kpis";
 import { BusinessAttentionCard } from "@/components/reports/business/business-attention-card";
 import { FinancialOperatingSection } from "@/components/reports/business/financial-operating-section";
+import { RevenueExpenseFlow } from "@/components/reports/business/revenue-expense-flow";
 import { RoomBookingPerformance } from "@/components/reports/business/room-booking-performance";
 import { RestaurantFbPerformance } from "@/components/reports/business/restaurant-fb-performance";
 import { OperationsIntelligenceSection } from "@/components/reports/business/operations-intelligence-section";
@@ -64,7 +65,7 @@ export default function OwnerBusinessIntelligencePage() {
     void loadData();
   }, [loadData]);
 
-  // Fast 2s visible-only refresh
+  // 2s visible-only refresh
   React.useEffect(() => {
     const timer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
@@ -158,28 +159,37 @@ export default function OwnerBusinessIntelligencePage() {
         currency={currency}
       />
 
-      {/* 6. Room & Booking Performance */}
+      {/* 6. Revenue Streams & Expense Allocation Flow */}
+      <RevenueExpenseFlow
+        revenueBreakdown={report.revenueBreakdown}
+        expenseIntelligence={report.expenseIntelligence}
+        grossRevenue={report.financialPerformance.grossRevenue}
+        totalExpenses={report.financialPerformance.totalExpenses}
+        currency={currency}
+      />
+
+      {/* 7. Accommodation & Booking Performance */}
       <RoomBookingPerformance
         performance={report.roomPerformance}
         currency={currency}
       />
 
-      {/* 7. Restaurant & Food & Beverage Intelligence */}
+      {/* 8. Restaurant & Food & Beverage Intelligence */}
       <RestaurantFbPerformance
         performance={report.restaurantPerformance}
         currency={currency}
       />
 
-      {/* 8. Operations Intelligence (Housekeeping, Maintenance, Staff, Services) */}
+      {/* 9. Operations Intelligence (Housekeeping, Maintenance, Staff, Services) */}
       <OperationsIntelligenceSection operations={report.operationsIntelligence} />
 
-      {/* 9. Outstanding Receivables & Unpaid Accounts */}
+      {/* 10. Outstanding Receivables & Unpaid Accounts */}
       <OutstandingMoneySection
         outstanding={report.outstandingMoney}
         currency={currency}
       />
 
-      {/* 10. Daily Performance Trend Timeline */}
+      {/* 11. Daily Performance Trend Timeline & Interactive Graph */}
       <BusinessTrendsSection trends={report.dailyTrends} currency={currency} />
     </div>
   );

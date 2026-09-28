@@ -175,25 +175,25 @@ export function CartView({ session }: CartViewProps) {
   // ── 1. SUCCESS ALERT / CONFIRMATION SCREEN ──
   if (successOrder) {
     return (
-      <div className="p-4 sm:p-5 space-y-5 max-w-lg mx-auto pb-24 animate-in fade-in zoom-in-95 duration-200 text-slate-100">
+      <div className="p-4 sm:p-5 space-y-5 max-w-lg mx-auto pb-24 animate-in fade-in zoom-in-95 duration-200">
         {/* Top Status Hero Card */}
-        <div className="p-6 rounded-3xl bg-gradient-to-b from-[#0B1526] via-[#101A3B] to-[#1E1B4B] border border-violet-500/40 text-center space-y-4 shadow-2xl relative overflow-hidden text-white">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-violet-600/20 blur-2xl rounded-full pointer-events-none" />
+        <div className="p-6 rounded-3xl bg-gradient-to-b from-[#0B1526] via-[#111D31] to-[#0B1526] border border-[#D4AF37]/35 text-center space-y-4 shadow-2xl relative overflow-hidden text-white">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-[#D4AF37]/10 blur-2xl rounded-full pointer-events-none" />
 
           {/* Success Badge */}
-          <div className="relative mx-auto w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <div className="relative mx-auto w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/10">
             <CheckCircle2 className="w-9 h-9 animate-pulse" />
           </div>
 
           <div className="space-y-1 relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/20 border border-violet-400/30 text-violet-200 text-[10.5px] font-bold tracking-wide">
-              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10.5px] font-medium tracking-wide">
+              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
               Order Confirmed &amp; Sent to Kitchen
             </div>
-            <h2 className="text-2xl font-serif font-bold text-white tracking-tight">
+            <h2 className="text-2xl font-serif font-semibold text-white tracking-tight">
               Order Received
             </h2>
-            <p className="text-xs font-mono font-bold text-violet-300">
+            <p className="text-xs font-mono font-bold text-[#E4C980]">
               Order #{successOrder.orderNumber}
             </p>
           </div>
@@ -201,26 +201,26 @@ export function CartView({ session }: CartViewProps) {
           {/* Live Kitchen Status Banner */}
           <div className="p-3.5 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-between text-left">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-violet-500/20 border border-violet-400/30 text-violet-300 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 text-[#E4C980] flex items-center justify-center shrink-0">
                 <ChefHat className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-300">Kitchen KDS Status</span>
-                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                <span className="text-[10px] uppercase font-semibold text-slate-300">Kitchen KDS Status</span>
+                <p className="text-xs font-semibold text-white flex items-center gap-1.5">
                   <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                   QUEUED • Culinary Team Preparing
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-mono text-slate-300 font-bold">{successOrder.placedAt}</span>
+            <span className="text-[11px] font-mono text-slate-300 font-semibold">{successOrder.placedAt}</span>
           </div>
 
           {/* Delivery Target Destination */}
           <div className="p-3 rounded-2xl bg-white/10 border border-white/15 flex items-center gap-3 text-left">
-            <BedDouble className="w-5 h-5 text-violet-300 shrink-0" />
+            <BedDouble className="w-5 h-5 text-[#E4C980] shrink-0" />
             <div className="text-xs">
-              <span className="text-[10px] uppercase font-bold text-slate-300">Delivery Destination</span>
-              <p className="font-bold text-white">
+              <span className="text-[10px] uppercase font-semibold text-slate-300">Delivery Destination</span>
+              <p className="font-semibold text-white">
                 Room {successOrder.roomNumber ? successOrder.roomNumber : "Your Suite"} • Estimated Delivery: 15–25 Mins
               </p>
             </div>
@@ -228,45 +228,45 @@ export function CartView({ session }: CartViewProps) {
         </div>
 
         {/* Itemized Order Summary */}
-        <div className="p-5 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 space-y-3.5 shadow-lg shadow-violet-950/30 text-xs">
-          <div className="flex items-center justify-between border-b border-violet-500/20 pb-2.5">
-            <span className="font-bold text-white uppercase text-[10.5px] tracking-wider font-serif flex items-center gap-1.5">
-              <Receipt className="w-3.5 h-3.5 text-violet-400" />
+        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-3.5 shadow-sm text-xs">
+          <div className="flex items-center justify-between border-b border-[#EAE3D2] pb-2.5">
+            <span className="font-bold text-slate-900 uppercase text-[10.5px] tracking-wider font-serif flex items-center gap-1.5">
+              <Receipt className="w-3.5 h-3.5 text-[#A67C1E]" />
               Ordered Items Summary
             </span>
-            <span className="text-violet-300 text-[11px] font-bold">
+            <span className="text-slate-500 text-[11px] font-medium">
               {successOrder.items.length} {successOrder.items.length === 1 ? "Item" : "Items"}
             </span>
           </div>
 
           <div className="space-y-2.5">
             {successOrder.items.map((item) => (
-              <div key={item.menu_item_id} className="flex justify-between items-center text-slate-200">
+              <div key={item.menu_item_id} className="flex justify-between items-center text-slate-700">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="w-5 h-5 rounded-md bg-violet-500/20 text-violet-300 font-bold flex items-center justify-center text-[10px] shrink-0 border border-violet-500/30">
+                  <span className="w-5 h-5 rounded-md bg-[#FAF4E6] text-[#A67C1E] font-bold flex items-center justify-center text-[10px] shrink-0">
                     {item.quantity}×
                   </span>
-                  <span className="font-semibold text-white text-xs truncate">{item.name}</span>
+                  <span className="font-medium text-slate-900 text-xs truncate">{item.name}</span>
                 </div>
-                <span className="font-mono font-bold text-white shrink-0">
+                <span className="font-mono font-semibold text-slate-900 shrink-0">
                   ₹{(item.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="pt-2 border-t border-violet-500/20 space-y-1.5 text-slate-300">
+          <div className="pt-2 border-t border-[#EAE3D2] space-y-1.5 text-slate-600">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="font-bold text-white">₹{successOrder.subtotal.toFixed(2)}</span>
+              <span className="font-semibold text-slate-800">₹{successOrder.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span>GST &amp; Taxes (5%)</span>
-              <span className="font-bold text-white">₹{successOrder.tax.toFixed(2)}</span>
+              <span className="font-semibold text-slate-800">₹{successOrder.tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between pt-1 border-t border-violet-500/20 text-sm font-bold text-white">
+            <div className="flex justify-between pt-1 border-t border-[#EAE3D2] text-sm font-bold text-slate-900">
               <span>Total (Charged to Room Folio)</span>
-              <span className="text-base text-violet-300 font-mono">
+              <span className="text-base text-slate-900 font-mono">
                 ₹{successOrder.total.toFixed(2)}
               </span>
             </div>
@@ -277,24 +277,24 @@ export function CartView({ session }: CartViewProps) {
         <div className="space-y-2.5">
           <Link
             href={`/guest/orders/${successOrder.orderId}`}
-            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs text-center shadow-lg shadow-violet-600/30 active:scale-[0.98] transition flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs text-center shadow-md active:scale-[0.98] transition flex items-center justify-center gap-2"
           >
-            <Clock className="w-4 h-4 text-white" />
+            <Clock className="w-4 h-4 text-[#D4AF37]" />
             <span>Track Food Preparation Live</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
 
           <Link
             href="/guest/dining"
-            className="w-full py-3 px-4 rounded-xl bg-[#111C38]/90 hover:bg-[#162347] border border-violet-500/30 text-white font-bold text-xs text-center transition flex items-center justify-center gap-1.5 shadow-md"
+            className="w-full py-3 px-4 rounded-xl bg-white hover:bg-slate-50 border border-[#EAE3D2] text-slate-700 font-semibold text-xs text-center transition flex items-center justify-center gap-1.5 shadow-2xs"
           >
-            <UtensilsCrossed className="w-3.5 h-3.5 text-violet-400" />
+            <UtensilsCrossed className="w-3.5 h-3.5 text-[#A67C1E]" />
             <span>Order More Food &amp; Beverages</span>
           </Link>
 
           <Link
             href="/guest/home"
-            className="w-full py-2.5 px-4 rounded-xl bg-transparent hover:bg-white/5 text-slate-400 hover:text-white font-bold text-xs text-center transition"
+            className="w-full py-2.5 px-4 rounded-xl bg-transparent hover:bg-slate-100 text-slate-500 font-medium text-xs text-center transition"
           >
             Return to Room Portal
           </Link>
@@ -306,30 +306,30 @@ export function CartView({ session }: CartViewProps) {
   // ── 2. EMPTY CART STATE ──
   if (items.length === 0) {
     return (
-      <div className="p-4 space-y-6 text-slate-100">
+      <div className="p-4 space-y-6">
         <Link
           href="/guest/dining"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition font-medium"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Dining</span>
         </Link>
 
-        <div className="p-10 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 text-center space-y-4 shadow-lg shadow-violet-950/30">
-          <div className="w-16 h-16 rounded-2xl bg-violet-500/20 border border-violet-500/30 text-violet-300 mx-auto flex items-center justify-center">
+        <div className="p-10 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-4 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] mx-auto flex items-center justify-center">
             <ShoppingBag className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-serif font-bold text-white">Your Cart is Empty</h3>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+            <h3 className="text-base font-serif font-semibold text-slate-900">Your Cart is Empty</h3>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
               Explore our culinary menus and add freshly prepared dishes to your in-room dining order.
             </p>
           </div>
           <Link
             href="/guest/dining"
-            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-violet-600/30 active:scale-95 transition"
+            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs shadow-md active:scale-95 transition"
           >
-            <UtensilsCrossed className="w-4 h-4 text-white" />
+            <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
             <span>Explore Dining Menus</span>
           </Link>
         </div>
@@ -339,42 +339,42 @@ export function CartView({ session }: CartViewProps) {
 
   // ── 3. MAIN CART & CHECKOUT VIEW ──
   return (
-    <div className="p-4 space-y-5 pb-28 text-slate-100">
+    <div className="p-4 space-y-5 pb-28">
       {/* Top Header Controls */}
       <div className="flex items-center justify-between">
         <Link
           href={restaurantId ? `/guest/dining/${restaurantId}` : "/guest/dining"}
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition font-medium"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Continue Ordering</span>
         </Link>
         <button
           onClick={clearCart}
-          className="text-xs text-rose-400 hover:text-rose-300 font-bold transition"
+          className="text-xs text-rose-600 hover:text-rose-700 font-semibold transition"
         >
           Clear Cart
         </button>
       </div>
 
       {/* Restaurant & Delivery Destination Card */}
-      <div className="p-4 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 shadow-lg shadow-violet-950/30 space-y-3">
+      <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] shadow-xs space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-violet-300">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#A67C1E]">
             Room Service Order
           </span>
-          <span className="text-[11px] font-bold text-slate-300">
+          <span className="text-[11px] font-medium text-slate-500">
             {restaurantName || "Restaurant"}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 pt-2 border-t border-violet-500/20">
-          <div className="w-10 h-10 rounded-2xl bg-violet-500/20 border border-violet-500/30 text-violet-300 flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 pt-2 border-t border-[#EAE3D2]">
+          <div className="w-10 h-10 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] flex items-center justify-center shrink-0">
             <BedDouble className="w-5 h-5" />
           </div>
           <div className="space-y-0.5">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Delivery Target</span>
-            <h4 className="text-xs sm:text-sm font-bold text-white">
+            <span className="text-[10px] uppercase font-semibold text-slate-400">Delivery Target</span>
+            <h4 className="text-xs sm:text-sm font-bold text-slate-900">
               {isVerifiedStay ? `Delivering to Room ${session?.room_number}` : "Room Service Delivery"}
             </h4>
           </div>
@@ -383,11 +383,11 @@ export function CartView({ session }: CartViewProps) {
 
       {/* Unverified Stay Warning */}
       {!isVerifiedStay && (
-        <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-start gap-3 shadow-md">
-          <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3 shadow-2xs">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="text-xs space-y-1">
-            <p className="font-bold text-white font-serif">Room Verification Required</p>
-            <p className="text-amber-200 text-[11px] leading-relaxed">
+            <p className="font-bold text-amber-900 font-serif">Room Verification Required</p>
+            <p className="text-amber-700 text-[11px] leading-relaxed">
               Please scan your in-room QR code to link your stay so our culinary team can dispatch food to your suite.
             </p>
           </div>
@@ -396,7 +396,7 @@ export function CartView({ session }: CartViewProps) {
 
       {/* Selected Items List */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider px-0.5 font-serif">
+        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider px-0.5 font-serif">
           Selected Dishes ({items.length})
         </h3>
 
@@ -407,10 +407,10 @@ export function CartView({ session }: CartViewProps) {
             return (
               <div
                 key={item.menu_item_id}
-                className="p-3 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 shadow-md shadow-violet-950/20 flex items-center justify-between gap-3"
+                className="p-3 rounded-2xl bg-white border border-[#EAE3D2] shadow-2xs flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-14 h-14 rounded-xl bg-slate-900 overflow-hidden shrink-0 border border-violet-500/30">
+                  <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-[#EAE3D2]">
                     <img
                       src={thumb}
                       alt={item.name}
@@ -421,15 +421,15 @@ export function CartView({ session }: CartViewProps) {
                   </div>
 
                   <div className="space-y-0.5 min-w-0">
-                    <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                    <h4 className="text-xs sm:text-sm font-semibold text-slate-900 truncate">
                       {item.name}
                     </h4>
                     {item.special_instructions && (
-                      <p className="text-[10.5px] text-violet-300 italic line-clamp-1">
+                      <p className="text-[10.5px] text-[#A67C1E] italic line-clamp-1">
                         Note: {item.special_instructions}
                       </p>
                     )}
-                    <p className="text-xs font-bold text-white font-mono">
+                    <p className="text-xs font-bold text-slate-900 font-mono">
                       ₹{(item.price * item.quantity).toFixed(2)}{" "}
                       <span className="text-[10px] text-slate-400 font-normal">
                         (₹{item.price.toFixed(2)} each)
@@ -440,21 +440,21 @@ export function CartView({ session }: CartViewProps) {
 
                 {/* Quantity Stepper & Remove */}
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <div className="flex items-center gap-2 bg-[#0B132B] border border-violet-500/30 rounded-xl p-1 shadow-md">
+                  <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#EAE3D2] rounded-xl p-1 shadow-2xs">
                     <button
                       onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
-                      className="w-6 h-6 rounded-lg bg-white/10 text-slate-300 hover:text-white flex items-center justify-center active:scale-90 transition font-bold"
+                      className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition"
                       title="Reduce quantity"
                       aria-label="Reduce quantity"
                     >
                       <Minus className="w-3 h-3" />
                     </button>
-                    <span className="text-xs font-bold text-white w-4 text-center font-mono">
+                    <span className="text-xs font-bold text-slate-900 w-4 text-center font-mono">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
-                      className="w-6 h-6 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white flex items-center justify-center active:scale-90 transition font-bold shadow-xs"
+                      className="w-6 h-6 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold"
                       title="Increase quantity"
                       aria-label="Increase quantity"
                     >
@@ -464,7 +464,7 @@ export function CartView({ session }: CartViewProps) {
 
                   <button
                     onClick={() => removeItem(item.menu_item_id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 transition"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition"
                     title="Remove item"
                     aria-label={`Remove ${item.name}`}
                   >
@@ -479,7 +479,7 @@ export function CartView({ session }: CartViewProps) {
 
       {/* Special Delivery Notes / Dietary Requests */}
       <div className="space-y-1.5">
-        <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider px-0.5 font-serif">
+        <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider px-0.5 font-serif">
           Delivery Notes &amp; Dietary Requests
         </label>
         <textarea
@@ -487,34 +487,34 @@ export function CartView({ session }: CartViewProps) {
           placeholder="e.g. Please knock softly, extra cutlery, dressing on side..."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full p-3 rounded-2xl bg-[#111C38]/90 border border-violet-500/30 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400 transition resize-none shadow-md"
+          className="w-full p-3 rounded-2xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] transition resize-none shadow-2xs"
         />
       </div>
 
       {/* Bill & Charge Breakdown */}
-      <div className="p-4 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 space-y-2.5 shadow-lg shadow-violet-950/20 text-xs">
-        <h4 className="font-bold text-white uppercase text-[10.5px] tracking-wider pb-2 border-b border-violet-500/20 font-serif">
+      <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] space-y-2.5 shadow-2xs text-xs">
+        <h4 className="font-bold text-slate-900 uppercase text-[10.5px] tracking-wider pb-2 border-b border-[#EAE3D2] font-serif">
           Payment &amp; Folio Summary
         </h4>
 
-        <div className="flex justify-between text-slate-300">
+        <div className="flex justify-between text-slate-600">
           <span>Subtotal</span>
-          <span className="font-bold text-white">₹{subtotal.toFixed(2)}</span>
+          <span className="font-semibold text-slate-800">₹{subtotal.toFixed(2)}</span>
         </div>
 
-        <div className="flex justify-between text-slate-300">
+        <div className="flex justify-between text-slate-600">
           <span>Taxes &amp; GST (5%)</span>
-          <span className="font-bold text-white">₹{tax.toFixed(2)}</span>
+          <span className="font-semibold text-slate-800">₹{tax.toFixed(2)}</span>
         </div>
 
-        <div className="flex justify-between text-slate-300">
+        <div className="flex justify-between text-slate-600">
           <span>Room Service Delivery</span>
-          <span className="font-bold text-emerald-400 uppercase">COMPLIMENTARY</span>
+          <span className="font-semibold text-emerald-600 uppercase">COMPLIMENTARY</span>
         </div>
 
-        <div className="pt-2 border-t border-violet-500/20 flex justify-between items-center text-sm font-bold text-white">
+        <div className="pt-2 border-t border-[#EAE3D2] flex justify-between items-center text-sm font-bold text-slate-900">
           <span>Total (Charged to Room Folio)</span>
-          <span className="text-base text-violet-300 font-mono font-bold">
+          <span className="text-base text-slate-900 font-mono">
             ₹{total.toFixed(2)}
           </span>
         </div>
@@ -522,8 +522,8 @@ export function CartView({ session }: CartViewProps) {
 
       {/* Error Message Notice */}
       {errorMsg && (
-        <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center gap-2.5 text-xs text-rose-300">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-center gap-2.5 text-xs text-rose-700">
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -533,21 +533,21 @@ export function CartView({ session }: CartViewProps) {
         <button
           onClick={handlePlaceOrder}
           disabled={isSubmitting || !isVerifiedStay}
-          className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm text-center shadow-xl shadow-violet-600/40 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-sm text-center shadow-xl shadow-black/10 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
               <span>Sending Order to Kitchen...</span>
             </>
           ) : (
             <>
-              <UtensilsCrossed className="w-4 h-4 text-white" />
+              <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
               <span>Place Room Service Order · ₹{total.toFixed(2)}</span>
             </>
           )}
         </button>
-        <p className="text-[10.5px] text-slate-400 text-center font-medium">
+        <p className="text-[10.5px] text-slate-500 text-center">
           Charges are applied directly to your in-house room folio. Server-authoritative checkout.
         </p>
       </div>

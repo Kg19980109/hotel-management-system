@@ -163,14 +163,14 @@ export function DiningMenuView({
   return (
     <div className="space-y-5 pb-36">
       {/* ── 1. RESTAURANT HERO HEADER ── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#08111F] via-[#0E1A38] to-[#17123A] text-white border-b border-violet-500/20">
+      <div className="relative overflow-hidden bg-[#0B1526] text-white">
         <div className="absolute inset-0 z-0">
           <img
             src={headerCover}
             alt={restaurant.name}
-            className="w-full h-full object-cover object-center opacity-25 mix-blend-luminosity"
+            className="w-full h-full object-cover object-center opacity-30 mix-blend-luminosity"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B132B] via-[#08111F]/80 to-[#08111F]/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B1526] via-[#0B1526]/80 to-[#0B1526]/40" />
         </div>
 
         <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
@@ -178,7 +178,7 @@ export function DiningMenuView({
           <div className="flex items-center justify-between">
             <Link
               href="/guest/dining"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition font-medium"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition"
               aria-label="Back to Dining Outlets"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -186,8 +186,8 @@ export function DiningMenuView({
             </Link>
 
             {isVerifiedStay && (
-              <span className="text-[10.5px] font-bold text-violet-300 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+              <span className="text-[10.5px] font-medium text-[#E4C980] flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
                 Room {roomNumber} · Room Service
               </span>
             )}
@@ -195,28 +195,28 @@ export function DiningMenuView({
 
           <div className="space-y-1.5 pt-1">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-violet-500/20 border border-violet-400/30 text-violet-200 text-[10px] font-bold uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10px] font-semibold uppercase tracking-wider">
                 {restaurant.cuisine_type || "Fine Dining"}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Kitchen Active
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
               {restaurant.name}
             </h2>
 
             {restaurant.description && (
-              <p className="text-xs text-slate-300 leading-relaxed max-w-sm">
+              <p className="text-xs text-slate-300/80 leading-relaxed max-w-sm">
                 {restaurant.description}
               </p>
             )}
 
             {(restaurant.opening_time || restaurant.closing_time) && (
-              <div className="flex items-center gap-1.5 text-[11px] text-violet-300 pt-1">
-                <Clock className="w-3.5 h-3.5 text-violet-400" />
+              <div className="flex items-center gap-1.5 text-[11px] text-[#E4C980]/80 pt-1">
+                <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <span>
                   Service Hours: {restaurant.opening_time || "07:00"} – {restaurant.closing_time || "23:00"}
                 </span>
@@ -229,13 +229,13 @@ export function DiningMenuView({
       <div className="px-4 space-y-5">
         {/* ── 2. MENU SEARCH INPUT ── */}
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-violet-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search culinary dishes, beverages, ingredients..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-[#111C38]/90 border border-violet-500/30 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-400 transition shadow-md"
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] focus:border-[#D4AF37] transition shadow-2xs"
           />
         </div>
 
@@ -245,10 +245,10 @@ export function DiningMenuView({
             <button
               type="button"
               onClick={() => setSelectedCategory("ALL")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all select-none ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
                 selectedCategory === "ALL"
-                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/30"
-                  : "bg-[#111C38]/90 text-slate-300 border border-violet-500/20 hover:bg-[#162347] hover:text-white"
+                  ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
+                  : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
               }`}
             >
               All Dishes
@@ -258,10 +258,10 @@ export function DiningMenuView({
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all select-none ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
                   selectedCategory === cat.id
-                    ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-600/30"
-                    : "bg-[#111C38]/90 text-slate-300 border border-violet-500/20 hover:bg-[#162347] hover:text-white"
+                    ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
+                    : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
                 }`}
               >
                 {cat.name}
@@ -273,12 +273,12 @@ export function DiningMenuView({
         {/* ── 4. MENU SECTIONS & DISHES LIST ── */}
         <div className="space-y-6">
           {filteredCategories.length === 0 ? (
-            <div className="p-10 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 text-center space-y-2.5 shadow-md">
-              <div className="w-12 h-12 rounded-2xl bg-violet-500/20 text-violet-300 mx-auto flex items-center justify-center">
+            <div className="p-10 rounded-2xl bg-white border border-[#EAE3D2] text-center space-y-2.5 shadow-2xs">
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF4E6] text-[#A67C1E] mx-auto flex items-center justify-center">
                 <UtensilsCrossed className="w-6 h-6" />
               </div>
-              <h4 className="text-xs font-bold text-white font-serif">No Menu Items Found</h4>
-              <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+              <h4 className="text-xs font-bold text-slate-900 font-serif">No Menu Items Found</h4>
+              <p className="text-[11px] text-slate-500 max-w-xs mx-auto">
                 {searchQuery
                   ? `No dishes match "${searchQuery}". Please check the spelling or browse other categories.`
                   : "No dishes are currently configured in this menu category."}
@@ -292,16 +292,16 @@ export function DiningMenuView({
               return (
                 <div key={cat.id} className="space-y-3">
                   {/* Category Header */}
-                  <div className="border-b border-violet-500/20 pb-2 flex items-center justify-between">
+                  <div className="border-b border-[#EAE3D2] pb-2 flex items-center justify-between">
                     <div>
-                      <h3 className="text-sm font-serif font-bold text-white tracking-wide">
+                      <h3 className="text-sm font-serif font-bold text-slate-900 tracking-wide">
                         {cat.name}
                       </h3>
                       {cat.description && (
-                        <p className="text-[11px] text-slate-400">{cat.description}</p>
+                        <p className="text-[11px] text-slate-500">{cat.description}</p>
                       )}
                     </div>
-                    <span className="text-[10px] font-bold text-violet-300">
+                    <span className="text-[10px] font-semibold text-slate-400">
                       {categoryItems.length} {categoryItems.length === 1 ? "dish" : "dishes"}
                     </span>
                   </div>
@@ -316,17 +316,17 @@ export function DiningMenuView({
                       return (
                         <div
                           key={item.id}
-                          className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-md shadow-violet-950/20 ${
+                          className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-2xs ${
                             isAvailable
-                              ? "bg-[#111C38]/90 border-violet-500/25 hover:border-violet-400/50 hover:shadow-lg"
-                              : "bg-[#0B132B]/60 border-violet-950/40 opacity-60"
+                              ? "bg-white border-[#EAE3D2] hover:border-[#D4AF37]/50 hover:shadow-xs"
+                              : "bg-slate-50 border-[#EAE3D2]/60 opacity-60"
                           }`}
                         >
                           <div className="flex items-stretch gap-3.5">
                             {/* Food Thumbnail (Clickable to open Food Detail) */}
                             <div
                               onClick={() => isAvailable && handleOpenDetail(item, cat.name)}
-                              className="relative w-28 sm:w-32 aspect-square bg-slate-900 shrink-0 cursor-pointer overflow-hidden group"
+                              className="relative w-28 sm:w-32 aspect-square bg-slate-100 shrink-0 cursor-pointer overflow-hidden group"
                             >
                               <img
                                 src={foodImg}
@@ -336,7 +336,7 @@ export function DiningMenuView({
                                 decoding="async"
                               />
                               {!isAvailable && (
-                                <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-1">
+                                <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-1">
                                   <span className="px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-rose-600 text-white shadow-xs">
                                     Sold Out
                                   </span>
@@ -350,19 +350,19 @@ export function DiningMenuView({
                                 onClick={() => isAvailable && handleOpenDetail(item, cat.name)}
                                 className="cursor-pointer space-y-1 min-w-0"
                               >
-                                <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-violet-300 transition-colors truncate">
+                                <h4 className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-[#A67C1E] transition-colors truncate">
                                   {item.name}
                                 </h4>
 
                                 {item.description && (
-                                  <p className="text-[11px] text-slate-300 line-clamp-2 leading-relaxed">
+                                  <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
                                     {item.description}
                                   </p>
                                 )}
                               </div>
 
-                              <div className="flex items-center justify-between pt-1.5 border-t border-violet-500/20">
-                                <span className="text-sm font-bold text-white font-mono">
+                              <div className="flex items-center justify-between pt-1.5 border-t border-[#EAE3D2]/70">
+                                <span className="text-sm font-bold text-slate-900 font-mono">
                                   {currencySymbol}{Number(item.price).toFixed(2)}
                                 </span>
 
@@ -371,28 +371,28 @@ export function DiningMenuView({
                                   qty === 0 ? (
                                     <button
                                       onClick={() => handleAddItem(item)}
-                                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1 shadow-md shadow-violet-600/30 active:scale-95 transition"
+                                      className="px-3.5 py-1.5 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition"
                                       aria-label={`Add ${item.name} to order`}
                                     >
-                                      <Plus className="w-3.5 h-3.5 text-white" />
+                                      <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
                                       <span>Add</span>
                                     </button>
                                   ) : (
-                                    <div className="flex items-center gap-2 bg-[#0B132B] border border-violet-500/40 rounded-xl p-1 shadow-md">
+                                    <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#D4AF37]/40 rounded-xl p-1 shadow-2xs">
                                       <button
                                         onClick={() => updateQuantity(item.id, qty - 1)}
-                                        className="w-6 h-6 rounded-lg bg-white/10 text-slate-300 hover:text-white flex items-center justify-center active:scale-90 transition"
+                                        className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition"
                                         title="Decrease quantity"
                                         aria-label="Decrease quantity"
                                       >
                                         <Minus className="w-3 h-3" />
                                       </button>
-                                      <span className="text-xs font-bold text-violet-300 w-4 text-center">
+                                      <span className="text-xs font-bold text-[#A67C1E] w-4 text-center">
                                         {qty}
                                       </span>
                                       <button
                                         onClick={() => updateQuantity(item.id, qty + 1)}
-                                        className="w-6 h-6 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white flex items-center justify-center active:scale-90 transition font-bold shadow-xs"
+                                        className="w-6 h-6 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold"
                                         title="Increase quantity"
                                         aria-label="Increase quantity"
                                       >
@@ -401,7 +401,7 @@ export function DiningMenuView({
                                     </div>
                                   )
                                 ) : (
-                                  <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">
+                                  <span className="text-[10px] font-semibold text-rose-600 uppercase tracking-wider">
                                     Unavailable
                                   </span>
                                 )}
@@ -435,8 +435,8 @@ export function DiningMenuView({
 
       {/* ── 6. TOAST NOTIFICATION ON ADD ── */}
       {addedItemNotice && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold text-xs shadow-xl shadow-violet-900/50 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-2 border border-violet-400/30">
-          <CheckCircle2 className="w-3.5 h-3.5 text-violet-200" />
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-emerald-600 text-white font-medium text-xs shadow-xl flex items-center gap-1.5 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
           <span>Added &quot;{addedItemNotice}&quot; to order</span>
         </div>
       )}

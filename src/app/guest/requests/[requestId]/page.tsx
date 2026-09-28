@@ -26,28 +26,28 @@ export default async function GuestRequestDetailPage({
 
   if (!request) {
     return (
-      <div className="space-y-6 pb-28 max-w-lg mx-auto">
+      <div className="p-4 space-y-6 pb-28 max-w-lg mx-auto">
         <Link
           href="/guest/requests"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition font-medium"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Requests</span>
         </Link>
 
-        <div className="p-8 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 text-center space-y-3 shadow-lg shadow-violet-950/20 backdrop-blur-md">
-          <div className="w-14 h-14 rounded-2xl bg-rose-950/60 text-rose-400 border border-rose-500/30 mx-auto flex items-center justify-center">
+        <div className="p-8 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-3 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 mx-auto flex items-center justify-center">
             <AlertCircle className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-base font-serif font-bold text-white">Request Not Found</h1>
-            <p className="text-xs text-slate-300 max-w-xs mx-auto leading-relaxed font-sans">
+            <h1 className="text-base font-serif font-semibold text-slate-900">Request Not Found</h1>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
               This service request could not be located or does not belong to your verified room session.
             </p>
           </div>
           <Link
             href="/guest/requests"
-            className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-violet-950/30 transition"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 text-xs font-semibold transition"
           >
             Return to Requests
           </Link>

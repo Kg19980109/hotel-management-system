@@ -33,28 +33,28 @@ interface GuestFolioViewProps {
 export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
   if (!folioContext || !folioContext.has_folio) {
     return (
-      <div className="space-y-6 pb-28 max-w-lg mx-auto">
+      <div className="p-4 space-y-6 pb-28 max-w-lg mx-auto">
         <Link
           href="/guest/home"
-          className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition font-medium"
+          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
         </Link>
 
-        <div className="p-10 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 text-center space-y-4 shadow-lg shadow-violet-950/20 backdrop-blur-md">
-          <div className="w-16 h-16 rounded-2xl bg-violet-950/60 border border-violet-500/30 text-violet-300 mx-auto flex items-center justify-center">
+        <div className="p-10 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-4 shadow-sm">
+          <div className="w-16 h-16 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] mx-auto flex items-center justify-center">
             <Receipt className="w-8 h-8" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-base font-serif font-bold text-white">No Active Folio Charges</h1>
-            <p className="text-xs text-slate-300 max-w-xs mx-auto leading-relaxed font-sans">
+            <h1 className="text-base font-serif font-semibold text-slate-900">No Active Folio Charges</h1>
+            <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
               No charges or incidentals have been posted to your stay yet. All dining and service requests will appear here in real time.
             </p>
           </div>
           <Link
             href="/guest/home"
-            className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-md shadow-violet-950/30 transition"
+            className="inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 text-xs font-semibold transition"
           >
             Return to Guest Home
           </Link>
@@ -71,18 +71,18 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
   const getChargeIcon = (type: string) => {
     switch (type) {
       case "ROOM":
-        return <BedDouble className="w-4 h-4 text-indigo-400" />;
+        return <BedDouble className="w-4 h-4 text-indigo-600" />;
       case "ROOM_SERVICE":
       case "RESTAURANT":
-        return <UtensilsCrossed className="w-4 h-4 text-violet-400" />;
+        return <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />;
       case "LAUNDRY":
-        return <Shirt className="w-4 h-4 text-indigo-400" />;
+        return <Shirt className="w-4 h-4 text-indigo-600" />;
       case "SPA":
-        return <Flower2 className="w-4 h-4 text-pink-400" />;
+        return <Flower2 className="w-4 h-4 text-pink-600" />;
       case "TRANSPORT":
-        return <Car className="w-4 h-4 text-teal-400" />;
+        return <Car className="w-4 h-4 text-teal-600" />;
       default:
-        return <Sparkles className="w-4 h-4 text-violet-400" />;
+        return <Sparkles className="w-4 h-4 text-[#A67C1E]" />;
     }
   };
 
@@ -93,71 +93,72 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
 
   return (
     <div className="space-y-5 pb-28">
-      {/* ── 1. LUXURY VIOLET HEADER BANNER ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-[#0B132B] border border-violet-500/30 text-white shadow-xl shadow-violet-950/40">
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-violet-900/30 via-[#0B132B] to-indigo-950/40 pointer-events-none" />
-        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-violet-600/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-indigo-600/15 blur-2xl pointer-events-none" />
+      {/* ── 1. EDITORIAL HEADER BANNER ── */}
+      <div className="relative overflow-hidden bg-[#0B1526] text-white">
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-[#0B1526] via-[#111D31] to-[#0B1526]">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-[#D4AF37]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-amber-500/5 blur-2xl pointer-events-none" />
+        </div>
 
-        <div className="relative z-10 p-5 sm:p-6 space-y-3.5">
+        <div className="relative z-10 px-5 pt-6 pb-6 space-y-3.5">
           {/* Top Navigation */}
           <div className="flex items-center justify-between">
             <Link
               href="/guest/stay"
-              className="inline-flex items-center gap-1.5 text-xs text-violet-300 hover:text-white transition font-medium"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition"
               aria-label="Back to Stay"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>My Stay</span>
             </Link>
 
-            <span className="font-mono text-xs text-violet-200 font-bold bg-violet-950/70 px-3 py-1 rounded-full border border-violet-400/30 shadow-xs">
+            <span className="font-mono text-xs text-[#E4C980] font-semibold bg-white/10 px-3 py-1 rounded-full border border-[#D4AF37]/35 shadow-2xs">
               Folio #{folioContext.folio_number}
             </span>
           </div>
 
           <div className="space-y-1 pt-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-violet-500/20 border border-violet-400/40 text-violet-200 text-[10px] font-semibold tracking-wide backdrop-blur-xs">
-              <Receipt className="w-3.5 h-3.5 text-violet-400" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] text-[10px] font-medium tracking-wide">
+              <Receipt className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>Statement of Account</span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-white tracking-tight leading-tight">
               Guest Folio
             </h1>
-            <p className="text-xs text-slate-300/85 leading-relaxed max-w-sm font-sans">
-              Live room billing and incidental charges for <span className="text-violet-300 font-bold">Room {session?.room_number || "Stay"}</span>.
+            <p className="text-xs text-slate-300/80 leading-relaxed max-w-sm">
+              Live room billing and incidental charges for <span className="text-[#E4C980] font-semibold">Room {session?.room_number || "Stay"}</span>.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-5 max-w-lg mx-auto">
+      <div className="px-4 space-y-5 max-w-lg mx-auto">
         {/* ── 2. AUTHORITATIVE BALANCE DUE HERO CARD ── */}
-        <div className={`p-6 rounded-3xl border text-center space-y-3 shadow-lg backdrop-blur-md ${
+        <div className={`p-6 rounded-3xl border text-center space-y-3 shadow-sm ${
           isSettled
-            ? "bg-emerald-950/50 border-emerald-500/40 text-emerald-300 shadow-emerald-950/30"
-            : "bg-gradient-to-br from-violet-950/80 via-[#111C38] to-[#0B132B] border-violet-500/35 shadow-violet-950/40"
+            ? "bg-emerald-50/70 border-emerald-200"
+            : "bg-[#FAF4E6] border-[#D4AF37]/50"
         }`}>
-          <span className="text-[10.5px] font-bold text-violet-300 uppercase tracking-widest font-sans block">
+          <span className="text-[10.5px] font-bold text-slate-600 uppercase tracking-widest font-serif block">
             {isSettled ? "Settlement Status" : "Current Outstanding Balance"}
           </span>
 
           <p className={`text-3xl sm:text-4xl font-mono font-bold tracking-tight ${
-            isSettled ? "text-emerald-300" : "text-white"
+            isSettled ? "text-emerald-700" : "text-slate-900"
           }`}>
             {currSym}{balanceDue.toFixed(2)}
           </p>
 
           <div className="flex items-center justify-center gap-1.5 text-xs">
             {isSettled ? (
-              <span className="text-emerald-300 font-bold flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500/40">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-emerald-700 font-semibold flex items-center gap-1.5 bg-emerald-100/60 px-3 py-1 rounded-full border border-emerald-300">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>All charges settled in full</span>
               </span>
             ) : (
-              <span className="text-violet-200 font-semibold flex items-center gap-1.5 bg-violet-950/70 px-3 py-1 rounded-full border border-violet-400/40 shadow-xs">
-                <Clock className="w-3.5 h-3.5 text-violet-400" />
+              <span className="text-[#A67C1E] font-semibold flex items-center gap-1.5 bg-white/80 px-3 py-1 rounded-full border border-[#D4AF37]/40 shadow-2xs">
+                <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
                 <span>Settlement due upon check-out</span>
               </span>
             )}
@@ -165,39 +166,39 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
         </div>
 
         {/* ── 3. FINANCIAL SUMMARY STATEMENT ── */}
-        <div className="p-5 rounded-3xl bg-[#111C38]/90 border border-violet-500/25 space-y-3 shadow-lg shadow-violet-950/20 backdrop-blur-md">
-          <div className="flex items-center gap-2 pb-2 border-b border-violet-500/20">
-            <FileText className="w-4 h-4 text-violet-400" />
-            <h2 className="text-xs font-bold text-violet-300 uppercase tracking-wider font-sans">
+        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-3 shadow-sm">
+          <div className="flex items-center gap-2 pb-2 border-b border-[#EAE3D2]">
+            <FileText className="w-4 h-4 text-[#D4AF37]" />
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
               Statement Summary
             </h2>
           </div>
 
-          <div className="space-y-2.5 text-xs font-sans">
-            <div className="flex items-center justify-between text-slate-300">
+          <div className="space-y-2.5 text-xs">
+            <div className="flex items-center justify-between text-slate-600">
               <span>Charges Subtotal</span>
-              <span className="font-mono font-bold text-white">
+              <span className="font-mono font-bold text-slate-900">
                 {currSym}{folioContext.charges_subtotal.toFixed(2)}
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-slate-300">
+            <div className="flex items-center justify-between text-slate-600">
               <span>Applicable Taxes (GST / VAT)</span>
-              <span className="font-mono font-bold text-white">
+              <span className="font-mono font-bold text-slate-900">
                 {currSym}{folioContext.taxes_total.toFixed(2)}
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-slate-300">
+            <div className="flex items-center justify-between text-slate-600">
               <span>Total Payments Recorded</span>
-              <span className="font-mono font-bold text-emerald-400">
+              <span className="font-mono font-bold text-emerald-700">
                 − {currSym}{folioContext.net_payments.toFixed(2)}
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-sm font-bold text-white pt-3 border-t border-violet-500/20">
-              <span className="font-sans">Outstanding Balance</span>
-              <span className="font-mono text-violet-300 text-base">
+            <div className="flex items-center justify-between text-sm font-bold text-slate-900 pt-3 border-t border-[#EAE3D2]">
+              <span className="font-serif">Outstanding Balance</span>
+              <span className="font-mono text-[#A67C1E] text-base">
                 {currSym}{balanceDue.toFixed(2)}
               </span>
             </div>
@@ -207,14 +208,14 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
         {/* ── 4. POSTED CHARGES BREAKDOWN ── */}
         <div className="space-y-4">
           <div className="flex items-center justify-between px-0.5">
-            <h2 className="text-xs font-bold text-violet-300 uppercase tracking-wider font-sans">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
               Posted Charges ({folioContext.charges.length})
             </h2>
-            <span className="text-[10px] text-slate-400 font-medium">Billed to Room</span>
+            <span className="text-[10px] text-slate-500 font-medium">Billed to Room</span>
           </div>
 
           {folioContext.charges.length === 0 ? (
-            <div className="p-6 text-center rounded-2xl bg-[#111C38]/80 border border-violet-500/20 text-xs text-slate-400 shadow-md shadow-violet-950/15">
+            <div className="p-6 text-center rounded-2xl bg-white border border-[#EAE3D2] text-xs text-slate-500 shadow-2xs">
               No incidentals or room charges posted yet.
             </div>
           ) : (
@@ -222,33 +223,33 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {/* Room Charges Group */}
               {roomCharges.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider px-1 font-sans">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 font-serif">
                     Accommodation ({roomCharges.length})
                   </span>
                   <div className="space-y-2">
                     {roomCharges.map((charge) => (
                       <div
                         key={charge.id}
-                        className="p-3.5 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 flex items-center justify-between gap-3 shadow-md shadow-violet-950/15 backdrop-blur-md"
+                        className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
                       >
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center shrink-0 mt-0.5">
                             {getChargeIcon(charge.charge_type)}
                           </div>
                           <div className="space-y-0.5 min-w-0">
-                            <h3 className="text-xs font-semibold text-white truncate">{charge.description}</h3>
-                            <p className="text-[10px] text-slate-400 font-sans">
+                            <h3 className="text-xs font-semibold text-slate-900 truncate">{charge.description}</h3>
+                            <p className="text-[10px] text-slate-500">
                               {charge.charge_date} • Qty: {charge.quantity}
                             </p>
                           </div>
                         </div>
 
                         <div className="text-right shrink-0">
-                          <p className="text-xs font-mono font-bold text-white">
+                          <p className="text-xs font-mono font-bold text-slate-900">
                             {currSym}{Number(charge.total_amount).toFixed(2)}
                           </p>
                           {Number(charge.tax_amount) > 0 && (
-                            <p className="text-[10px] text-slate-400 font-mono">
+                            <p className="text-[10px] text-slate-500 font-mono">
                               Incl. {currSym}{Number(charge.tax_amount).toFixed(2)} Tax
                             </p>
                           )}
@@ -262,33 +263,33 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {/* Dining & Room Service Group */}
               {diningCharges.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider px-1 font-sans">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 font-serif">
                     Dining &amp; Room Service ({diningCharges.length})
                   </span>
                   <div className="space-y-2">
                     {diningCharges.map((charge) => (
                       <div
                         key={charge.id}
-                        className="p-3.5 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 flex items-center justify-between gap-3 shadow-md shadow-violet-950/15 backdrop-blur-md"
+                        className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
                       >
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-violet-950/60 text-violet-300 border border-violet-500/30 flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-8 h-8 rounded-xl bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/30 flex items-center justify-center shrink-0 mt-0.5">
                             {getChargeIcon(charge.charge_type)}
                           </div>
                           <div className="space-y-0.5 min-w-0">
-                            <h3 className="text-xs font-semibold text-white truncate">{charge.description}</h3>
-                            <p className="text-[10px] text-slate-400 font-sans">
+                            <h3 className="text-xs font-semibold text-slate-900 truncate">{charge.description}</h3>
+                            <p className="text-[10px] text-slate-500">
                               {charge.charge_date} • Qty: {charge.quantity}
                             </p>
                           </div>
                         </div>
 
                         <div className="text-right shrink-0">
-                          <p className="text-xs font-mono font-bold text-white">
+                          <p className="text-xs font-mono font-bold text-slate-900">
                             {currSym}{Number(charge.total_amount).toFixed(2)}
                           </p>
                           {Number(charge.tax_amount) > 0 && (
-                            <p className="text-[10px] text-slate-400 font-mono">
+                            <p className="text-[10px] text-slate-500 font-mono">
                               Incl. {currSym}{Number(charge.tax_amount).toFixed(2)} Tax
                             </p>
                           )}
@@ -302,33 +303,33 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {/* Service & Ancillary Group */}
               {serviceCharges.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-violet-400 uppercase tracking-wider px-1 font-sans">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 font-serif">
                     Guest Services &amp; Ancillaries ({serviceCharges.length})
                   </span>
                   <div className="space-y-2">
                     {serviceCharges.map((charge) => (
                       <div
                         key={charge.id}
-                        className="p-3.5 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 flex items-center justify-between gap-3 shadow-md shadow-violet-950/15 backdrop-blur-md"
+                        className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
                       >
                         <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-slate-900 text-slate-300 border border-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-700 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
                             {getChargeIcon(charge.charge_type)}
                           </div>
                           <div className="space-y-0.5 min-w-0">
-                            <h3 className="text-xs font-semibold text-white truncate">{charge.description}</h3>
-                            <p className="text-[10px] text-slate-400 font-sans">
+                            <h3 className="text-xs font-semibold text-slate-900 truncate">{charge.description}</h3>
+                            <p className="text-[10px] text-slate-500">
                               {charge.charge_date} • Qty: {charge.quantity}
                             </p>
                           </div>
                         </div>
 
                         <div className="text-right shrink-0">
-                          <p className="text-xs font-mono font-bold text-white">
+                          <p className="text-xs font-mono font-bold text-slate-900">
                             {currSym}{Number(charge.total_amount).toFixed(2)}
                           </p>
                           {Number(charge.tax_amount) > 0 && (
-                            <p className="text-[10px] text-slate-400 font-mono">
+                            <p className="text-[10px] text-slate-500 font-mono">
                               Incl. {currSym}{Number(charge.tax_amount).toFixed(2)} Tax
                             </p>
                           )}
@@ -345,7 +346,7 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
         {/* ── 5. RECORDED PAYMENTS ── */}
         {folioContext.payments.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-xs font-bold text-violet-300 uppercase tracking-wider px-0.5 font-sans">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider px-0.5 font-serif">
               Payment Receipts ({folioContext.payments.length})
             </h2>
 
@@ -353,21 +354,21 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {folioContext.payments.map((payment) => (
                 <div
                   key={payment.id}
-                  className="p-3.5 rounded-2xl bg-[#111C38]/90 border border-violet-500/25 flex items-center justify-between gap-3 shadow-md shadow-violet-950/15 backdrop-blur-md"
+                  className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                      <CreditCard className="w-4 h-4 text-emerald-400" />
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
+                      <CreditCard className="w-4 h-4 text-emerald-600" />
                     </div>
                     <div className="space-y-0.5">
-                      <h3 className="text-xs font-semibold text-white">{payment.payment_method} Payment</h3>
-                      <p className="text-[10px] text-slate-400 font-mono">
+                      <h3 className="text-xs font-semibold text-slate-900">{payment.payment_method} Payment</h3>
+                      <p className="text-[10px] text-slate-500 font-mono">
                         Ref: {payment.payment_reference || "Direct"} • {new Date(payment.paid_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
 
-                  <p className="text-xs font-mono font-bold text-emerald-400">
+                  <p className="text-xs font-mono font-bold text-emerald-700">
                     − {currSym}{Number(payment.amount).toFixed(2)}
                   </p>
                 </div>

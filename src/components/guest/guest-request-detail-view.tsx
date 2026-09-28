@@ -271,15 +271,17 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
 
       <div className="px-4 space-y-4 max-w-lg mx-auto">
         {/* ── 2. HERO STATUS & STEPPER CARD ── */}
-        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] shadow-sm space-y-4">
-          <div className="flex items-center justify-between gap-3">
+        <div className="p-5 rounded-3xl bg-gradient-to-br from-purple-50/80 via-white to-indigo-50/40 border border-purple-200/90 shadow-sm space-y-4 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500" />
+
+          <div className="flex items-center justify-between gap-3 pt-0.5">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/30 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-md shadow-purple-500/25 flex items-center justify-center shrink-0">
                 <CategoryIcon className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Current Status</p>
-                <p className="text-xs font-semibold text-slate-900 mt-0.5">
+                <p className="text-[10px] uppercase font-bold text-purple-700 tracking-wider">Current Status</p>
+                <p className="text-xs font-bold text-slate-900 mt-0.5">
                   {STATUS_MESSAGES[currentStatus] || `Status: ${currentStatus}`}
                 </p>
               </div>
@@ -289,7 +291,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
 
           {/* 5-Stage Stepper */}
           {!isCancelledOrRejected && (
-            <div className="pt-2 border-t border-[#EAE3D2]">
+            <div className="pt-2 border-t border-purple-200/70">
               <div className="grid grid-cols-5 gap-1 pt-1">
                 {stages.map((st, idx) => {
                   const Icon = st.icon;
@@ -299,14 +301,14 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
                       <div
                         className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${
                           st.completed
-                            ? "bg-[#0B1526] text-[#E4C980] font-bold border border-[#D4AF37]/40 shadow-xs"
-                            : "bg-[#FAF8F5] text-slate-400 border border-[#EAE3D2]"
-                        } ${isCurrent ? "ring-2 ring-[#D4AF37] animate-pulse" : ""}`}
+                            ? "bg-gradient-to-br from-purple-600 to-indigo-700 text-white font-bold shadow-xs"
+                            : "bg-purple-100/50 text-slate-400 border border-purple-200/60"
+                        } ${isCurrent ? "ring-2 ring-purple-500 animate-pulse" : ""}`}
                       >
                         <Icon className="w-3.5 h-3.5" />
                       </div>
                       <span
-                        className={`text-[8.5px] font-semibold leading-tight ${
+                        className={`text-[8.5px] font-bold leading-tight ${
                           st.completed ? "text-slate-900" : "text-slate-400"
                         }`}
                       >
@@ -319,16 +321,16 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
             </div>
           )}
 
-          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-[#EAE3D2]/70">
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-purple-200/60">
             <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#A67C1E]" />
+              <Clock className="w-3.5 h-3.5 text-purple-600" />
               <span>
                 Submitted at {new Date(request.requested_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
             </div>
 
             {request.completed_at && (
-              <span className="text-emerald-700 font-medium">
+              <span className="text-emerald-700 font-bold">
                 Completed at {new Date(request.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
@@ -336,36 +338,38 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
         </div>
 
         {/* ── 3. ROOM & GUEST CONTEXT CARD ── */}
-        <div className="p-4 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] flex items-center justify-center shrink-0">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 border border-emerald-200/90 flex items-center justify-between shadow-2xs relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-600" />
+          <div className="flex items-center gap-3 pt-0.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-md shadow-emerald-500/25 flex items-center justify-center shrink-0">
               <BedDouble className="w-5 h-5" />
             </div>
             <div className="space-y-0.5">
-              <span className="text-[10px] uppercase font-semibold text-slate-500 tracking-wider">Service Location</span>
-              <p className="text-xs font-semibold text-slate-900">Room {request.room_number}</p>
+              <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">Service Location</span>
+              <p className="text-xs font-bold text-slate-900">Room {request.room_number}</p>
             </div>
           </div>
-          <span className="text-[10px] text-emerald-700 font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">
+          <span className="text-[10px] text-emerald-800 font-bold px-2.5 py-1 rounded-full bg-emerald-100/90 border border-emerald-300/80">
             Verified Room Session
           </span>
         </div>
 
         {/* ── 4. STAFF MESSAGE / NOTES (IF AVAILABLE) ── */}
         {guestNotes && (
-          <div className="p-4 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/40 space-y-1.5 shadow-2xs">
-            <div className="flex items-center gap-1.5 text-[10.5px] uppercase font-semibold text-[#A67C1E] tracking-wider font-serif">
-              <Info className="w-3.5 h-3.5 text-[#D4AF37]" />
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50/90 via-white to-amber-50/40 border border-amber-300/90 space-y-1.5 shadow-2xs relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
+            <div className="flex items-center gap-1.5 text-[10.5px] uppercase font-bold text-amber-800 tracking-wider font-serif pt-0.5">
+              <Info className="w-3.5 h-3.5 text-amber-600" />
               <span>Message from Hotel Concierge</span>
             </div>
-            <p className="text-xs text-slate-800 leading-relaxed font-medium">{guestNotes}</p>
+            <p className="text-xs text-slate-800 leading-relaxed font-semibold">{guestNotes}</p>
           </div>
         )}
 
         {/* ── 5. ORIGINAL REQUEST DETAILS CARD ── */}
-        <div className="p-5 rounded-2xl bg-white border border-[#EAE3D2] space-y-3 shadow-2xs">
+        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-3 shadow-2xs">
           <div className="flex items-center gap-2 pb-2 border-b border-[#EAE3D2]">
-            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+            <Sparkles className="w-4 h-4 text-purple-600" />
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
               Request Details
             </h2>
@@ -374,12 +378,12 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Service Category:</span>
-              <span className="font-semibold text-slate-900">{request.category}</span>
+              <span className="font-bold text-slate-900">{request.category}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Request Type:</span>
-              <span className="font-semibold text-slate-900">{request.request_type}</span>
+              <span className="font-bold text-slate-900">{request.request_type}</span>
             </div>
 
             {request.description && (
@@ -394,9 +398,9 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
         </div>
 
         {/* ── 6. TIMELINE EVENTS CARD ── */}
-        <div className="p-5 rounded-2xl bg-white border border-[#EAE3D2] space-y-3.5 shadow-2xs">
+        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-3.5 shadow-2xs">
           <div className="flex items-center gap-2 pb-2 border-b border-[#EAE3D2]">
-            <Clock className="w-4 h-4 text-[#D4AF37]" />
+            <Clock className="w-4 h-4 text-indigo-600" />
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
               Progress Timeline
             </h2>
@@ -405,10 +409,10 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
           <div className="space-y-3">
             {(request.events || []).length === 0 ? (
               <div className="flex items-start gap-3 text-xs">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] mt-1 shrink-0 ring-4 ring-[#D4AF37]/20" />
+                <div className="w-2.5 h-2.5 rounded-full bg-purple-600 mt-1 shrink-0 ring-4 ring-purple-500/20" />
                 <div className="space-y-0.5 flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-slate-900">SUBMITTED</span>
+                    <span className="font-bold text-slate-900">SUBMITTED</span>
                     <span className="text-[10px] text-slate-400 font-mono">
                       {new Date(request.requested_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </span>
@@ -419,10 +423,10 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
             ) : (
               (request.events || []).map((evt, idx) => (
                 <div key={evt.id || idx} className="flex items-start gap-3 text-xs">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] mt-1 shrink-0 ring-4 ring-[#D4AF37]/20" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-purple-600 mt-1 shrink-0 ring-4 ring-purple-500/20" />
                   <div className="space-y-0.5 flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-900">{evt.to_status}</span>
+                      <span className="font-bold text-slate-900">{evt.to_status}</span>
                       <span className="text-[10px] text-slate-400 font-mono">
                         {new Date(evt.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
@@ -450,7 +454,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
             <button
               onClick={handleCancel}
               disabled={isCancelling}
-              className="w-full py-3 px-4 rounded-2xl border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 font-semibold text-xs transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-2xs"
+              className="w-full py-3 px-4 rounded-2xl border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 font-bold text-xs transition active:scale-95 duration-75 tap-active disabled:opacity-50 flex items-center justify-center gap-2 shadow-2xs"
             >
               {isCancelling ? (
                 <Loader2 className="w-4 h-4 animate-spin text-rose-600" />

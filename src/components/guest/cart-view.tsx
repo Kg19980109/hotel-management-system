@@ -357,23 +357,24 @@ export function CartView({ session }: CartViewProps) {
         </button>
       </div>
 
-      {/* Restaurant & Delivery Destination Card */}
-      <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#A67C1E]">
+      {/* Restaurant & Delivery Destination Card (COLORFUL) */}
+      <div className="p-4 rounded-3xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 border border-amber-200/90 shadow-2xs space-y-3 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
+        <div className="flex items-center justify-between pt-0.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
             Room Service Order
           </span>
-          <span className="text-[11px] font-medium text-slate-500">
+          <span className="text-[11px] font-bold text-slate-700">
             {restaurantName || "Restaurant"}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 pt-2 border-t border-[#EAE3D2]">
-          <div className="w-10 h-10 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] flex items-center justify-center shrink-0">
+        <div className="flex items-center gap-3 pt-2 border-t border-amber-200/70">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/25">
             <BedDouble className="w-5 h-5" />
           </div>
           <div className="space-y-0.5">
-            <span className="text-[10px] uppercase font-semibold text-slate-400">Delivery Target</span>
+            <span className="text-[10px] uppercase font-bold text-amber-900/70">Delivery Target</span>
             <h4 className="text-xs sm:text-sm font-bold text-slate-900">
               {isVerifiedStay ? `Delivering to Room ${session?.room_number}` : "Room Service Delivery"}
             </h4>
@@ -407,10 +408,10 @@ export function CartView({ session }: CartViewProps) {
             return (
               <div
                 key={item.menu_item_id}
-                className="p-3 rounded-2xl bg-white border border-[#EAE3D2] shadow-2xs flex items-center justify-between gap-3"
+                className="p-3 rounded-2xl bg-gradient-to-br from-amber-50/50 via-white to-orange-50/20 border border-amber-200/80 shadow-2xs flex items-center justify-between gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-[#EAE3D2]">
+                  <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-amber-200/80">
                     <img
                       src={thumb}
                       alt={item.name}
@@ -421,17 +422,17 @@ export function CartView({ session }: CartViewProps) {
                   </div>
 
                   <div className="space-y-0.5 min-w-0">
-                    <h4 className="text-xs sm:text-sm font-semibold text-slate-900 truncate">
+                    <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                       {item.name}
                     </h4>
                     {item.special_instructions && (
-                      <p className="text-[10.5px] text-[#A67C1E] italic line-clamp-1">
+                      <p className="text-[10.5px] text-amber-800 font-medium italic line-clamp-1">
                         Note: {item.special_instructions}
                       </p>
                     )}
                     <p className="text-xs font-bold text-slate-900 font-mono">
                       ₹{(item.price * item.quantity).toFixed(2)}{" "}
-                      <span className="text-[10px] text-slate-400 font-normal">
+                      <span className="text-[10px] text-slate-500 font-normal">
                         (₹{item.price.toFixed(2)} each)
                       </span>
                     </p>
@@ -439,32 +440,32 @@ export function CartView({ session }: CartViewProps) {
                 </div>
 
                 {/* Quantity Stepper & Remove */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#EAE3D2] rounded-xl p-1 shadow-2xs">
+                <div className="flex items-center gap-1.5 shrink-0 select-none">
+                  <div className="flex items-center gap-2 bg-[#FAF8F5] border border-amber-300/80 rounded-xl p-1 shadow-2xs">
                     <button
                       onClick={() => updateQuantity(item.menu_item_id, item.quantity - 1)}
-                      className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition"
+                      className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center transition-transform duration-75 active:scale-90"
                       title="Reduce quantity"
                       aria-label="Reduce quantity"
                     >
-                      <Minus className="w-3 h-3" />
+                      <Minus className="w-3 h-3 stroke-[2.5]" />
                     </button>
-                    <span className="text-xs font-bold text-slate-900 w-4 text-center font-mono">
+                    <span className="text-xs font-bold text-amber-800 w-4 text-center font-mono">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => updateQuantity(item.menu_item_id, item.quantity + 1)}
-                      className="w-6 h-6 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold"
+                      className="w-6 h-6 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center justify-center transition-transform duration-75 active:scale-90 font-bold"
                       title="Increase quantity"
                       aria-label="Increase quantity"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3 h-3 stroke-[2.5]" />
                     </button>
                   </div>
 
                   <button
                     onClick={() => removeItem(item.menu_item_id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 transition-transform duration-75 active:scale-90"
                     title="Remove item"
                     aria-label={`Remove ${item.name}`}
                   >
@@ -491,9 +492,9 @@ export function CartView({ session }: CartViewProps) {
         />
       </div>
 
-      {/* Bill & Charge Breakdown */}
-      <div className="p-4 rounded-3xl bg-white border border-[#EAE3D2] space-y-2.5 shadow-2xs text-xs">
-        <h4 className="font-bold text-slate-900 uppercase text-[10.5px] tracking-wider pb-2 border-b border-[#EAE3D2] font-serif">
+      {/* Bill & Charge Breakdown (COLORFUL) */}
+      <div className="p-4 rounded-3xl bg-gradient-to-br from-amber-50/50 via-white to-amber-50/20 border border-amber-200/90 space-y-2.5 shadow-2xs text-xs">
+        <h4 className="font-bold text-slate-900 uppercase text-[10.5px] tracking-wider pb-2 border-b border-amber-200/70 font-serif">
           Payment &amp; Folio Summary
         </h4>
 
@@ -509,10 +510,10 @@ export function CartView({ session }: CartViewProps) {
 
         <div className="flex justify-between text-slate-600">
           <span>Room Service Delivery</span>
-          <span className="font-semibold text-emerald-600 uppercase">COMPLIMENTARY</span>
+          <span className="font-bold text-emerald-700 uppercase">COMPLIMENTARY</span>
         </div>
 
-        <div className="pt-2 border-t border-[#EAE3D2] flex justify-between items-center text-sm font-bold text-slate-900">
+        <div className="pt-2 border-t border-amber-200/70 flex justify-between items-center text-sm font-bold text-slate-900">
           <span>Total (Charged to Room Folio)</span>
           <span className="text-base text-slate-900 font-mono">
             ₹{total.toFixed(2)}
@@ -533,16 +534,16 @@ export function CartView({ session }: CartViewProps) {
         <button
           onClick={handlePlaceOrder}
           disabled={isSubmitting || !isVerifiedStay}
-          className="w-full py-4 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-sm text-center shadow-xl shadow-black/10 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:brightness-105 text-white font-bold text-sm text-center shadow-lg shadow-amber-500/25 transition-transform duration-75 active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed select-none"
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin text-[#D4AF37]" />
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
               <span>Sending Order to Kitchen...</span>
             </>
           ) : (
             <>
-              <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
+              <UtensilsCrossed className="w-4 h-4 text-amber-200" />
               <span>Place Room Service Order · ₹{total.toFixed(2)}</span>
             </>
           )}

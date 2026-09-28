@@ -174,10 +174,10 @@ export function DiningDirectoryView({
               <button
                 type="button"
                 onClick={() => setSelectedCuisine("ALL")}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-transform duration-75 active:scale-95 select-none ${
                   selectedCuisine === "ALL"
-                    ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
-                    : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
+                    ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/50 shadow-xs"
+                    : "bg-white text-slate-700 border border-[#EAE3D2] hover:bg-slate-50"
                 }`}
               >
                 All Dining ({restaurants.length})
@@ -187,10 +187,10 @@ export function DiningDirectoryView({
                   key={cuisine}
                   type="button"
                   onClick={() => setSelectedCuisine(cuisine)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-transform duration-75 active:scale-95 select-none ${
                     selectedCuisine === cuisine
-                      ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
-                      : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
+                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-xs font-bold border-amber-600"
+                      : "bg-amber-50/80 text-amber-900 border border-amber-200/80 hover:bg-amber-100"
                   }`}
                 >
                   {cuisine}
@@ -212,8 +212,8 @@ export function DiningDirectoryView({
           </div>
 
           {filteredRestaurants.length === 0 ? (
-            <div className="p-10 rounded-2xl bg-white border border-[#EAE3D2] text-center space-y-2.5 shadow-2xs">
-              <div className="w-12 h-12 rounded-2xl bg-[#FAF4E6] text-[#A67C1E] mx-auto flex items-center justify-center">
+            <div className="p-10 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-2.5 shadow-2xs">
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF4E6] text-[#A67C1E] mx-auto flex items-center justify-center shadow-xs">
                 <UtensilsCrossed className="w-6 h-6" />
               </div>
               <h4 className="text-xs font-bold text-slate-900 font-serif">No Dining Outlets Found</h4>
@@ -232,7 +232,8 @@ export function DiningDirectoryView({
                   <Link
                     key={rest.id}
                     href={`/guest/dining/${rest.id}`}
-                    className="block rounded-3xl bg-white border border-[#EAE3D2] overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.99] group"
+                    prefetch={true}
+                    className="block rounded-3xl bg-gradient-to-br from-amber-50/60 via-white to-orange-50/20 border border-amber-200/90 hover:border-amber-400 overflow-hidden shadow-2xs hover:shadow-md transition-transform duration-75 active:scale-[0.98] group relative"
                   >
                     {/* Restaurant Photographic Hero Cover */}
                     <div className="relative h-44 sm:h-52 w-full bg-slate-900 overflow-hidden">
@@ -243,14 +244,14 @@ export function DiningDirectoryView({
                         loading={idx === 0 ? "eager" : "lazy"}
                         decoding="async"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
 
                       {/* Top Badges */}
                       <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                        <span className="px-2.5 py-1 rounded-full text-[9.5px] font-semibold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#E4C980] border border-white/15 shadow-xs">
+                        <span className="px-2.5 py-1 rounded-full text-[9.5px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur-md text-[#E4C980] border border-[#D4AF37]/40 shadow-xs">
                           {rest.cuisine_type || "Fine Dining"}
                         </span>
-                        <span className="px-2.5 py-1 rounded-full text-[9.5px] font-semibold bg-emerald-950/80 backdrop-blur-md text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                        <span className="px-2.5 py-1 rounded-full text-[9.5px] font-bold bg-emerald-950/80 backdrop-blur-md text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-xs">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                           Open
                         </span>
@@ -258,7 +259,7 @@ export function DiningDirectoryView({
 
                       {/* Bottom Title on Cover Image */}
                       <div className="absolute bottom-3 left-4 right-4">
-                        <h4 className="text-lg font-serif font-semibold text-white group-hover:text-[#E4C980] transition-colors drop-shadow-sm">
+                        <h4 className="text-lg font-serif font-bold text-white group-hover:text-[#E4C980] transition-colors drop-shadow-sm">
                           {rest.name}
                         </h4>
                       </div>
@@ -266,21 +267,21 @@ export function DiningDirectoryView({
 
                     {/* Restaurant Metadata & Action */}
                     <div className="p-4 space-y-3">
-                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium">
                         {rest.description || "Artisanal seasonal menus crafted with fresh ingredients and served with 5-star hospitality."}
                       </p>
 
-                      <div className="pt-2.5 border-t border-[#EAE3D2]/70 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <div className="pt-2.5 border-t border-amber-200/60 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
+                          <Clock className="w-3.5 h-3.5 text-amber-600" />
                           <span>
                             {rest.opening_time || "07:00"} – {rest.closing_time || "23:00"}
                           </span>
                         </div>
 
-                        <span className="px-4 py-1.5 rounded-xl bg-[#0B1526] group-hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs flex items-center gap-1 shadow-xs transition-all">
+                        <span className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-transform duration-75 active:scale-95">
                           <span>Explore Menu</span>
-                          <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                          <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
                         </span>
                       </div>
                     </div>

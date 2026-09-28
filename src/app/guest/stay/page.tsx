@@ -112,47 +112,49 @@ export default async function GuestStayPage() {
 
       <div className="px-4 space-y-5 max-w-lg mx-auto">
         {/* ── 2. STAY OVERVIEW & PROGRESS CARD ── */}
-        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-4 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-[#EAE3D2]">
+        <div className="p-5 rounded-3xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/30 border border-amber-200/90 space-y-4 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" />
+
+          <div className="flex items-center justify-between pb-3 border-b border-amber-200/70 pt-0.5">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] flex items-center justify-center shadow-2xs">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md shadow-amber-500/25 flex items-center justify-center">
                 <BedDouble className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 uppercase font-semibold block font-serif">
+                <span className="text-[10px] text-amber-800 uppercase font-bold block font-serif">
                   {session.property_name || "Hotel Accommodation"}
                 </span>
                 <h2 className="text-sm font-serif font-bold text-slate-900">Room {session.room_number}</h2>
               </div>
             </div>
 
-            <span className="text-xs px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-semibold">
+            <span className="text-xs px-3 py-1 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-900 font-bold">
               {session.room_type || "Deluxe Room"}
             </span>
           </div>
 
           {/* Stay Timeline Progress */}
-          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-2.5">
+          <div className="p-3.5 rounded-2xl bg-white/90 border border-amber-200/70 space-y-2.5">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="font-semibold text-slate-800 uppercase tracking-wider font-serif text-[10px]">
+              <span className="font-bold text-slate-800 uppercase tracking-wider font-serif text-[10px]">
                 Stay Status
               </span>
-              <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-emerald-700 font-bold flex items-center gap-1.5 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 In-House Guest
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-1 pt-1">
               <div className="text-center space-y-1">
-                <div className="h-1.5 rounded-full bg-emerald-600" />
-                <span className="text-[9.5px] font-semibold text-slate-700 block">Check-In</span>
+                <div className="h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" />
+                <span className="text-[9.5px] font-bold text-slate-800 block">Check-In</span>
                 <span className="text-[9px] text-slate-500 block">{session.check_in_time || "14:00"}</span>
               </div>
               <div className="text-center space-y-1">
-                <div className="h-1.5 rounded-full bg-[#D4AF37]" />
-                <span className="text-[9.5px] font-bold text-slate-900 block">Your Stay</span>
-                <span className="text-[9px] text-[#A67C1E] font-medium block">Active</span>
+                <div className="h-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-600" />
+                <span className="text-[9.5px] font-bold text-amber-900 block">Your Stay</span>
+                <span className="text-[9px] text-amber-700 font-bold block">Active</span>
               </div>
               <div className="text-center space-y-1">
                 <div className="h-1.5 rounded-full bg-slate-200" />
@@ -164,22 +166,22 @@ export default async function GuestStayPage() {
 
           {/* Guest & Party Grid */}
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase font-bold flex items-center gap-1.5 font-serif">
-                <Users className="w-3 h-3 text-[#D4AF37]" />
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 border border-amber-200/80 space-y-1 shadow-2xs">
+              <span className="text-[10px] text-amber-800 uppercase font-bold flex items-center gap-1.5 font-serif">
+                <Users className="w-3.5 h-3.5 text-amber-600" />
                 Primary Guest
               </span>
-              <span className="text-slate-900 font-semibold block truncate text-xs">
+              <span className="text-slate-900 font-bold block truncate text-xs">
                 {session.guest_first_name} {session.guest_last_name}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase font-bold flex items-center gap-1.5 font-serif">
-                <Users className="w-3 h-3 text-indigo-600" />
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-indigo-50/30 border border-indigo-200/80 space-y-1 shadow-2xs">
+              <span className="text-[10px] text-indigo-800 uppercase font-bold flex items-center gap-1.5 font-serif">
+                <Users className="w-3.5 h-3.5 text-indigo-600" />
                 Party Size
               </span>
-              <span className="text-slate-900 font-semibold block text-xs">
+              <span className="text-slate-900 font-bold block text-xs">
                 {session.adults || 1} Adult{session.adults && session.adults > 1 ? "s" : ""}
                 {session.children && session.children > 0 ? `, ${session.children} Child` : ""}
               </span>
@@ -188,22 +190,22 @@ export default async function GuestStayPage() {
 
           {/* Schedule Grid */}
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase font-bold flex items-center gap-1.5 font-serif">
-                <CalendarDays className="w-3 h-3 text-emerald-600" />
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 border border-emerald-200/80 space-y-1 shadow-2xs">
+              <span className="text-[10px] text-emerald-800 uppercase font-bold flex items-center gap-1.5 font-serif">
+                <CalendarDays className="w-3.5 h-3.5 text-emerald-600" />
                 Check-In Date
               </span>
-              <span className="text-slate-900 font-semibold block text-xs">
+              <span className="text-slate-900 font-bold block text-xs">
                 {session.check_in_time || "Standard 14:00"}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase font-bold flex items-center gap-1.5 font-serif">
-                <Clock className="w-3 h-3 text-[#D4AF37]" />
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-50/80 via-white to-sky-50/30 border border-sky-200/80 space-y-1 shadow-2xs">
+              <span className="text-[10px] text-sky-800 uppercase font-bold flex items-center gap-1.5 font-serif">
+                <Clock className="w-3.5 h-3.5 text-sky-600" />
                 Expected Check-Out
               </span>
-              <span className="text-slate-900 font-semibold block text-xs">
+              <span className="text-slate-900 font-bold block text-xs">
                 {session.expected_check_out_date || "11:00 AM"}
               </span>
             </div>
@@ -218,46 +220,50 @@ export default async function GuestStayPage() {
           <div className="grid grid-cols-3 gap-2.5">
             <Link
               href="/guest/dining"
-              className="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] hover:border-[#D4AF37]/40 text-center space-y-1.5 transition active:scale-[0.98] group shadow-2xs"
+              className="p-3 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 border border-amber-200/90 hover:border-amber-300 text-center space-y-1.5 transition active:scale-95 duration-75 tap-active group shadow-2xs relative overflow-hidden"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/30 mx-auto flex items-center justify-center group-hover:scale-105 transition">
-                <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-600" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md shadow-amber-500/25 mx-auto flex items-center justify-center group-hover:scale-105 transition">
+                <UtensilsCrossed className="w-4 h-4 text-white" />
               </div>
-              <span className="text-[11px] font-semibold text-slate-900 block">In-Room Dining</span>
+              <span className="text-[11px] font-bold text-slate-900 block">In-Room Dining</span>
             </Link>
 
             <Link
               href="/guest/services?category=HOUSEKEEPING"
-              className="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] hover:border-[#D4AF37]/40 text-center space-y-1.5 transition active:scale-[0.98] group shadow-2xs"
+              className="p-3 rounded-2xl bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 border border-emerald-200/90 hover:border-emerald-300 text-center space-y-1.5 transition active:scale-95 duration-75 tap-active group shadow-2xs relative overflow-hidden"
             >
-              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 mx-auto flex items-center justify-center group-hover:scale-105 transition">
-                <Sparkles className="w-4 h-4 text-emerald-600" />
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-600" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-md shadow-emerald-500/25 mx-auto flex items-center justify-center group-hover:scale-105 transition">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <span className="text-[11px] font-semibold text-slate-900 block">Housekeeping</span>
+              <span className="text-[11px] font-bold text-slate-900 block">Housekeeping</span>
             </Link>
 
             <Link
               href="/guest/hotel"
-              className="p-3 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] hover:border-[#D4AF37]/40 text-center space-y-1.5 transition active:scale-[0.98] group shadow-2xs"
+              className="p-3 rounded-2xl bg-gradient-to-br from-purple-50/80 via-white to-purple-50/30 border border-purple-200/90 hover:border-purple-300 text-center space-y-1.5 transition active:scale-95 duration-75 tap-active group shadow-2xs relative overflow-hidden"
             >
-              <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 mx-auto flex items-center justify-center group-hover:scale-105 transition">
-                <Building2 className="w-4 h-4 text-purple-600" />
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400 to-pink-600" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-md shadow-purple-500/25 mx-auto flex items-center justify-center group-hover:scale-105 transition">
+                <Building2 className="w-4 h-4 text-white" />
               </div>
-              <span className="text-[11px] font-semibold text-slate-900 block">Hotel Guide</span>
+              <span className="text-[11px] font-bold text-slate-900 block">Hotel Guide</span>
             </Link>
           </div>
         </div>
 
         {/* ── 4. IN-ROOM WI-FI CONNECTION CARD ── */}
         {session.wifi_ssid && (
-          <div className="p-4 rounded-2xl bg-white border border-[#EAE3D2] space-y-2.5 shadow-2xs">
-            <div className="flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-50/80 via-white to-sky-50/30 border border-sky-200/90 space-y-2.5 shadow-2xs relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 via-sky-500 to-blue-600" />
+            <div className="flex items-center justify-between pt-0.5">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 flex items-center justify-center">
-                  <Wifi className="w-4 h-4 text-sky-600" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-md shadow-sky-500/25 flex items-center justify-center">
+                  <Wifi className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-serif font-semibold text-slate-900">Complimentary Room Wi-Fi</h3>
+                  <h3 className="text-xs font-serif font-bold text-slate-900">Complimentary Room Wi-Fi</h3>
                   <p className="text-[10px] text-slate-500">Network: <span className="text-slate-800 font-mono font-bold">{session.wifi_ssid}</span></p>
                 </div>
               </div>
@@ -275,12 +281,12 @@ export default async function GuestStayPage() {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-sm shadow-amber-500/50" />
                   <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
                     Live Dining Orders ({activeOrders.length})
                   </h2>
                 </div>
-                <Link href="/guest/orders" className="text-[10.5px] text-[#A67C1E] hover:underline font-semibold">
+                <Link href="/guest/orders" className="text-[10.5px] text-amber-700 hover:underline font-bold">
                   View Orders →
                 </Link>
               </div>
@@ -290,21 +296,22 @@ export default async function GuestStayPage() {
                   <Link
                     key={order.id}
                     href={`/guest/orders/${order.id}`}
-                    className="block p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] hover:border-[#D4AF37]/40 transition shadow-2xs"
+                    className="block p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 border border-amber-200/90 hover:border-amber-300 transition active:scale-95 duration-75 tap-active shadow-2xs relative overflow-hidden"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-600" />
+                    <div className="flex items-center justify-between pt-0.5">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-bold text-slate-900 bg-[#FAF4E6] px-2 py-0.5 rounded-md border border-[#D4AF37]/30">
+                          <span className="text-xs font-mono font-bold text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300/80">
                             #{order.order_number}
                           </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
-                            <ChefHat className="w-3 h-3" />
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                            <ChefHat className="w-3 h-3 text-amber-700" />
                             {order.status}
                           </span>
                         </div>
                         <p className="text-xs text-slate-600">
-                          {order.item_count} items • {order.currency || "INR"} {Number(order.total_amount).toFixed(2)}
+                          {order.item_count} items • {order.currency || "INR"} <span className="font-mono font-bold text-slate-800">{Number(order.total_amount).toFixed(2)}</span>
                         </p>
                       </div>
                       <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -320,12 +327,12 @@ export default async function GuestStayPage() {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse shadow-sm shadow-indigo-500/50" />
                   <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
                     Active Concierge Requests ({activeRequests.length})
                   </h2>
                 </div>
-                <Link href="/guest/requests" className="text-[10.5px] text-[#A67C1E] hover:underline font-semibold">
+                <Link href="/guest/requests" className="text-[10.5px] text-indigo-700 hover:underline font-bold">
                   View Requests →
                 </Link>
               </div>
@@ -335,15 +342,16 @@ export default async function GuestStayPage() {
                   <Link
                     key={req.id}
                     href={`/guest/requests/${req.id}`}
-                    className="block p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] hover:border-[#D4AF37]/40 transition shadow-2xs"
+                    className="block p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-indigo-50/30 border border-indigo-200/90 hover:border-indigo-300 transition active:scale-95 duration-75 tap-active shadow-2xs relative overflow-hidden"
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-400 to-violet-600" />
+                    <div className="flex items-center justify-between pt-0.5">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-900">
+                          <span className="text-xs font-bold text-slate-900">
                             {req.title}
                           </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
                             {req.status}
                           </span>
                         </div>
@@ -363,22 +371,23 @@ export default async function GuestStayPage() {
         {/* ── 6. BILL & FOLIO PREVIEW ── */}
         <Link
           href="/guest/folio"
-          className="w-full p-4 rounded-3xl bg-white hover:bg-slate-50 border border-[#EAE3D2] hover:border-[#D4AF37]/50 flex items-center justify-between group transition shadow-sm"
+          className="w-full p-4 rounded-3xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 hover:from-amber-100/80 hover:via-white hover:to-amber-50/50 border border-amber-200/90 hover:border-amber-300 flex items-center justify-between group transition active:scale-95 duration-75 tap-active shadow-sm relative overflow-hidden"
         >
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 flex items-center justify-center font-bold text-base shadow-2xs">
-              <Receipt className="w-5 h-5 text-[#D4AF37]" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" />
+          <div className="flex items-center gap-3.5 pt-0.5">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md shadow-amber-500/25 flex items-center justify-center font-bold text-base">
+              <Receipt className="w-5 h-5 text-white" />
             </div>
             <div className="space-y-0.5">
-              <h2 className="text-sm font-serif font-semibold text-slate-900 group-hover:text-[#A67C1E] transition">
+              <h2 className="text-sm font-serif font-bold text-slate-900 group-hover:text-amber-800 transition">
                 Stay Folio &amp; Digital Statement
               </h2>
-              <p className="text-[11px] text-slate-500">
-                {orders.length} dining orders • Total Food: ₹{totalFoodSpent.toFixed(2)}
+              <p className="text-[11px] text-slate-600">
+                {orders.length} dining orders • Total Food: <span className="font-mono font-bold text-slate-900">₹{totalFoodSpent.toFixed(2)}</span>
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-[#A67C1E] font-semibold text-xs group-hover:translate-x-0.5 transition">
+          <div className="flex items-center gap-1 text-amber-700 font-bold text-xs group-hover:translate-x-0.5 transition">
             <span>View Folio</span>
             <ChevronRight className="w-4 h-4" />
           </div>
@@ -388,7 +397,7 @@ export default async function GuestStayPage() {
         {session.front_desk_phone && (
           <a
             href={`tel:${session.front_desk_phone}`}
-            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] border border-[#D4AF37]/35 text-[#E4C980] font-semibold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-[0.99]"
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#0B1526] via-[#111D31] to-[#0B1526] hover:brightness-110 border border-[#D4AF37]/35 text-[#E4C980] font-bold text-xs flex items-center justify-center gap-2 shadow-md transition active:scale-95 duration-75 tap-active"
           >
             <PhoneCall className="w-4 h-4 text-[#D4AF37]" />
             <span>Call Front Desk ({session.front_desk_phone})</span>

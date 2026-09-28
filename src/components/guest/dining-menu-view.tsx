@@ -245,10 +245,10 @@ export function DiningMenuView({
             <button
               type="button"
               onClick={() => setSelectedCategory("ALL")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-transform duration-75 active:scale-95 select-none ${
                 selectedCategory === "ALL"
-                  ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
-                  : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
+                  ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/50 shadow-xs"
+                  : "bg-white text-slate-700 border border-[#EAE3D2] hover:bg-slate-50"
               }`}
             >
               All Dishes
@@ -258,10 +258,10 @@ export function DiningMenuView({
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all select-none ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-transform duration-75 active:scale-95 select-none ${
                   selectedCategory === cat.id
-                    ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
-                    : "bg-white text-slate-600 border border-[#EAE3D2] hover:bg-slate-50"
+                    ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-xs border-amber-600"
+                    : "bg-amber-50/70 text-amber-900 border border-amber-200/80 hover:bg-amber-100"
                 }`}
               >
                 {cat.name}
@@ -270,11 +270,11 @@ export function DiningMenuView({
           </div>
         )}
 
-        {/* ── 4. MENU SECTIONS & DISHES LIST ── */}
+        {/* ── 4. MENU SECTIONS & DISHES LIST (COLORFUL) ── */}
         <div className="space-y-6">
           {filteredCategories.length === 0 ? (
-            <div className="p-10 rounded-2xl bg-white border border-[#EAE3D2] text-center space-y-2.5 shadow-2xs">
-              <div className="w-12 h-12 rounded-2xl bg-[#FAF4E6] text-[#A67C1E] mx-auto flex items-center justify-center">
+            <div className="p-10 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-2.5 shadow-2xs">
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF4E6] text-[#A67C1E] mx-auto flex items-center justify-center shadow-xs">
                 <UtensilsCrossed className="w-6 h-6" />
               </div>
               <h4 className="text-xs font-bold text-slate-900 font-serif">No Menu Items Found</h4>
@@ -292,21 +292,21 @@ export function DiningMenuView({
               return (
                 <div key={cat.id} className="space-y-3">
                   {/* Category Header */}
-                  <div className="border-b border-[#EAE3D2] pb-2 flex items-center justify-between">
+                  <div className="border-b border-amber-200/70 pb-2 flex items-center justify-between">
                     <div>
                       <h3 className="text-sm font-serif font-bold text-slate-900 tracking-wide">
                         {cat.name}
                       </h3>
                       {cat.description && (
-                        <p className="text-[11px] text-slate-500">{cat.description}</p>
+                        <p className="text-[11px] text-slate-500 font-medium">{cat.description}</p>
                       )}
                     </div>
-                    <span className="text-[10px] font-semibold text-slate-400">
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded-full border border-amber-200">
                       {categoryItems.length} {categoryItems.length === 1 ? "dish" : "dishes"}
                     </span>
                   </div>
 
-                  {/* Dishes Grid/Rows */}
+                  {/* Dishes Grid/Rows with Colorful Cards */}
                   <div className="space-y-3">
                     {categoryItems.map((item) => {
                       const qty = getItemQuantityInCart(item.id);
@@ -316,17 +316,17 @@ export function DiningMenuView({
                       return (
                         <div
                           key={item.id}
-                          className={`rounded-2xl border transition-all duration-200 overflow-hidden shadow-2xs ${
+                          className={`rounded-2xl border transition-transform duration-75 overflow-hidden shadow-2xs relative ${
                             isAvailable
-                              ? "bg-white border-[#EAE3D2] hover:border-[#D4AF37]/50 hover:shadow-xs"
-                              : "bg-slate-50 border-[#EAE3D2]/60 opacity-60"
+                              ? "bg-gradient-to-br from-amber-50/50 via-white to-orange-50/20 border-amber-200/80 hover:border-amber-400 hover:shadow-xs"
+                              : "bg-slate-50 border-slate-200 opacity-60"
                           }`}
                         >
                           <div className="flex items-stretch gap-3.5">
                             {/* Food Thumbnail (Clickable to open Food Detail) */}
                             <div
                               onClick={() => isAvailable && handleOpenDetail(item, cat.name)}
-                              className="relative w-28 sm:w-32 aspect-square bg-slate-100 shrink-0 cursor-pointer overflow-hidden group"
+                              className="relative w-28 sm:w-32 aspect-square bg-slate-100 shrink-0 cursor-pointer overflow-hidden group select-none"
                             >
                               <img
                                 src={foodImg}
@@ -348,20 +348,20 @@ export function DiningMenuView({
                             <div className="p-3 flex-1 flex flex-col justify-between space-y-2 min-w-0">
                               <div
                                 onClick={() => isAvailable && handleOpenDetail(item, cat.name)}
-                                className="cursor-pointer space-y-1 min-w-0"
+                                className="cursor-pointer space-y-1 min-w-0 select-none"
                               >
-                                <h4 className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-[#A67C1E] transition-colors truncate">
+                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-amber-800 transition-colors truncate">
                                   {item.name}
                                 </h4>
 
                                 {item.description && (
-                                  <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                                  <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed font-medium">
                                     {item.description}
                                   </p>
                                 )}
                               </div>
 
-                              <div className="flex items-center justify-between pt-1.5 border-t border-[#EAE3D2]/70">
+                              <div className="flex items-center justify-between pt-1.5 border-t border-amber-200/60">
                                 <span className="text-sm font-bold text-slate-900 font-mono">
                                   {currencySymbol}{Number(item.price).toFixed(2)}
                                 </span>
@@ -371,37 +371,37 @@ export function DiningMenuView({
                                   qty === 0 ? (
                                     <button
                                       onClick={() => handleAddItem(item)}
-                                      className="px-3.5 py-1.5 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 text-xs font-semibold flex items-center gap-1 shadow-2xs active:scale-95 transition"
+                                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-transform duration-75 active:scale-95 select-none"
                                       aria-label={`Add ${item.name} to order`}
                                     >
-                                      <Plus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                                      <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                                       <span>Add</span>
                                     </button>
                                   ) : (
-                                    <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#D4AF37]/40 rounded-xl p-1 shadow-2xs">
+                                    <div className="flex items-center gap-2 bg-[#FAF8F5] border border-amber-300/80 rounded-xl p-1 shadow-2xs select-none">
                                       <button
                                         onClick={() => updateQuantity(item.id, qty - 1)}
-                                        className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition"
+                                        className="w-6 h-6 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center transition-transform duration-75 active:scale-90"
                                         title="Decrease quantity"
                                         aria-label="Decrease quantity"
                                       >
-                                        <Minus className="w-3 h-3" />
+                                        <Minus className="w-3 h-3 stroke-[2.5]" />
                                       </button>
-                                      <span className="text-xs font-bold text-[#A67C1E] w-4 text-center">
+                                      <span className="text-xs font-bold text-amber-800 w-4 text-center">
                                         {qty}
                                       </span>
                                       <button
                                         onClick={() => updateQuantity(item.id, qty + 1)}
-                                        className="w-6 h-6 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold"
+                                        className="w-6 h-6 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center justify-center transition-transform duration-75 active:scale-90 font-bold"
                                         title="Increase quantity"
                                         aria-label="Increase quantity"
                                       >
-                                        <Plus className="w-3 h-3" />
+                                        <Plus className="w-3 h-3 stroke-[2.5]" />
                                       </button>
                                     </div>
                                   )
                                 ) : (
-                                  <span className="text-[10px] font-semibold text-rose-600 uppercase tracking-wider">
+                                  <span className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">
                                     Unavailable
                                   </span>
                                 )}

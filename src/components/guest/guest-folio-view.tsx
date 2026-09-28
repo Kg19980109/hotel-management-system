@@ -135,12 +135,18 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
 
       <div className="px-4 space-y-5 max-w-lg mx-auto">
         {/* ── 2. AUTHORITATIVE BALANCE DUE HERO CARD ── */}
-        <div className={`p-6 rounded-3xl border text-center space-y-3 shadow-sm ${
+        <div className={`p-6 rounded-3xl border text-center space-y-3 shadow-md relative overflow-hidden ${
           isSettled
-            ? "bg-emerald-50/70 border-emerald-200"
-            : "bg-[#FAF4E6] border-[#D4AF37]/50"
+            ? "bg-gradient-to-br from-emerald-50 via-white to-teal-50 border-emerald-200"
+            : "bg-gradient-to-br from-amber-50 via-white to-amber-100/50 border-amber-300"
         }`}>
-          <span className="text-[10.5px] font-bold text-slate-600 uppercase tracking-widest font-serif block">
+          <div className={`absolute top-0 left-0 right-0 h-1.5 ${
+            isSettled
+              ? "bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-600"
+              : "bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600"
+          }`} />
+
+          <span className="text-[10.5px] font-bold text-slate-600 uppercase tracking-widest font-serif block pt-1">
             {isSettled ? "Settlement Status" : "Current Outstanding Balance"}
           </span>
 
@@ -152,13 +158,13 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
 
           <div className="flex items-center justify-center gap-1.5 text-xs">
             {isSettled ? (
-              <span className="text-emerald-700 font-semibold flex items-center gap-1.5 bg-emerald-100/60 px-3 py-1 rounded-full border border-emerald-300">
+              <span className="text-emerald-800 font-bold flex items-center gap-1.5 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300 shadow-2xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>All charges settled in full</span>
               </span>
             ) : (
-              <span className="text-[#A67C1E] font-semibold flex items-center gap-1.5 bg-white/80 px-3 py-1 rounded-full border border-[#D4AF37]/40 shadow-2xs">
-                <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <span className="text-amber-800 font-bold flex items-center gap-1.5 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 shadow-2xs">
+                <Clock className="w-3.5 h-3.5 text-amber-700" />
                 <span>Settlement due upon check-out</span>
               </span>
             )}
@@ -166,9 +172,11 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
         </div>
 
         {/* ── 3. FINANCIAL SUMMARY STATEMENT ── */}
-        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-3 shadow-sm">
+        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-3 shadow-sm relative overflow-hidden">
           <div className="flex items-center gap-2 pb-2 border-b border-[#EAE3D2]">
-            <FileText className="w-4 h-4 text-[#D4AF37]" />
+            <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+              <FileText className="w-3.5 h-3.5" />
+            </div>
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
               Statement Summary
             </h2>
@@ -198,7 +206,7 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
 
             <div className="flex items-center justify-between text-sm font-bold text-slate-900 pt-3 border-t border-[#EAE3D2]">
               <span className="font-serif">Outstanding Balance</span>
-              <span className="font-mono text-[#A67C1E] text-base">
+              <span className="font-mono text-amber-700 text-base font-bold">
                 {currSym}{balanceDue.toFixed(2)}
               </span>
             </div>
@@ -211,7 +219,7 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
               Posted Charges ({folioContext.charges.length})
             </h2>
-            <span className="text-[10px] text-slate-500 font-medium">Billed to Room</span>
+            <span className="text-[10px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">Billed to Room</span>
           </div>
 
           {folioContext.charges.length === 0 ? (
@@ -223,21 +231,22 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {/* Room Charges Group */}
               {roomCharges.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 font-serif">
+                  <span className="text-[10px] font-bold text-indigo-800 uppercase tracking-wider px-1 font-serif">
                     Accommodation ({roomCharges.length})
                   </span>
                   <div className="space-y-2">
                     {roomCharges.map((charge) => (
                       <div
                         key={charge.id}
-                        className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
+                        className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-indigo-50/30 border border-indigo-200/90 flex items-center justify-between gap-3 shadow-2xs relative overflow-hidden"
                       >
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center shrink-0 mt-0.5">
-                            {getChargeIcon(charge.charge_type)}
+                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-400 to-violet-600" />
+                        <div className="flex items-start gap-3 min-w-0 pt-0.5">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-xs flex items-center justify-center shrink-0 mt-0.5">
+                            <BedDouble className="w-4 h-4 text-white" />
                           </div>
                           <div className="space-y-0.5 min-w-0">
-                            <h3 className="text-xs font-semibold text-slate-900 truncate">{charge.description}</h3>
+                            <h3 className="text-xs font-bold text-slate-900 truncate">{charge.description}</h3>
                             <p className="text-[10px] text-slate-500">
                               {charge.charge_date} • Qty: {charge.quantity}
                             </p>
@@ -263,21 +272,22 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {/* Dining & Room Service Group */}
               {diningCharges.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 font-serif">
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider px-1 font-serif">
                     Dining &amp; Room Service ({diningCharges.length})
                   </span>
                   <div className="space-y-2">
                     {diningCharges.map((charge) => (
                       <div
                         key={charge.id}
-                        className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
+                        className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/30 border border-amber-200/90 flex items-center justify-between gap-3 shadow-2xs relative overflow-hidden"
                       >
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/30 flex items-center justify-center shrink-0 mt-0.5">
-                            {getChargeIcon(charge.charge_type)}
+                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-600" />
+                        <div className="flex items-start gap-3 min-w-0 pt-0.5">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-xs flex items-center justify-center shrink-0 mt-0.5">
+                            <UtensilsCrossed className="w-4 h-4 text-white" />
                           </div>
                           <div className="space-y-0.5 min-w-0">
-                            <h3 className="text-xs font-semibold text-slate-900 truncate">{charge.description}</h3>
+                            <h3 className="text-xs font-bold text-slate-900 truncate">{charge.description}</h3>
                             <p className="text-[10px] text-slate-500">
                               {charge.charge_date} • Qty: {charge.quantity}
                             </p>
@@ -303,21 +313,22 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {/* Service & Ancillary Group */}
               {serviceCharges.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 font-serif">
+                  <span className="text-[10px] font-bold text-purple-800 uppercase tracking-wider px-1 font-serif">
                     Guest Services &amp; Ancillaries ({serviceCharges.length})
                   </span>
                   <div className="space-y-2">
                     {serviceCharges.map((charge) => (
                       <div
                         key={charge.id}
-                        className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
+                        className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-50/70 via-white to-purple-50/30 border border-purple-200/90 flex items-center justify-between gap-3 shadow-2xs relative overflow-hidden"
                       >
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-700 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-400 to-pink-600" />
+                        <div className="flex items-start gap-3 min-w-0 pt-0.5">
+                          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-xs flex items-center justify-center shrink-0 mt-0.5">
                             {getChargeIcon(charge.charge_type)}
                           </div>
                           <div className="space-y-0.5 min-w-0">
-                            <h3 className="text-xs font-semibold text-slate-900 truncate">{charge.description}</h3>
+                            <h3 className="text-xs font-bold text-slate-900 truncate">{charge.description}</h3>
                             <p className="text-[10px] text-slate-500">
                               {charge.charge_date} • Qty: {charge.quantity}
                             </p>
@@ -354,14 +365,15 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
               {folioContext.payments.map((payment) => (
                 <div
                   key={payment.id}
-                  className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between gap-3 shadow-2xs"
+                  className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-white to-emerald-50/30 border border-emerald-200/90 flex items-center justify-between gap-3 shadow-2xs relative overflow-hidden"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
-                      <CreditCard className="w-4 h-4 text-emerald-600" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-600" />
+                  <div className="flex items-center gap-3 pt-0.5">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-xs flex items-center justify-center shrink-0">
+                      <CreditCard className="w-4 h-4 text-white" />
                     </div>
                     <div className="space-y-0.5">
-                      <h3 className="text-xs font-semibold text-slate-900">{payment.payment_method} Payment</h3>
+                      <h3 className="text-xs font-bold text-slate-900">{payment.payment_method} Payment</h3>
                       <p className="text-[10px] text-slate-500 font-mono">
                         Ref: {payment.payment_reference || "Direct"} • {new Date(payment.paid_at).toLocaleDateString()}
                       </p>

@@ -155,27 +155,27 @@ export function FoodDetailSheet({
           </div>
 
           {/* Quantity Selector Section */}
-          <div className="p-3.5 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between shadow-2xs">
-            <span className="text-xs font-semibold text-slate-800">Select Quantity</span>
-            <div className="flex items-center gap-3 bg-[#FAF8F5] border border-[#EAE3D2] rounded-xl p-1 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/30 border border-amber-200/90 flex items-center justify-between shadow-2xs">
+            <span className="text-xs font-bold text-slate-800">Select Quantity</span>
+            <div className="flex items-center gap-3 bg-[#FAF8F5] border border-amber-300/80 rounded-xl p-1 shadow-2xs select-none">
               <button
                 type="button"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-8 h-8 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center active:scale-90 transition font-bold"
+                className="w-8 h-8 rounded-lg bg-white border border-[#EAE3D2] text-slate-700 hover:text-slate-950 flex items-center justify-center transition-transform duration-75 active:scale-90 font-bold"
                 aria-label="Decrease quantity"
               >
-                <Minus className="w-3.5 h-3.5" />
+                <Minus className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
-              <span className="text-sm font-bold text-slate-900 w-6 text-center font-mono">
+              <span className="text-sm font-bold text-amber-800 w-6 text-center font-mono">
                 {quantity}
               </span>
               <button
                 type="button"
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-8 h-8 rounded-lg bg-[#0B1526] text-[#E4C980] flex items-center justify-center active:scale-90 transition font-bold shadow-2xs"
+                className="w-8 h-8 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center justify-center transition-transform duration-75 active:scale-90 font-bold shadow-2xs"
                 aria-label="Increase quantity"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               </button>
             </div>
           </div>
@@ -186,9 +186,9 @@ export function FoodDetailSheet({
           <button
             type="button"
             onClick={handleConfirmAdd}
-            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs shadow-lg shadow-black/10 active:scale-[0.98] transition flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition-transform duration-75 active:scale-[0.98] flex items-center justify-center gap-2 select-none"
           >
-            <ShoppingBag className="w-4 h-4 text-[#D4AF37]" />
+            <ShoppingBag className="w-4 h-4 text-amber-200" />
             <span>
               Add {quantity} to Order · {currencySymbol}{totalPrice.toFixed(2)}
             </span>

@@ -270,33 +270,36 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
 
         {/* Service Feature Highlights */}
         <div className="grid grid-cols-1 gap-2.5 pt-2 relative z-10">
-          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-left flex items-center gap-3 transition">
-            <div className="w-9 h-9 rounded-xl bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/30 flex items-center justify-center font-bold text-sm shrink-0">
-              <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 border border-amber-200/90 text-left flex items-center gap-3 transition shadow-2xs relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 to-amber-600" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md shadow-amber-500/25 flex items-center justify-center font-bold text-sm shrink-0">
+              <UtensilsCrossed className="w-5 h-5" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs font-semibold text-slate-900 font-serif">In-Room Dining &amp; Bar</p>
-              <p className="text-[10.5px] text-slate-500">Browse live menus, order chef dishes, and track kitchen prep in real time</p>
+              <p className="text-xs font-bold text-slate-900 font-serif">In-Room Dining &amp; Bar</p>
+              <p className="text-[10.5px] text-slate-600">Browse live menus, order chef dishes, and track kitchen prep in real time</p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-left flex items-center gap-3 transition">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-sm shrink-0">
-              <Sparkles className="w-4 h-4 text-emerald-600" />
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/30 border border-emerald-200/90 text-left flex items-center gap-3 transition shadow-2xs relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-400 to-teal-600" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-md shadow-emerald-500/25 flex items-center justify-center font-bold text-sm shrink-0">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs font-semibold text-slate-900 font-serif">Housekeeping &amp; Amenities</p>
-              <p className="text-[10.5px] text-slate-500">Request extra towels, toiletries, or room cleaning with one tap</p>
+              <p className="text-xs font-bold text-slate-900 font-serif">Housekeeping &amp; Amenities</p>
+              <p className="text-[10.5px] text-slate-600">Request extra towels, toiletries, or room cleaning with one tap</p>
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-left flex items-center gap-3 transition">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center font-bold text-sm shrink-0">
-              <KeyRound className="w-4 h-4 text-indigo-600" />
+          <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-indigo-50/30 border border-indigo-200/90 text-left flex items-center gap-3 transition shadow-2xs relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-indigo-400 to-violet-600" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25 flex items-center justify-center font-bold text-sm shrink-0">
+              <KeyRound className="w-5 h-5" />
             </div>
             <div className="space-y-0.5">
-              <p className="text-xs font-semibold text-slate-900 font-serif">Maintenance &amp; Concierge</p>
-              <p className="text-[10.5px] text-slate-500">Direct instant alerts to hotel staff with real-time tracking</p>
+              <p className="text-xs font-bold text-slate-900 font-serif">Maintenance &amp; Concierge</p>
+              <p className="text-[10.5px] text-slate-600">Direct instant alerts to hotel staff with real-time tracking</p>
             </div>
           </div>
         </div>
@@ -307,7 +310,7 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
             <button
               type="button"
               onClick={() => setShowManualForm(true)}
-              className="text-[11px] text-slate-500 hover:text-[#A67C1E] underline transition"
+              className="text-[11px] text-slate-500 hover:text-amber-800 underline transition active:scale-95 duration-75 tap-active"
             >
               Manual reservation lookup (optional)
             </button>
@@ -326,7 +329,7 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs transition"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#0B1526] via-[#111D31] to-[#0B1526] hover:brightness-110 text-[#E4C980] border border-[#D4AF37]/35 font-bold text-xs transition active:scale-95 duration-75 tap-active"
               >
                 Submit Code
               </button>
@@ -335,9 +338,9 @@ export function StayVerificationCard({ rawToken, resolution }: StayVerificationC
         </div>
 
         {/* Security & Privacy Notice */}
-        <div className="p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] text-[11px] text-slate-600 flex items-center justify-center gap-2">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/30 border border-emerald-200/80 text-[11px] text-slate-700 flex items-center justify-center gap-2">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-          <span>Encrypted Guest Access • Active In-Room Session</span>
+          <span className="font-semibold">Encrypted Guest Access • Active In-Room Session</span>
         </div>
       </div>
     );

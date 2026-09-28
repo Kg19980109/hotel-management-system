@@ -279,13 +279,14 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
 
       <div className="px-4 space-y-4">
         {/* ── 3. DELIVERY DESTINATION CARD ── */}
-        <div className="p-4 rounded-2xl bg-white border border-[#EAE3D2] flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] flex items-center justify-center shrink-0">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-50/80 via-white to-sky-50/30 border border-sky-200/90 flex items-center justify-between shadow-2xs relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 via-sky-500 to-blue-600" />
+          <div className="flex items-center gap-3.5 min-w-0 pt-0.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 text-white shadow-md shadow-sky-500/25 flex items-center justify-center shrink-0">
               <BedDouble className="w-5 h-5" />
             </div>
             <div className="space-y-0.5 min-w-0">
-              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
+              <span className="text-[10px] uppercase font-bold text-sky-700 tracking-wider">
                 Delivery Target
               </span>
               <p className="text-xs font-bold text-slate-900 truncate">
@@ -293,16 +294,20 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
               </p>
             </div>
           </div>
-          <span className="text-[10px] text-[#A67C1E] font-semibold px-2.5 py-0.5 rounded-full bg-[#FAF4E6] border border-[#D4AF37]/30 shrink-0">
+          <span className="text-[10px] text-sky-800 font-bold px-2.5 py-1 rounded-full bg-sky-100/90 border border-sky-300/80 shrink-0">
             Direct to Door
           </span>
         </div>
 
         {/* ── 4. DIGITAL ORDER RECEIPT ── */}
-        <div className="p-5 rounded-3xl bg-white border border-[#EAE3D2] space-y-4 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-[#EAE3D2]">
+        <div className="p-5 rounded-3xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/30 border border-amber-200/90 space-y-4 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" />
+
+          <div className="flex items-center justify-between pb-3 border-b border-amber-200/70 pt-0.5">
             <div className="flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-[#A67C1E]" />
+              <div className="w-6 h-6 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
+                <Receipt className="w-3.5 h-3.5" />
+              </div>
               <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
                 Digital Order Receipt ({order.items.length} {order.items.length === 1 ? "dish" : "dishes"})
               </h3>
@@ -314,18 +319,18 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
 
           <div className="space-y-2.5">
             {order.items.map((item: GuestOrderItemSummary) => (
-              <div key={item.id} className="flex items-start justify-between text-xs py-1 border-b border-[#EAE3D2]/60 last:border-b-0 gap-3">
+              <div key={item.id} className="flex items-start justify-between text-xs py-1 border-b border-amber-100 last:border-b-0 gap-3">
                 <div className="space-y-0.5 min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-md bg-[#FAF4E6] text-[#A67C1E] font-bold text-[10px] flex items-center justify-center shrink-0">
+                    <span className="w-5 h-5 rounded-md bg-amber-100 text-amber-800 font-bold text-[10px] flex items-center justify-center shrink-0 border border-amber-300/60">
                       {item.quantity}×
                     </span>
-                    <span className="font-semibold text-slate-900 truncate">
+                    <span className="font-bold text-slate-900 truncate">
                       {item.item_name}
                     </span>
                   </div>
                   {item.notes && (
-                    <p className="text-[10px] text-[#A67C1E] italic pl-7 line-clamp-2">
+                    <p className="text-[10px] text-amber-800 italic pl-7 line-clamp-2">
                       &ldquo;{item.notes}&rdquo;
                     </p>
                   )}
@@ -338,7 +343,7 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
           </div>
 
           {/* Bill Breakdown */}
-          <div className="pt-3 border-t border-[#EAE3D2] space-y-1.5 text-xs text-slate-600">
+          <div className="pt-3 border-t border-amber-200/80 space-y-1.5 text-xs text-slate-600">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span className="font-mono font-semibold text-slate-800">
@@ -353,11 +358,11 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
             </div>
             <div className="flex justify-between">
               <span>Room Service Delivery</span>
-              <span className="font-semibold text-emerald-600 uppercase">COMPLIMENTARY</span>
+              <span className="font-bold text-emerald-700 uppercase text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLIMENTARY</span>
             </div>
-            <div className="flex justify-between pt-2 border-t border-[#EAE3D2] font-bold text-slate-900 text-sm">
-              <span>Total Charged to Room</span>
-              <span className="font-mono text-base text-slate-900">
+            <div className="flex justify-between pt-2 border-t border-amber-200/80 font-bold text-slate-900 text-sm">
+              <span className="font-serif">Total Charged to Room</span>
+              <span className="font-mono text-base text-slate-900 font-bold">
                 ₹{Number(order.total_amount).toFixed(2)}
               </span>
             </div>
@@ -368,17 +373,17 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
         <div className="space-y-2.5 pt-1">
           <Link
             href="/guest/dining"
-            className="w-full py-3.5 px-4 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs text-center shadow-md active:scale-[0.98] transition flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs text-center shadow-md shadow-amber-500/20 active:scale-95 duration-75 tap-active transition flex items-center justify-center gap-2"
           >
-            <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
+            <UtensilsCrossed className="w-4 h-4 text-white" />
             <span>Order More Dishes</span>
           </Link>
 
           <Link
             href="/guest/services"
-            className="w-full py-3 px-4 rounded-xl bg-white hover:bg-slate-50 border border-[#EAE3D2] text-slate-700 font-semibold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98] shadow-2xs"
+            className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95 duration-75 tap-active shadow-2xs"
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#A67C1E]" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
             <span>Hospitality Services</span>
           </Link>
         </div>

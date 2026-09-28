@@ -129,21 +129,22 @@ export default async function GuestOrdersPage() {
       <div className="px-4 space-y-5">
         {/* Orders Content */}
         {orders.length === 0 ? (
-          <div className="p-10 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-4 shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] mx-auto flex items-center justify-center">
+          <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/30 border border-amber-200/80 text-center space-y-4 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/25 mx-auto flex items-center justify-center">
               <UtensilsCrossed className="w-8 h-8" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-serif font-semibold text-slate-900">No Orders Placed Yet</h3>
-              <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+              <h3 className="text-base font-serif font-bold text-slate-900">No Orders Placed Yet</h3>
+              <p className="text-xs text-slate-600 max-w-xs mx-auto leading-relaxed">
                 Your next gourmet culinary experience is just a few taps away. Explore our chef-crafted in-room dining menus.
               </p>
             </div>
             <Link
               href="/guest/dining"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs shadow-md transition active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs shadow-md shadow-amber-500/20 transition active:scale-95 duration-75 tap-active"
             >
-              <UtensilsCrossed className="w-4 h-4 text-[#D4AF37]" />
+              <UtensilsCrossed className="w-4 h-4 text-white" />
               <span>Explore Dining &amp; Menus</span>
             </Link>
           </div>
@@ -154,12 +155,14 @@ export default async function GuestOrdersPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between px-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shadow-sm shadow-amber-500/50" />
                     <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-serif">
                       Active Orders ({activeOrders.length})
                     </h3>
                   </div>
-                  <span className="text-[10px] text-[#A67C1E] font-semibold">Live Kitchen Tracking</span>
+                  <span className="text-[10px] text-amber-700 font-bold bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-300/60">
+                    Live Kitchen Tracking
+                  </span>
                 </div>
 
                 <div className="space-y-3">
@@ -167,38 +170,46 @@ export default async function GuestOrdersPage() {
                     <Link
                       key={order.id}
                       href={`/guest/orders/${order.id}`}
-                      className="block p-4 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] transition-all duration-200 active:scale-[0.99] group shadow-sm hover:shadow-md relative overflow-hidden"
+                      className="block p-4 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30 hover:from-amber-100/80 hover:via-white hover:to-amber-50/50 border border-amber-200/90 hover:border-amber-300 transition-all duration-75 active:scale-95 tap-active group shadow-2xs hover:shadow-md relative overflow-hidden"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1.5 min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono font-bold text-slate-900 bg-[#FAF4E6] border border-[#D4AF37]/30 px-2 py-0.5 rounded-md">
-                              #{order.order_number}
-                            </span>
-                            {getStatusBadge(order.status)}
+                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600" />
+
+                      <div className="flex items-start justify-between gap-3 pt-0.5">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-md shadow-amber-500/25 flex items-center justify-center shrink-0 mt-0.5">
+                            <UtensilsCrossed className="w-5 h-5" />
                           </div>
 
-                          <h4 className="text-sm font-serif font-semibold text-slate-900 group-hover:text-[#A67C1E] transition truncate">
-                            {order.restaurant_name}
-                          </h4>
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-mono font-bold text-amber-900 bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-md">
+                                #{order.order_number}
+                              </span>
+                              {getStatusBadge(order.status)}
+                            </div>
 
-                          <p className="text-xs text-slate-600">
-                            {order.item_count} {order.item_count === 1 ? "dish" : "dishes"} · Total:{" "}
-                            <span className="text-slate-900 font-bold font-mono">
-                              ₹{Number(order.total_amount).toFixed(2)}
-                            </span>
-                          </p>
+                            <h4 className="text-sm font-serif font-bold text-slate-900 group-hover:text-amber-800 transition truncate">
+                              {order.restaurant_name}
+                            </h4>
+
+                            <p className="text-xs text-slate-600">
+                              {order.item_count} {order.item_count === 1 ? "dish" : "dishes"} · Total:{" "}
+                              <span className="text-slate-900 font-bold font-mono text-xs">
+                                ₹{Number(order.total_amount).toFixed(2)}
+                              </span>
+                            </p>
+                          </div>
                         </div>
 
-                        <div className="w-8 h-8 rounded-full bg-[#FAF4E6] border border-[#D4AF37]/30 flex items-center justify-center text-[#A67C1E] group-hover:bg-[#0B1526] group-hover:text-[#E4C980] transition shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-amber-100/80 border border-amber-300/80 flex items-center justify-center text-amber-800 group-hover:bg-[#0B1526] group-hover:text-[#E4C980] transition shrink-0">
                           <ChevronRight className="w-4 h-4" />
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-2.5 border-t border-[#EAE3D2] flex items-center justify-between text-[11px] text-slate-500">
+                      <div className="mt-3 pt-2.5 border-t border-amber-200/60 flex items-center justify-between text-[11px] text-slate-500">
                         <span>Placed at {new Date(order.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                        <span className="text-[#A67C1E] font-semibold group-hover:underline flex items-center gap-1">
-                          <Bell className="w-3 h-3 text-[#A67C1E]" />
+                        <span className="text-amber-700 font-bold group-hover:underline flex items-center gap-1">
+                          <Bell className="w-3 h-3 text-amber-600" />
                           <span>Track Live Progress →</span>
                         </span>
                       </div>
@@ -218,43 +229,70 @@ export default async function GuestOrdersPage() {
                 </div>
 
                 <div className="space-y-2.5">
-                  {pastOrders.map((order) => (
-                    <Link
-                      key={order.id}
-                      href={`/guest/orders/${order.id}`}
-                      className="block p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-[#EAE3D2] transition active:scale-[0.99] group shadow-2xs"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="space-y-1 min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono font-semibold text-slate-500">
-                              #{order.order_number}
-                            </span>
-                            {getStatusBadge(order.status)}
+                  {pastOrders.map((order) => {
+                    const isCancelled = order.status === "CANCELLED";
+                    return (
+                      <Link
+                        key={order.id}
+                        href={`/guest/orders/${order.id}`}
+                        className={`block p-3.5 rounded-2xl transition-all duration-75 active:scale-95 tap-active group shadow-2xs relative overflow-hidden ${
+                          isCancelled
+                            ? "bg-gradient-to-br from-rose-50/60 via-white to-rose-50/30 border border-rose-200/80 hover:border-rose-300"
+                            : "bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/30 border border-emerald-200/80 hover:border-emerald-300"
+                        }`}
+                      >
+                        <div className={`absolute top-0 left-0 right-0 h-0.5 ${
+                          isCancelled
+                            ? "bg-gradient-to-r from-rose-400 to-rose-600"
+                            : "bg-gradient-to-r from-emerald-400 to-teal-600"
+                        }`} />
+
+                        <div className="flex items-start justify-between gap-2 pt-0.5">
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-xs ${
+                              isCancelled
+                                ? "bg-rose-100 text-rose-700 border border-rose-200"
+                                : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            }`}>
+                              {isCancelled ? (
+                                <UtensilsCrossed className="w-4 h-4 text-rose-600" />
+                              ) : (
+                                <PackageCheck className="w-4 h-4 text-emerald-700" />
+                              )}
+                            </div>
+
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
+                                  #{order.order_number}
+                                </span>
+                                {getStatusBadge(order.status)}
+                              </div>
+
+                              <h4 className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-amber-800 transition truncate">
+                                {order.restaurant_name}
+                              </h4>
+
+                              <p className="text-[11px] text-slate-500">
+                                {order.item_count} items · <span className="font-mono font-bold text-slate-800">₹{Number(order.total_amount).toFixed(2)}</span>
+                              </p>
+                            </div>
                           </div>
 
-                          <h4 className="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-[#A67C1E] transition truncate">
-                            {order.restaurant_name}
-                          </h4>
-
-                          <p className="text-[11px] text-slate-500">
-                            {order.item_count} items · ₹{Number(order.total_amount).toFixed(2)}
-                          </p>
+                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-amber-700 group-hover:translate-x-0.5 transition shrink-0 mt-1" />
                         </div>
 
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#A67C1E] group-hover:translate-x-0.5 transition shrink-0 mt-1" />
-                      </div>
-
-                      <div className="mt-2 pt-2 border-t border-[#EAE3D2]/70 flex items-center justify-between text-[10.5px] text-slate-400">
-                        <span>
-                          {new Date(order.created_at).toLocaleDateString([], { month: "short", day: "numeric" })} at {new Date(order.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                        <span className="text-slate-600 group-hover:text-[#A67C1E] font-medium">
-                          View Receipt →
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
+                        <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10.5px] text-slate-400">
+                          <span>
+                            {new Date(order.created_at).toLocaleDateString([], { month: "short", day: "numeric" })} at {new Date(order.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          <span className="text-slate-600 group-hover:text-amber-700 font-bold">
+                            View Receipt →
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}

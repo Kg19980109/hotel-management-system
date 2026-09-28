@@ -345,19 +345,19 @@ export default function HousekeepingPage() {
 
       {/* Live Guest QR Request Notification Bar */}
       {pendingGuestRequests > 0 && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md shadow-amber-500/5 backdrop-blur-xs">
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs backdrop-blur-xs">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold shrink-0">
-              <BellRing className="w-5 h-5 animate-bounce" />
+            <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold shrink-0">
+              <BellRing className="w-4.5 h-4.5 animate-bounce" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
+              <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
                 <span>{pendingGuestRequests} Live Guest QR Request{pendingGuestRequests > 1 ? "s" : ""}</span>
                 <span className="text-[10px] bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">
                   Action Required
                 </span>
               </h4>
-              <p className="text-xs text-[var(--foreground-muted)]">
+              <p className="text-xs text-muted-foreground">
                 In-room guests have requested housekeeping services (Towels, Cleaning, Toiletries, Linens).
               </p>
             </div>
@@ -365,65 +365,62 @@ export default function HousekeepingPage() {
           <Button
             size="sm"
             onClick={() => setActiveTab("guest_requests")}
-            className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shrink-0 h-9"
+            className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shrink-0 h-9 px-4"
           >
-            View Guest Requests ({pendingGuestRequests})
+            View Requests ({pendingGuestRequests})
           </Button>
         </div>
       )}
 
-      {/* KPI Grid */}
-      <HousekeepingKPIGrid stats={stats} loading={loading && tasks.length === 0} />
-
       {/* Operational Navigation Tabs */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs max-w-fit">
-        <button
-          type="button"
-          onClick={() => setActiveTab("guest_requests")}
-          className={cn(
-            "px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2",
-            activeTab === "guest_requests"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          )}
-        >
-          <BellRing className="w-4 h-4 text-amber-400" />
-          <span>Guest QR Requests</span>
-          <span
-            className={cn(
-              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
-              activeTab === "guest_requests"
-                ? "bg-white/20 text-white"
-                : pendingGuestRequests > 0
-                ? "bg-rose-500 text-white animate-pulse"
-                : "bg-slate-100 text-slate-700"
-            )}
-          >
-            {guestRequests.length}
-          </span>
-        </button>
-
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-card border border-border/80 shadow-xs max-w-fit">
         <button
           type="button"
           onClick={() => setActiveTab("tasks")}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2",
+            "px-4 py-2 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer",
             activeTab === "tasks"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
           )}
         >
-          <Sparkles className="w-4 h-4 text-emerald-400" />
+          <Sparkles className={cn("w-3.5 h-3.5", activeTab === "tasks" ? "text-primary-foreground" : "text-emerald-500")} />
           <span>Cleaning Tasks</span>
           <span
             className={cn(
               "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
               activeTab === "tasks"
-                ? "bg-white/20 text-white"
-                : "bg-slate-100 text-slate-700"
+                ? "bg-white/20 text-primary-foreground"
+                : "bg-muted text-muted-foreground"
             )}
           >
             {tasks.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("guest_requests")}
+          className={cn(
+            "px-4 py-2 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer",
+            activeTab === "guest_requests"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )}
+        >
+          <BellRing className={cn("w-3.5 h-3.5", activeTab === "guest_requests" ? "text-primary-foreground" : "text-amber-500")} />
+          <span>Guest QR Requests</span>
+          <span
+            className={cn(
+              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
+              activeTab === "guest_requests"
+                ? "bg-white/20 text-primary-foreground"
+                : pendingGuestRequests > 0
+                ? "bg-rose-500 text-white animate-pulse"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {guestRequests.length}
           </span>
         </button>
       </div>
@@ -438,13 +435,17 @@ export default function HousekeepingPage() {
           onRetry={loadHousekeepingData}
         />
       ) : activeTab === "tasks" ? (
-        <HousekeepingBoard
-          tasks={tasks}
-          floors={floors}
-          rooms={rooms}
-          staffList={staffList}
-          propertyId={propertyId || ""}
-        />
+        <div className="space-y-4">
+          {/* Room Cleaning KPI Grid */}
+          <HousekeepingKPIGrid stats={stats} loading={loading && tasks.length === 0} />
+          <HousekeepingBoard
+            tasks={tasks}
+            floors={floors}
+            rooms={rooms}
+            staffList={staffList}
+            propertyId={propertyId || ""}
+          />
+        </div>
       ) : (
         <GuestRequestsBoard
           propertyId={propertyId || ""}

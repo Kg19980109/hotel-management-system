@@ -296,19 +296,19 @@ export default function MaintenancePage() {
 
       {/* Live Guest QR Repair Ticket Notification Bar */}
       {pendingGuestRequests > 0 && (
-        <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md shadow-blue-500/5 backdrop-blur-xs">
+        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs backdrop-blur-xs">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold shrink-0">
-              <Wrench className="w-5 h-5 animate-bounce" />
+            <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-500 flex items-center justify-center font-bold shrink-0">
+              <Wrench className="w-4.5 h-4.5 animate-bounce" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
-                <span>{pendingGuestRequests} Guest QR Repair Ticket{pendingGuestRequests > 1 ? "s" : ""}</span>
-                <span className="text-[10px] bg-blue-500 text-white font-black px-2 py-0.5 rounded-full uppercase">
+              <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+                <span>{pendingGuestRequests} Live QR Repair Ticket{pendingGuestRequests > 1 ? "s" : ""}</span>
+                <span className="text-[10px] bg-blue-600 text-white font-black px-2 py-0.5 rounded-full uppercase">
                   Action Required
                 </span>
               </h4>
-              <p className="text-xs text-[var(--foreground-muted)]">
+              <p className="text-xs text-muted-foreground">
                 In-room guests reported maintenance and engineering issues (AC, Plumbing, Electrical, Appliances).
               </p>
             </div>
@@ -316,78 +316,79 @@ export default function MaintenancePage() {
           <Button
             size="sm"
             onClick={() => setActiveTab("guest_requests")}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 h-9"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shrink-0 h-9 px-4 shadow-xs"
           >
-            View QR Repair Tickets ({pendingGuestRequests})
+            View Tickets ({pendingGuestRequests})
           </Button>
         </div>
       )}
 
-      {/* Real-Time KPIs Grid */}
-      {stats && <MaintenanceKPIGrid stats={stats} />}
-
       {/* Operational Navigation Tabs */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs max-w-fit">
-        <button
-          type="button"
-          onClick={() => setActiveTab("guest_requests")}
-          className={cn(
-            "px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2",
-            activeTab === "guest_requests"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          )}
-        >
-          <BellRing className="w-4 h-4 text-amber-400" />
-          <span>Guest QR Tickets</span>
-          <span
-            className={cn(
-              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
-              activeTab === "guest_requests"
-                ? "bg-white/20 text-white"
-                : pendingGuestRequests > 0
-                ? "bg-rose-500 text-white animate-pulse"
-                : "bg-slate-100 text-slate-700"
-            )}
-          >
-            {guestRequests.length}
-          </span>
-        </button>
-
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-card border border-border/80 shadow-xs max-w-fit">
         <button
           type="button"
           onClick={() => setActiveTab("orders")}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 flex items-center gap-2",
+            "px-4 py-2 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer",
             activeTab === "orders"
-              ? "bg-slate-900 text-white shadow-sm"
-              : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
           )}
         >
-          <ClipboardList className="w-4 h-4 text-indigo-400" />
+          <ClipboardList className={cn("w-3.5 h-3.5", activeTab === "orders" ? "text-primary-foreground" : "text-indigo-400")} />
           <span>Work Orders</span>
           <span
             className={cn(
               "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
               activeTab === "orders"
-                ? "bg-white/20 text-white"
-                : "bg-slate-100 text-slate-700"
+                ? "bg-white/20 text-primary-foreground"
+                : "bg-muted text-muted-foreground"
             )}
           >
             {workOrders.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("guest_requests")}
+          className={cn(
+            "px-4 py-2 rounded-lg text-xs font-bold transition-all duration-150 flex items-center gap-2 cursor-pointer",
+            activeTab === "guest_requests"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          )}
+        >
+          <BellRing className={cn("w-3.5 h-3.5", activeTab === "guest_requests" ? "text-primary-foreground" : "text-amber-500")} />
+          <span>Guest QR Tickets</span>
+          <span
+            className={cn(
+              "px-2 py-0.5 rounded-full text-[10px] font-mono font-bold",
+              activeTab === "guest_requests"
+                ? "bg-white/20 text-primary-foreground"
+                : pendingGuestRequests > 0
+                ? "bg-rose-500 text-white animate-pulse"
+                : "bg-muted text-muted-foreground"
+            )}
+          >
+            {guestRequests.length}
           </span>
         </button>
       </div>
 
       {/* Master Operations Board */}
       {activeTab === "orders" ? (
-        <MaintenanceBoard
-          propertyId={activePropertyId}
-          workOrders={workOrders}
-          rooms={rooms}
-          staff={staff}
-          onRefresh={loadData}
-        />
+        <div className="space-y-4">
+          {/* Real-Time KPIs Grid */}
+          {stats && <MaintenanceKPIGrid stats={stats} />}
+          <MaintenanceBoard
+            propertyId={activePropertyId}
+            workOrders={workOrders}
+            rooms={rooms}
+            staff={staff}
+            onRefresh={loadData}
+          />
+        </div>
       ) : (
         <GuestRequestsBoard
           propertyId={activePropertyId || ""}

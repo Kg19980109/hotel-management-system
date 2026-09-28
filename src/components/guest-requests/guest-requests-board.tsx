@@ -240,92 +240,92 @@ export function GuestRequestsBoard({
   return (
     <div className="space-y-4">
       {/* 1. Sleek Interactive Status Filters Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          {
-            id: "ALL",
-            title: "Total Requests",
-            value: total,
-            sub: "All Tickets",
-            color: "from-indigo-500 to-blue-600",
-            icon: Inbox,
-            iconBg: "bg-indigo-50 text-indigo-600 border-indigo-100",
-          },
-          {
-            id: "SUBMITTED",
-            title: "New / Submitted",
-            value: submitted,
-            sub: submitted > 0 ? "Requires Triage" : "All clear",
-            color: "from-amber-500 to-orange-600",
-            icon: AlertTriangle,
-            iconBg: "bg-amber-50 text-amber-600 border-amber-100",
-          },
-          {
-            id: "IN_PROGRESS",
-            title: "Active / In-Progress",
-            value: inProgress,
-            sub: "In Dispatch",
-            color: "from-blue-500 to-cyan-600",
-            icon: Clock,
-            iconBg: "bg-blue-50 text-blue-600 border-blue-100",
-          },
-          {
-            id: "COMPLETED",
-            title: "Completed Today",
-            value: completed,
-            sub: "Resolved",
-            color: "from-emerald-500 to-teal-600",
-            icon: CheckCircle2,
-            iconBg: "bg-emerald-50 text-emerald-600 border-emerald-100",
-          },
-        ].map((item) => {
-          const Icon = item.icon;
-          const isSelected = selectedStatus === item.id;
+      {!hideTopKpiGrid && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            {
+              id: "ALL",
+              title: "Total Requests",
+              value: total,
+              sub: "All Tickets",
+              icon: Inbox,
+              iconColor: "text-blue-500",
+              iconBg: "bg-blue-500/10 border-blue-500/20",
+              activeStyle: "ring-2 ring-blue-500/80 border-blue-500/40 bg-blue-500/5",
+            },
+            {
+              id: "SUBMITTED",
+              title: "New / Submitted",
+              value: submitted,
+              sub: submitted > 0 ? "Requires Triage" : "All clear",
+              icon: AlertTriangle,
+              iconColor: "text-amber-500",
+              iconBg: "bg-amber-500/10 border-amber-500/20",
+              activeStyle: "ring-2 ring-amber-500/80 border-amber-500/40 bg-amber-500/5",
+            },
+            {
+              id: "IN_PROGRESS",
+              title: "Active / In-Progress",
+              value: inProgress,
+              sub: "In Dispatch",
+              icon: Clock,
+              iconColor: "text-indigo-500",
+              iconBg: "bg-indigo-500/10 border-indigo-500/20",
+              activeStyle: "ring-2 ring-indigo-500/80 border-indigo-500/40 bg-indigo-500/5",
+            },
+            {
+              id: "COMPLETED",
+              title: "Completed Today",
+              value: completed,
+              sub: "Resolved",
+              icon: CheckCircle2,
+              iconColor: "text-emerald-500",
+              iconBg: "bg-emerald-500/10 border-emerald-500/20",
+              activeStyle: "ring-2 ring-emerald-500/80 border-emerald-500/40 bg-emerald-500/5",
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isSelected = selectedStatus === item.id;
 
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() =>
-                setSelectedStatus(isSelected && item.id !== "ALL" ? "ALL" : item.id)
-              }
-              className={cn(
-                "group relative flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200/90 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm overflow-hidden",
-                isSelected
-                  ? "ring-2 ring-indigo-500 border-indigo-400 bg-gradient-to-br from-indigo-50/40 to-white shadow-xs"
-                  : "shadow-2xs"
-              )}
-            >
-              <div
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() =>
+                  setSelectedStatus(isSelected && item.id !== "ALL" ? "ALL" : item.id)
+                }
                 className={cn(
-                  "absolute top-0 left-0 right-0 h-1 bg-gradient-to-r",
-                  item.color,
-                  isSelected ? "opacity-100" : "opacity-40 group-hover:opacity-100"
-                )}
-              />
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block font-mono">
-                  {item.title}
-                </span>
-                <span className="text-xl font-black text-slate-900 mt-0.5 block tabular-nums">
-                  {item.value}
-                </span>
-                <span className="text-[10.5px] font-semibold text-slate-500 block mt-0.5">
-                  {item.sub}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  "w-8.5 h-8.5 rounded-xl border flex items-center justify-center shrink-0 shadow-2xs",
-                  item.iconBg
+                  "group relative flex items-center justify-between p-3.5 rounded-xl bg-card border border-border/70 text-left transition-all duration-200 select-none hover:-translate-y-0.5 hover:shadow-md hover:border-border cursor-pointer",
+                  isSelected
+                    ? cn(item.activeStyle, "shadow-sm")
+                    : "shadow-2xs"
                 )}
               >
-                <Icon className="w-4 h-4" />
-              </div>
-            </button>
-          );
-        })}
-      </div>
+                <div>
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground block">
+                    {item.title}
+                  </span>
+                  <span className="text-2xl font-black text-foreground mt-0.5 block tabular-nums">
+                    {item.value}
+                  </span>
+                  <span className="text-[11px] font-medium text-muted-foreground/80 block mt-0.5">
+                    {item.sub}
+                  </span>
+                </div>
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105",
+                    item.iconBg,
+                    item.iconColor
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* 2. Controls & Search Filter Bar */}
       <div className="stayhub-card p-3.5">

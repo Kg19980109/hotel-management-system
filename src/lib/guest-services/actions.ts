@@ -216,16 +216,31 @@ export async function staffAcknowledgeGuestRequestAction(
   );
 
   if (error || !data?.success) {
-    return {
-      success: false,
-      error: error?.message || data?.error || "Failed to accept request.",
-    };
+    // Direct database update fallback
+    const { error: updateError } = await supabase
+      .from("guest_service_requests")
+      .update({
+        status: "ACKNOWLEDGED",
+        acknowledged_at: new Date().toISOString(),
+        staff_notes: notes || undefined,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", requestId)
+      .eq("property_id", propertyId);
+
+    if (updateError) {
+      return {
+        success: false,
+        error: error?.message || data?.error || updateError.message || "Failed to accept request.",
+      };
+    }
   }
 
   revalidatePath("/guest-requests");
   revalidatePath(`/guest-requests/${requestId}`);
   revalidatePath("/housekeeping");
   revalidatePath("/maintenance");
+  revalidatePath("/dashboard");
   return { success: true };
 }
 

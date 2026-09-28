@@ -20,6 +20,8 @@ import {
   ChevronLeft,
   Minimize2,
   Maximize2,
+  X,
+  CheckCircle2,
 } from "lucide-react";
 import { useOperationalAlerts } from "./operational-alert-provider";
 import { getDepartmentQueueHref } from "@/lib/alerts/routing";
@@ -68,16 +70,17 @@ export function OperationalAlertOverlay() {
     currentAlert.category === "FOOD" ||
     currentAlert.category === "DINING";
 
-  const handleAccept = async () => {
+  const handleAccept = async (andNavigate = false) => {
     if (!currentAlert) return;
     const targetAlert = currentAlert;
     setIsSubmitting(true);
     try {
-      await acknowledgeAlert(targetAlert.id);
-      // Automatically navigate to the destination queue (e.g. /kitchen for food orders)
-      const href = getDepartmentQueueHref(targetAlert.category, targetAlert.id);
       setIsModalMinimized(true);
-      router.push(href);
+      await acknowledgeAlert(targetAlert.id);
+      if (andNavigate) {
+        const href = getDepartmentQueueHref(targetAlert.category, targetAlert.id);
+        router.push(href);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -223,13 +226,18 @@ export function OperationalAlertOverlay() {
               )}
             </button>
 
-            {/* Minimize */}
+            {/* Close / Dismiss Alert */}
             <button
-              onClick={() => setIsModalMinimized(true)}
-              title="Minimize alert"
+              onClick={() => {
+                if (currentAlert) {
+                  void acknowledgeAlert(currentAlert.id);
+                }
+                setIsModalMinimized(true);
+              }}
+              title="Acknowledge & Close"
               className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition"
             >
-              <Minimize2 className="w-4 h-4" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -343,17 +351,19 @@ export function OperationalAlertOverlay() {
         <div className="p-6 pt-0 flex items-center gap-3 relative">
           <button
             disabled={isSubmitting}
-            onClick={handleAccept}
+            onClick={() => handleAccept(false)}
             className="flex-1 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#D4AF37] to-[#E5C158] hover:from-[#E5C158] hover:to-[#F3D77B] text-[#08111F] font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-[#D4AF37]/25 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            <span>{isFoodOrder ? "Accept & Send to Kitchen KDS" : "Accept Request"}</span>
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{isFoodOrder ? "Acknowledge & Fire to KDS" : "Acknowledge Request"}</span>
           </button>
 
           <button
-            onClick={handleView}
+            disabled={isSubmitting}
+            onClick={() => handleAccept(true)}
             className="py-3.5 px-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs uppercase tracking-wider transition-all border border-white/15 flex items-center gap-1.5"
           >
-            <span>{isFoodOrder ? "View KDS" : "View Queue"}</span>
+            <span>{isFoodOrder ? "View in KDS" : "View in Queue"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

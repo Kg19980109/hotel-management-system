@@ -138,6 +138,7 @@ export function OperationalAlertProvider({
 
       if (serviceRequests) {
         for (const item of serviceRequests) {
+          if (operationalAlertManager.isAlertDismissed(item.id)) continue;
           if (isRequestRelevantForRole(role, item.category)) {
             const roomNum = (item.room as unknown as { room_number?: string })?.room_number || "—";
             const guest = item.guest as unknown as { first_name?: string; last_name?: string };
@@ -188,6 +189,7 @@ export function OperationalAlertProvider({
 
       if (foodOrders) {
         for (const order of foodOrders) {
+          if (operationalAlertManager.isAlertDismissed(order.id)) continue;
           if (isRequestRelevantForRole(role, "ROOM_SERVICE")) {
             const r = order.room as unknown as { room_number?: string };
             const t = order.table as unknown as { table_number?: string };
@@ -260,7 +262,7 @@ export function OperationalAlertProvider({
       (payload) => {
         const alert = payload?.payload as OperationalAlert;
         if (alert && alert.propertyId === propertyId) {
-          if (isRequestRelevantForRole(currentRole, alert.category)) {
+          if (!operationalAlertManager.isAlertDismissed(alert.id) && isRequestRelevantForRole(currentRole, alert.category)) {
             operationalAlertManager.addOrUpdateAlert(alert);
             setIsModalMinimized(false);
           }
@@ -286,7 +288,11 @@ export function OperationalAlertProvider({
 
         if (eventType === "INSERT") {
           // New service request arrived
-          if (newRec.status === "SUBMITTED" && isRequestRelevantForRole(currentRole, newRec.category)) {
+          if (
+            newRec.status === "SUBMITTED" &&
+            !operationalAlertManager.isAlertDismissed(newRec.id) &&
+            isRequestRelevantForRole(currentRole, newRec.category)
+          ) {
             // 1. INSTANT ZERO-LATENCY DISPATCH: Fire popup & audio buzzer immediately with 0ms delay
             operationalAlertManager.addOrUpdateAlert({
               id: newRec.id,
@@ -307,13 +313,14 @@ export function OperationalAlertProvider({
             // 2. ASYNC BACKGROUND ENRICHMENT: Fetch room and guest name in background without blocking alert
             void (async () => {
               try {
+                if (operationalAlertManager.isAlertDismissed(newRec.id)) return;
                 const { data: detail } = await supabase
                   .from("guest_service_requests")
                   .select("room:rooms(room_number), guest:guests(first_name, last_name)")
                   .eq("id", newRec.id)
                   .single();
 
-                if (detail) {
+                if (detail && !operationalAlertManager.isAlertDismissed(newRec.id)) {
                   let roomNumber = "—";
                   let guestName = "Guest";
                   const r = detail.room as unknown as { room_number?: string };
@@ -350,25 +357,27 @@ export function OperationalAlertProvider({
             newRec.status === "CANCELLED" ||
             newRec.status === "REJECTED"
           ) {
-            operationalAlertManager.removeAlert(newRec.id);
+            operationalAlertManager.removeAlert(newRec.id, true);
           } else {
-            operationalAlertManager.addOrUpdateAlert({
-              id: newRec.id,
-              type: "SERVICE_REQUEST",
-              category: newRec.category,
-              department: getDepartmentForCategory(newRec.category),
-              roomNumber: "—",
-              guestName: "Guest",
-              title: newRec.title,
-              description: newRec.description,
-              priority: (newRec.priority as AlertPriority) || "NORMAL",
-              receivedAt: Date.now(),
-              propertyId: newRec.property_id,
-              status: newRec.status,
-            });
+            if (!operationalAlertManager.isAlertDismissed(newRec.id)) {
+              operationalAlertManager.addOrUpdateAlert({
+                id: newRec.id,
+                type: "SERVICE_REQUEST",
+                category: newRec.category,
+                department: getDepartmentForCategory(newRec.category),
+                roomNumber: "—",
+                guestName: "Guest",
+                title: newRec.title,
+                description: newRec.description,
+                priority: (newRec.priority as AlertPriority) || "NORMAL",
+                receivedAt: Date.now(),
+                propertyId: newRec.property_id,
+                status: newRec.status,
+              });
+            }
           }
         } else if (eventType === "DELETE") {
-          operationalAlertManager.removeAlert(payload.old?.id);
+          operationalAlertManager.removeAlert(payload.old?.id, true);
         }
       }
     );
@@ -397,7 +406,11 @@ export function OperationalAlertProvider({
               order.status === "PENDING" ||
               order.status === "NEW");
 
-          if (isPending && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
+          if (
+            isPending &&
+            !operationalAlertManager.isAlertDismissed(order.id) &&
+            isRequestRelevantForRole(currentRole, "ROOM_SERVICE")
+          ) {
             // 1. INSTANT ZERO-LATENCY DISPATCH: Fire alert immediately so buzzer & popup appear with 0ms delay
             operationalAlertManager.addOrUpdateAlert({
               id: order.id,
@@ -418,6 +431,7 @@ export function OperationalAlertProvider({
             // 2. ASYNC ENRICHMENT: Fetch room, guest name, and items in background and update alert
             void (async () => {
               try {
+                if (operationalAlertManager.isAlertDismissed(order.id)) return;
                 const { data: detail } = await supabase
                   .from("restaurant_orders")
                   .select(`
@@ -429,7 +443,7 @@ export function OperationalAlertProvider({
                   .eq("id", order.id)
                   .single();
 
-                if (detail) {
+                if (detail && !operationalAlertManager.isAlertDismissed(order.id)) {
                   let roomNumber = "—";
                   let guestName = "Guest";
                   let itemsSummary = "";
@@ -475,10 +489,10 @@ export function OperationalAlertProvider({
               order.status === "COMPLETED" ||
               order.status === "CANCELLED")
           ) {
-            operationalAlertManager.removeAlert(order.id);
+            operationalAlertManager.removeAlert(order.id, true);
           }
         } else if (eventType === "DELETE") {
-          operationalAlertManager.removeAlert(payload.old?.id);
+          operationalAlertManager.removeAlert(payload.old?.id, true);
         }
       }
     );
@@ -494,9 +508,14 @@ export function OperationalAlertProvider({
       },
       (payload) => {
         const ticket = payload.new;
-        if (ticket && isRequestRelevantForRole(currentRole, "ROOM_SERVICE")) {
+        const targetId = ticket.order_id || ticket.id;
+        if (
+          ticket &&
+          !operationalAlertManager.isAlertDismissed(targetId) &&
+          isRequestRelevantForRole(currentRole, "ROOM_SERVICE")
+        ) {
           operationalAlertManager.addOrUpdateAlert({
-            id: ticket.order_id || ticket.id,
+            id: targetId,
             type: "FOOD_ORDER",
             category: "ROOM_SERVICE",
             department: "RESTAURANT",
@@ -529,7 +548,7 @@ export function OperationalAlertProvider({
     return () => {
       clearInterval(heartbeatInterval);
       void supabase.removeChannel(channel);
-      operationalAlertManager.clearAll();
+      operationalAlertManager.clearAll(false);
       setInternalStatus("DISCONNECTED");
     };
   }, [propertyId, currentRole, syncOpenRequests]);
@@ -549,11 +568,12 @@ export function OperationalAlertProvider({
   };
 
   const handleAcceptAlert = async (alertId: string): Promise<boolean> => {
-    if (!propertyId) return false;
+    if (!propertyId || !alertId) return false;
 
-    // Immediately stop buzzer locally for instant responsiveness
+    // Immediately stop buzzer locally & mark alert as acknowledged/dismissed
     const targetAlert = alerts.find((a) => a.id === alertId);
-    operationalAlertManager.removeAlert(alertId);
+    operationalAlertManager.removeAlert(alertId, true);
+    setIsModalMinimized(true);
 
     try {
       const res = await staffAcceptOperationalAlertAction(

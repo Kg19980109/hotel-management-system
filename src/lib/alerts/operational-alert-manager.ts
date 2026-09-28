@@ -37,7 +37,33 @@ class OperationalAlertManager {
       const stored = localStorage.getItem("stayhub_sound_alerts_enabled");
       // Default to enabled on staff devices, will unlock on first user gesture
       this.soundEnabled = stored !== null ? stored === "true" : true;
+
+      try {
+        const storedAcked = sessionStorage.getItem("stayhub_acked_alert_ids");
+        if (storedAcked) {
+          const parsed = JSON.parse(storedAcked);
+          if (Array.isArray(parsed)) {
+            this.dismissedOrAckedIds = new Set(parsed);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not load acked alert IDs:", e);
+      }
     }
+  }
+
+  private saveDismissedOrAckedIds(): void {
+    if (!this.isBrowser) return;
+    try {
+      const arr = Array.from(this.dismissedOrAckedIds).slice(-200);
+      sessionStorage.setItem("stayhub_acked_alert_ids", JSON.stringify(arr));
+    } catch {
+      // ignore
+    }
+  }
+
+  public isAlertDismissed(id: string): boolean {
+    return this.dismissedOrAckedIds.has(id);
   }
 
   // --- AUDIO SYNTHESIS & PERMISSION CONTROLS ---
@@ -210,29 +236,31 @@ class OperationalAlertManager {
    * Deduplicates by alert.id (request_id / order_id).
    */
   public addOrUpdateAlert(alert: OperationalAlert): void {
+    if (!alert || !alert.id) return;
+
     // If user already acknowledged or dismissed this request in this session, skip re-adding
     if (this.dismissedOrAckedIds.has(alert.id)) {
       return;
     }
 
+    // If status is anything indicating work in progress, acknowledged, or resolved, remove and skip
+    if (
+      alert.status === "PREPARING" ||
+      alert.status === "IN_PROGRESS" ||
+      alert.status === "READY" ||
+      alert.status === "SERVED" ||
+      alert.status === "COMPLETED" ||
+      alert.status === "CANCELLED" ||
+      alert.status === "REJECTED" ||
+      alert.status === "ACKNOWLEDGED" ||
+      alert.status === "ASSIGNED"
+    ) {
+      this.removeAlert(alert.id, true);
+      return;
+    }
+
     const existing = this.alerts.get(alert.id);
     if (existing) {
-      // If status changed to ACKNOWLEDGED, COMPLETED, or CANCELLED, remove from unacknowledged alert queue
-      if (
-        alert.status === "PREPARING" ||
-        alert.status === "IN_PROGRESS" ||
-        alert.status === "READY" ||
-        alert.status === "SERVED" ||
-        alert.status === "COMPLETED" ||
-        alert.status === "CANCELLED" ||
-        alert.status === "REJECTED" ||
-        alert.status === "ACKNOWLEDGED" ||
-        alert.status === "ASSIGNED"
-      ) {
-        this.removeAlert(alert.id, true);
-        return;
-      }
-      // Otherwise update fields
       this.alerts.set(alert.id, { ...existing, ...alert });
     } else {
       // Only unacknowledged/new requests enter the buzzer alert queue
@@ -251,12 +279,14 @@ class OperationalAlertManager {
   }
 
   /**
-   * Removes an alert by request_id (e.g. When acknowledged or completed).
+   * Removes an alert by request_id (e.g. when acknowledged or completed).
    * If no unacknowledged alerts remain, stops the buzzer immediately.
    */
   public removeAlert(id: string, isDismissedOrAcked = true): void {
+    if (!id) return;
     if (isDismissedOrAcked) {
       this.dismissedOrAckedIds.add(id);
+      this.saveDismissedOrAckedIds();
     }
     if (this.alerts.has(id)) {
       this.alerts.delete(id);
@@ -268,11 +298,14 @@ class OperationalAlertManager {
   }
 
   /**
-   * Clears all alerts for property/logout.
+   * Clears active alerts on property switch or logout.
    */
-  public clearAll(): void {
+  public clearAll(clearAckHistory = false): void {
     this.alerts.clear();
-    this.dismissedOrAckedIds.clear();
+    if (clearAckHistory) {
+      this.dismissedOrAckedIds.clear();
+      this.saveDismissedOrAckedIds();
+    }
     this.stopBuzzer();
     this.notifyListeners();
   }

@@ -31,7 +31,6 @@ import {
 } from "@/components/front-desk";
 import { AssignRoomModal } from "@/components/bookings/assign-room-modal";
 import type { ReservationRoom } from "@/lib/bookings/types";
-import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingState, ErrorState } from "@/components/ui/states";
@@ -44,6 +43,10 @@ import {
   UserPlus,
   Calendar,
   RotateCcw,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  Info,
 } from "lucide-react";
 
 export default function FrontDeskPage() {
@@ -51,7 +54,8 @@ export default function FrontDeskPage() {
   const supabase = React.useMemo(() => createClient(), []);
   const activePropertyId = currentProperty?.property_id;
 
-  const [activeTab, setActiveTab] = React.useState<"arrivals" | "departures" | "in_house" | "rooms">("arrivals");
+  // Default to in_house so receptionist immediately sees who is currently residing in the hotel
+  const [activeTab, setActiveTab] = React.useState<"in_house" | "arrivals" | "departures" | "rooms">("in_house");
   const [search, setSearch] = React.useState("");
 
   const [loading, setLoading] = React.useState(true);
@@ -134,6 +138,16 @@ export default function FrontDeskPage() {
     };
   }, [authLoading, activePropertyId, loadData]);
 
+  // Fast 2s visible-only auto refresh
+  React.useEffect(() => {
+    if (!activePropertyId) return;
+    const timer = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadData();
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [activePropertyId, loadData]);
+
   // Filtered collections by search query
   const q = search.trim().toLowerCase();
 
@@ -174,82 +188,77 @@ export default function FrontDeskPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-10">
       {/* ── LUXURY RECEPTION HERO ── */}
       <div
-        className="relative overflow-hidden rounded-[var(--radius-2xl)] px-7 pt-7 pb-6 border border-white/10"
+        className="relative overflow-hidden rounded-2xl px-6 pt-6 pb-5 border border-white/10"
         style={{
-          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
-          boxShadow: "0 16px 48px rgba(13,24,48,0.22), 0 4px 12px rgba(13,24,48,0.12)",
+          background: "linear-gradient(135deg, #091224 0%, #0E1B38 50%, #12224A 100%)",
+          boxShadow: "0 10px 30px -10px rgba(0,0,0,0.5)",
         }}
       >
-        {/* Decorative ambient radial glows */}
+        {/* Subtle Ambient Glows */}
         <div
-          className="absolute -top-20 -right-20 h-64 w-64 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
+          className="absolute -top-12 -right-12 h-44 w-44 rounded-full pointer-events-none blur-3xl opacity-25"
+          style={{ background: "radial-gradient(circle, #D4AF37 0%, transparent 70%)" }}
         />
         <div
-          className="absolute bottom-0 left-0 h-40 w-80 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.08) 0%, transparent 70%)" }}
+          className="absolute -bottom-12 -left-12 h-44 w-44 rounded-full pointer-events-none blur-3xl opacity-20"
+          style={{ background: "radial-gradient(circle, #5146E5 0%, transparent 70%)" }}
         />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
-            {/* Tag */}
             <div
-              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-1 rounded-full border mb-3"
+              className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] px-2.5 py-0.5 rounded-full border mb-2"
               style={{
-                color: "var(--brand-gold)",
-                borderColor: "rgba(214,168,90,0.30)",
-                background: "rgba(214,168,90,0.10)",
+                color: "#E8CD8A",
+                borderColor: "rgba(214,168,90,0.35)",
+                background: "rgba(214,168,90,0.12)",
               }}
             >
               <LogIn className="h-3 w-3" />
-              Front Desk Reception
+              Front Desk Operations Command
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight">
-              Reception & Occupancy Ledger
-              <span className="block text-white/50 text-base font-normal mt-0.5">
-                Arrivals, Departures, Room Allocation & In-House Stays
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Reception & Guest Ledger
+              <span className="block text-white/50 text-xs sm:text-sm font-normal mt-0.5">
+                Active In-House Stays, Expected Check-Ins, Check-Outs & Room Allocation
               </span>
             </h1>
 
-            <div className="flex items-center gap-4 mt-4 flex-wrap text-xs text-white/70">
+            <div className="flex items-center gap-4 mt-3 flex-wrap text-xs text-white/70">
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--info)" }} />
-                <span><span className="font-bold text-white">{arrivals.length}</span> expected arrivals</span>
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-xs" />
+                <span>
+                  <span className="font-bold text-white">{inHouseStays.length}</span> In-House ({stats.inHouseGuests} guests)
+                </span>
               </div>
               <span className="text-white/20">·</span>
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--warning)" }} />
-                <span><span className="font-bold text-white">{departures.length}</span> departures</span>
+                <span className="h-2 w-2 rounded-full bg-blue-400 shadow-xs" />
+                <span>
+                  <span className="font-bold text-white">{arrivals.length}</span> Arriving Today
+                </span>
               </div>
               <span className="text-white/20">·</span>
               <div className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: "var(--success)" }} />
-                <span><span className="font-bold text-white">{inHouseStays.length}</span> parties in-house</span>
+                <span className="h-2 w-2 rounded-full bg-amber-400 shadow-xs" />
+                <span>
+                  <span className="font-bold text-white">{departures.length}</span> Due Checkout
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Action buttons */}
+          {/* Quick Action Buttons */}
           <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <Link href="/bookings/calendar">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 gap-1.5"
-              >
-                <Calendar className="h-4 w-4" />
-                Tape Chart
-              </Button>
-            </Link>
             <Button
               variant="primary"
               size="sm"
               onClick={() => setIsDirectAssignOpen(true)}
-              className="h-9 gap-1.5 shadow-md bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold"
+              className="h-9 px-3.5 gap-1.5 shadow-md bg-amber-500 text-slate-950 hover:bg-amber-400 font-bold cursor-pointer"
             >
               <BedDouble className="h-4 w-4" />
               Assign Room & Check-In
@@ -258,10 +267,20 @@ export default function FrontDeskPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 gap-1.5 border-white/20 text-white hover:bg-white/10"
+                className="h-9 gap-1.5 border-white/20 text-white hover:bg-white/10 cursor-pointer"
               >
                 <UserPlus className="h-4 w-4" />
-                New Reservation
+                Walk-In Booking
+              </Button>
+            </Link>
+            <Link href="/bookings/calendar">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 gap-1.5 cursor-pointer"
+              >
+                <Calendar className="h-4 w-4" />
+                Tape Chart
               </Button>
             </Link>
             <Button
@@ -269,7 +288,7 @@ export default function FrontDeskPage() {
               size="sm"
               onClick={loadData}
               title="Refresh Live Console"
-              className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 px-2.5"
+              className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 px-2.5 cursor-pointer"
             >
               <RotateCcw className="h-4 w-4" />
             </Button>
@@ -277,74 +296,78 @@ export default function FrontDeskPage() {
         </div>
       </div>
 
-      {/* KPI Section */}
+      {/* KPI Stats Strip */}
       <FrontDeskKPIGrid stats={stats} loading={loading && arrivals.length === 0} />
 
-      {/* Search & Navigation Bar in stayhub-card */}
-      <div className="stayhub-card p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      {/* Search & Navigation Bar */}
+      <div className="bg-card border border-border/80 rounded-xl p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-[var(--secondary)] rounded-[var(--radius-lg)] self-start overflow-x-auto max-w-full">
-          <button
-            type="button"
-            onClick={() => setActiveTab("arrivals")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
-              activeTab === "arrivals"
-                ? "bg-white text-[var(--foreground)] shadow-xs"
-                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
-            }`}
-          >
-            <LogIn className="h-3.5 w-3.5 text-[var(--info)]" />
-            <span>Expected Arrivals</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--info-light)] text-[var(--info-foreground)] font-bold">
-              {arrivals.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("departures")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
-              activeTab === "departures"
-                ? "bg-white text-[var(--foreground)] shadow-xs"
-                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
-            }`}
-          >
-            <LogOut className="h-3.5 w-3.5 text-[var(--warning)]" />
-            <span>Departures</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--warning-light)] text-[var(--warning-foreground)] font-bold">
-              {departures.length}
-            </span>
-          </button>
-
+        <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-lg self-start overflow-x-auto max-w-full">
+          {/* Tab 1: In-House (Arrived Guests) */}
           <button
             type="button"
             onClick={() => setActiveTab("in_house")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
               activeTab === "in_house"
-                ? "bg-white text-[var(--foreground)] shadow-xs"
-                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Users className="h-3.5 w-3.5 text-[var(--success)]" />
-            <span>In-House Guests</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--success-light)] text-[var(--success-foreground)] font-bold">
+            <Users className="h-3.5 w-3.5 text-emerald-500" />
+            <span>In-House (Arrived Guests)</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold font-mono">
               {inHouseStays.length}
             </span>
           </button>
 
+          {/* Tab 2: Expected Arrivals (Pending Check-In) */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("arrivals")}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+              activeTab === "arrivals"
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <LogIn className="h-3.5 w-3.5 text-blue-500" />
+            <span>Expected Arrivals (Pending Check-In)</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold font-mono">
+              {arrivals.length}
+            </span>
+          </button>
+
+          {/* Tab 3: Departures */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("departures")}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+              activeTab === "departures"
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <LogOut className="h-3.5 w-3.5 text-amber-500" />
+            <span>Departures</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold font-mono">
+              {departures.length}
+            </span>
+          </button>
+
+          {/* Tab 4: Room Status */}
           <button
             type="button"
             onClick={() => setActiveTab("rooms")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
               activeTab === "rooms"
-                ? "bg-white text-[var(--foreground)] shadow-xs"
-                : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <BedDouble className="h-3.5 w-3.5 text-[var(--purple)]" />
-            <span>Room Status</span>
+            <BedDouble className="h-3.5 w-3.5 text-purple-500" />
+            <span>Room Operations</span>
             {roomAttentionList.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[var(--danger-light)] text-[var(--danger-foreground)] font-bold">
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold font-mono">
                 {roomAttentionList.length}
               </span>
             )}
@@ -354,17 +377,17 @@ export default function FrontDeskPage() {
         {/* Live Search */}
         <div className="w-full sm:w-72">
           <Input
-            placeholder="Search guest, room, or code..."
+            placeholder="Search guest, room, or booking code..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            leftElement={<Search className="h-3.5 w-3.5 text-[var(--foreground-muted)]" />}
-            className="h-8 text-xs bg-white"
+            leftElement={<Search className="h-3.5 w-3.5 text-muted-foreground" />}
+            className="h-8 text-xs bg-background"
           />
         </div>
       </div>
 
       {/* Main Content Area */}
-      {loading && arrivals.length === 0 ? (
+      {loading && arrivals.length === 0 && inHouseStays.length === 0 ? (
         <LoadingState message="Loading front desk operational data..." />
       ) : error ? (
         <ErrorState
@@ -374,11 +397,41 @@ export default function FrontDeskPage() {
         />
       ) : (
         <>
+          {/* TAB 1: IN-HOUSE (ARRIVED GUESTS) */}
+          {activeTab === "in_house" && (
+            <div className="space-y-3">
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-between text-xs text-foreground">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>
+                    <strong>Arrived Guests Currently In-House:</strong> Manage active guest stays, assign/move rooms, view folios, or initiate check-out upon departure.
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-muted-foreground shrink-0 ml-2">
+                  {filteredInHouse.length} {filteredInHouse.length === 1 ? "stay" : "stays"} active
+                </span>
+              </div>
+              <InHouseTable
+                stays={filteredInHouse}
+                onCheckOut={(stay) => setCheckOutStay(stay)}
+                onReassignRoom={(stay) => setReassignStay(stay)}
+              />
+            </div>
+          )}
+
+          {/* TAB 2: EXPECTED ARRIVALS (PENDING CHECK-IN) */}
           {activeTab === "arrivals" && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-[var(--foreground-muted)]">
-                <span>Showing {filteredArrivals.length} reservation{filteredArrivals.length === 1 ? "" : "s"} scheduled for arrival.</span>
-                <span className="text-[11px] text-slate-400">Times shown in property local schedule.</span>
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between text-xs text-foreground">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span>
+                    <strong>Upcoming Arrivals Pending Check-In:</strong> These guests have confirmed reservations scheduled for today. Assign clean rooms and click <strong>Check In</strong> when the guest arrives at the desk.
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-muted-foreground shrink-0 ml-2">
+                  {filteredArrivals.length} {filteredArrivals.length === 1 ? "arrival" : "arrivals"} pending
+                </span>
               </div>
               <ArrivalsTable
                 arrivals={filteredArrivals}
@@ -413,11 +466,19 @@ export default function FrontDeskPage() {
             </div>
           )}
 
+          {/* TAB 3: DEPARTURES */}
           {activeTab === "departures" && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-[var(--foreground-muted)]">
-                <span>Showing {filteredDepartures.length} stay{filteredDepartures.length === 1 ? "" : "s"} due for check-out today.</span>
-                <span className="text-[11px] text-slate-400">Check-out transitions room to DIRTY for Housekeeping.</span>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between text-xs text-foreground">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                  <span>
+                    <strong>Guests Due for Check-Out Today:</strong> Review unsettled folio charges and click <strong>Check Out</strong>. Checking out automatically flags the room as <strong>DIRTY</strong> for Housekeeping turnaround.
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-muted-foreground shrink-0 ml-2">
+                  {filteredDepartures.length} {filteredDepartures.length === 1 ? "departure" : "departures"}
+                </span>
               </div>
               <DeparturesTable
                 departures={filteredDepartures}
@@ -426,79 +487,66 @@ export default function FrontDeskPage() {
             </div>
           )}
 
-          {activeTab === "in_house" && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-[var(--foreground-muted)]">
-                <span>Showing {filteredInHouse.length} guest party currently in-house.</span>
-                <span className="text-[11px] text-slate-400">Total in-house persons: {stats.inHouseGuests}</span>
-              </div>
-              <InHouseTable
-                stays={filteredInHouse}
-                onCheckOut={(stay) => setCheckOutStay(stay)}
-                onReassignRoom={(stay) => setReassignStay(stay)}
-              />
-            </div>
-          )}
-
+          {/* TAB 4: ROOM OPERATIONAL STATUS */}
           {activeTab === "rooms" && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-[var(--foreground-muted)]">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>Rooms requiring operational attention before next guest arrival.</span>
-                <Link href="/rooms" className="text-[11px] text-[var(--primary)] hover:underline font-medium">
+                <Link href="/rooms" className="text-[11px] text-primary hover:underline font-medium">
                   View Full Room Inventory →
                 </Link>
               </div>
 
               {roomAttentionList.length === 0 ? (
-                <div className="p-8 text-center bg-white border border-[var(--border)] rounded-[var(--radius-lg)]">
+                <div className="p-8 text-center bg-card border border-border/80 rounded-xl shadow-xs">
                   <BedDouble className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-                  <h4 className="text-sm font-semibold text-slate-800">All rooms in order</h4>
-                  <p className="text-xs text-slate-500 mt-1">There are no dirty or out-of-order rooms requiring attention.</p>
+                  <h4 className="text-sm font-semibold text-foreground">All rooms in order</h4>
+                  <p className="text-xs text-muted-foreground mt-1">There are no dirty or out-of-order rooms requiring attention.</p>
                 </div>
               ) : (
-                <div className="bg-white border border-[var(--border)] rounded-[var(--radius-lg)] overflow-hidden shadow-xs">
+                <div className="bg-card border border-border/80 rounded-xl overflow-hidden shadow-xs">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--foreground-muted)] uppercase tracking-wider text-[10px]">
-                        <th className="py-2 px-3">Room</th>
-                        <th className="py-2 px-3">Category</th>
-                        <th className="py-2 px-3">Floor</th>
-                        <th className="py-2 px-3">Operational State</th>
-                        <th className="py-2 px-3">Housekeeping State</th>
-                        <th className="py-2 px-3 text-right">Action</th>
+                      <tr className="border-b border-border bg-muted/40 text-muted-foreground uppercase tracking-wider text-[10px]">
+                        <th className="py-2.5 px-3 font-semibold">Room</th>
+                        <th className="py-2.5 px-3 font-semibold">Category</th>
+                        <th className="py-2.5 px-3 font-semibold">Floor</th>
+                        <th className="py-2.5 px-3 font-semibold">Operational State</th>
+                        <th className="py-2.5 px-3 font-semibold">Housekeeping State</th>
+                        <th className="py-2.5 px-3 font-semibold text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--border)]">
+                    <tbody className="divide-y divide-border/50 font-mono">
                       {roomAttentionList.map((rm) => (
-                        <tr key={rm.roomId} className="hover:bg-slate-50">
-                          <td className="py-2.5 px-3 font-mono font-bold text-slate-900">Room {rm.roomNumber}</td>
-                          <td className="py-2.5 px-3 text-slate-600">{rm.roomTypeName}</td>
-                          <td className="py-2.5 px-3 text-slate-600">{rm.floorName || "Main Level"}</td>
-                          <td className="py-2.5 px-3">
+                        <tr key={rm.roomId} className="hover:bg-muted/30 transition-colors">
+                          <td className="py-2.5 px-3 font-bold text-foreground">Room {rm.roomNumber}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground font-sans">{rm.roomTypeName}</td>
+                          <td className="py-2.5 px-3 text-muted-foreground font-sans">{rm.floorName || "Main Level"}</td>
+                          <td className="py-2.5 px-3 font-sans">
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
                                 rm.status === "OUT_OF_ORDER" || rm.status === "OUT_OF_SERVICE"
-                                  ? "bg-slate-200 text-slate-800"
-                                  : "bg-amber-100 text-amber-900"
+                                  ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
+                                  : "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300"
                               }`}
                             >
                               {rm.status.replace(/_/g, " ")}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3">
+                          <td className="py-2.5 px-3 font-sans">
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
                                 rm.housekeepingStatus === "DIRTY"
-                                  ? "bg-rose-100 text-rose-800"
-                                  : "bg-amber-100 text-amber-800"
+                                  ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                                  : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
                               }`}
                             >
                               {rm.housekeepingStatus}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 text-right">
+                          <td className="py-2.5 px-3 text-right font-sans">
                             <Link href={`/rooms/${rm.roomId}`}>
-                              <Button variant="outline" size="sm" className="h-6 px-2 text-[10px]">
+                              <Button variant="outline" size="sm" className="h-6 px-2 text-[10px] cursor-pointer">
                                 Room Details
                               </Button>
                             </Link>

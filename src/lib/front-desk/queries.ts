@@ -60,14 +60,14 @@ export async function fetchFrontDeskKPIs(
   const inHouseGuests = activeStays.reduce((acc, s) => acc + (s.adults || 1) + (s.children || 0), 0);
   const todayDepartures = activeStays.filter((s) => s.expected_check_out_date <= todayStr).length;
 
-  // 3. Fetch Expected Arrivals for today
+  // 3. Fetch Expected Arrivals for today (excluding already checked in)
   const { data: arrivals, error: arrErr } = await supabase
     .from("reservations")
     .select(`
       id,
       status,
       check_in_date,
-      reservation_rooms(id, is_cancelled)
+      reservation_rooms(id, is_cancelled, stays(id, status))
     `)
     .eq("property_id", propertyId)
     .eq("status", "CONFIRMED")
@@ -77,11 +77,16 @@ export async function fetchFrontDeskKPIs(
     console.error("fetchFrontDeskKPIs arrivals error:", arrErr);
   }
 
-  // Count active reservation room items arriving today
+  // Count active reservation room items arriving today that are pending check-in
   let todayArrivals = 0;
   (arrivals || []).forEach((r) => {
-    const activeItems = (r.reservation_rooms || []).filter((rr: { is_cancelled: boolean }) => !rr.is_cancelled);
-    todayArrivals += Math.max(1, activeItems.length);
+    const activeItems = (r.reservation_rooms || []).filter((rr: { is_cancelled: boolean; stays?: Array<{ status: string }> }) => {
+      if (rr.is_cancelled) return false;
+      const stay = rr.stays?.[0];
+      if (stay && (stay.status === "CHECKED_IN" || stay.status === "CHECKED_OUT" || stay.status === "NO_SHOW")) return false;
+      return true;
+    });
+    todayArrivals += activeItems.length;
   });
 
   return {
@@ -97,7 +102,7 @@ export async function fetchFrontDeskKPIs(
 }
 
 /**
- * Fetch today's arrivals (reservations scheduled for check-in today)
+ * Fetch today's arrivals (reservations scheduled for check-in today that are pending check-in)
  */
 export async function fetchTodayArrivals(
   supabase: SupabaseClient,
@@ -164,11 +169,11 @@ export async function fetchTodayArrivals(
 
   return rows
     .filter((row) => {
-      // Must have active confirmed reservation and not already checked out
+      // Must have active confirmed reservation
       if (!row.reservation || row.reservation.status !== "CONFIRMED") return false;
       const stay = row.stays?.[0];
-      // Exclude if already checked out or no-show
-      if (stay && (stay.status === "CHECKED_OUT" || stay.status === "NO_SHOW")) return false;
+      // Exclude if already checked in, checked out, or marked no-show
+      if (stay && (stay.status === "CHECKED_IN" || stay.status === "CHECKED_OUT" || stay.status === "NO_SHOW")) return false;
       return true;
     })
     .map((row) => {

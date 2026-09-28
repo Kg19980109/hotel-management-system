@@ -55,39 +55,38 @@ export async function queryRoomInventorySummary(
   propertyId: string
 ): Promise<RoomStatusSummary> {
   try {
-    const [
-      totalRes,
-      availableRes,
-      occupiedRes,
-      outOfOrderRes,
-      dirtyRes,
-    ] = await Promise.all([
-      supabase.from("rooms").select("id", { count: "exact", head: true })
-        .eq("property_id", propertyId).eq("is_active", true),
-      supabase.from("rooms").select("id", { count: "exact", head: true })
-        .eq("property_id", propertyId).eq("is_active", true).eq("status", "AVAILABLE"),
-      supabase.from("rooms").select("id", { count: "exact", head: true })
-        .eq("property_id", propertyId).eq("is_active", true).eq("status", "OCCUPIED"),
-      supabase.from("rooms").select("id", { count: "exact", head: true })
-        .eq("property_id", propertyId).eq("is_active", true).in("status", ["OUT_OF_ORDER", "OUT_OF_SERVICE"]),
-      supabase.from("rooms").select("id", { count: "exact", head: true })
-        .eq("property_id", propertyId).eq("is_active", true).eq("housekeeping_status", "DIRTY"),
-    ]);
+    const { data: rooms, error } = await supabase
+      .from("rooms")
+      .select("id, status, housekeeping_status, is_active")
+      .eq("property_id", propertyId);
 
-    const total = totalRes.count ?? 0;
-    if (!total) {
+    if (error || !rooms || rooms.length === 0) {
       return { total: 0, available: 0, occupied: 0, dirty: 0, maintenance: 0, outOfOrder: 0, isConfigured: false };
     }
 
-    const outOfOrder = outOfOrderRes.count ?? 0;
+    const activeRooms = rooms.filter((r) => r.is_active !== false);
+    const total = activeRooms.length;
+    let available = 0;
+    let occupied = 0;
+    let outOfOrder = 0;
+    let dirty = 0;
+
+    for (const r of activeRooms) {
+      if (r.status === "AVAILABLE") available++;
+      else if (r.status === "OCCUPIED") occupied++;
+      else if (r.status === "OUT_OF_ORDER" || r.status === "OUT_OF_SERVICE") outOfOrder++;
+
+      if (r.housekeeping_status === "DIRTY") dirty++;
+    }
+
     return {
       total,
-      available: availableRes.count ?? 0,
-      occupied: occupiedRes.count ?? 0,
-      dirty: dirtyRes.count ?? 0,
+      available,
+      occupied,
+      dirty,
       maintenance: outOfOrder,
       outOfOrder,
-      isConfigured: true,
+      isConfigured: total > 0,
     };
   } catch {
     // Safe fallback if table doesn't exist
@@ -323,55 +322,24 @@ export async function queryRecentActivity(
   try {
     const activities: ActivityItem[] = [];
 
-    // 1. Stays (Check-ins & check-outs)
-    const { data: stays } = await supabase
-      .from("stays")
-      .select("id, status, actual_check_in, actual_check_out, updated_at, room:rooms(room_number), guest:guests(first_name, last_name)")
-      .eq("property_id", propertyId)
-      .order("updated_at", { ascending: false })
-      .limit(4);
+    // Parallel fetch stays and service requests
+    const [staysRes, reqsRes] = await Promise.all([
+      supabase
+        .from("stays")
+        .select("id, status, actual_check_in, actual_check_out, updated_at, room:rooms(room_number), guest:guests(first_name, last_name)")
+        .eq("property_id", propertyId)
+        .order("updated_at", { ascending: false })
+        .limit(4),
+      supabase
+        .from("guest_service_requests")
+        .select("id, title, status, created_at, room:rooms(room_number)")
+        .eq("property_id", propertyId)
+        .order("created_at", { ascending: false })
+        .limit(4),
+    ]);
 
-    if (stays) {
-      for (const s of stays as unknown as Array<{
-        id: string;
-        status: string;
-        actual_check_in?: string;
-        actual_check_out?: string;
-        updated_at?: string;
-        room?: { room_number: string };
-        guest?: { first_name: string; last_name: string };
-      }>) {
-        const guestName = s.guest ? `${s.guest.first_name || ""} ${s.guest.last_name || ""}`.trim() : "Guest";
-        const roomNum = s.room?.room_number ? `Room ${s.room.room_number}` : "Room";
-        if (s.status === "CHECKED_IN") {
-          activities.push({
-            id: `stay-in-${s.id}`,
-            title: `Check-In · ${roomNum}`,
-            description: `${guestName} assigned & checked in`,
-            actor: "Front Desk",
-            timestamp: formatTimeAgo(s.actual_check_in || s.updated_at),
-            type: "room",
-          });
-        } else if (s.status === "CHECKED_OUT") {
-          activities.push({
-            id: `stay-out-${s.id}`,
-            title: `Check-Out · ${roomNum}`,
-            description: `${guestName} completed checkout`,
-            actor: "Front Desk",
-            timestamp: formatTimeAgo(s.actual_check_out || s.updated_at),
-            type: "room",
-          });
-        }
-      }
-    }
-
-    // 2. Recent Guest Requests
-    const { data: reqs } = await supabase
-      .from("guest_service_requests")
-      .select("id, title, status, created_at, room:rooms(room_number)")
-      .eq("property_id", propertyId)
-      .order("created_at", { ascending: false })
-      .limit(4);
+    const stays = staysRes.data;
+    const reqs = reqsRes.data;
 
     if (reqs) {
       for (const r of reqs as unknown as Array<{

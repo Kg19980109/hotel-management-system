@@ -1,9 +1,6 @@
 /**
  * STAYHUB - Dashboard Metrics Engine & Server Action
- * Phase 5: Real Hotel Dashboard & Metrics Engine
- * 
- * Centralized, secure dashboard metrics engine.
- * Ensures strict multi-tenant authorization and error isolation.
+ * High-Performance, Low-Latency Parallel Execution
  */
 
 "use server";
@@ -28,12 +25,7 @@ export interface DashboardResponse {
 }
 
 /**
- * Fetch complete dashboard data for a given property ID.
- * Strict Tenant Boundary:
- * 1. Checks current user session.
- * 2. Verifies user has active membership for the requested property_id.
- * 3. Fetches data with RLS enforcement.
- * 4. Isolates metric query failures using Promise.allSettled.
+ * Fetch complete dashboard data for a given property ID with maximum parallel concurrency.
  */
 export async function getDashboardData(propertyId: string): Promise<DashboardResponse> {
   try {
@@ -53,46 +45,53 @@ export async function getDashboardData(propertyId: string): Promise<DashboardRes
       return { success: false, error: "Authentication required to access hotel dashboard." };
     }
 
-    // 2. Strict Tenant Authorization check: user must belong to this property
-    const { data: membership, error: memberError } = await supabase
-      .from("property_memberships")
-      .select("id, status")
-      .eq("user_id", user.id)
-      .eq("property_id", propertyId)
-      .eq("status", "active")
-      .maybeSingle();
+    // 2. Concurrently execute authorization, property details, and all dashboard layers in ONE single Promise.all batch!
+    const [
+      membershipRes,
+      propertyRes,
+      roomSummaryRes,
+      arrivalsRes,
+      departuresRes,
+      inHouseRes,
+      activityRes,
+    ] = await Promise.allSettled([
+      supabase
+        .from("property_memberships")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .eq("property_id", propertyId)
+        .eq("status", "active")
+        .maybeSingle(),
+      queryPropertyDetails(supabase, propertyId),
+      queryRoomInventorySummary(supabase, propertyId),
+      queryTodayArrivals(supabase, propertyId, "Asia/Kolkata"),
+      queryTodayDepartures(supabase, propertyId, "Asia/Kolkata"),
+      queryInHouseGuestsCount(supabase, propertyId),
+      queryRecentActivity(supabase, propertyId),
+    ]);
 
-    if (memberError || !membership) {
+    // Check membership authorization result
+    if (membershipRes.status !== "fulfilled" || membershipRes.value.error || !membershipRes.value.data) {
       return {
         success: false,
         error: "Access denied. You do not have an active membership for this property.",
       };
     }
 
-    // 3. Query Property metadata
-    const property = await queryPropertyDetails(supabase, propertyId);
-    if (!property) {
-      return { success: false, error: "Property not found or inaccessible." };
-    }
-
-    // 4. Concurrently and safely execute sub-queries using Promise.allSettled
-    const [
-      roomSummaryResult,
-      arrivalsResult,
-      departuresResult,
-      inHouseResult,
-      activityResult,
-    ] = await Promise.allSettled([
-      queryRoomInventorySummary(supabase, propertyId),
-      queryTodayArrivals(supabase, propertyId, property.timezone),
-      queryTodayDepartures(supabase, propertyId, property.timezone),
-      queryInHouseGuestsCount(supabase, propertyId),
-      queryRecentActivity(supabase, propertyId),
-    ]);
+    const property = propertyRes.status === "fulfilled" && propertyRes.value ? propertyRes.value : {
+      id: propertyId,
+      name: "StayHub Property",
+      slug: "stayhub",
+      city: "",
+      state: "",
+      country: "",
+      currency: "INR",
+      timezone: "Asia/Kolkata",
+    };
 
     const roomSummary =
-      roomSummaryResult.status === "fulfilled"
-        ? roomSummaryResult.value
+      roomSummaryRes.status === "fulfilled"
+        ? roomSummaryRes.value
         : {
             total: 0,
             available: 0,
@@ -103,10 +102,10 @@ export async function getDashboardData(propertyId: string): Promise<DashboardRes
             isConfigured: false,
           };
 
-    const arrivals = arrivalsResult.status === "fulfilled" ? arrivalsResult.value : [];
-    const departures = departuresResult.status === "fulfilled" ? departuresResult.value : [];
-    const inHouseGuests = inHouseResult.status === "fulfilled" ? inHouseResult.value : 0;
-    const recentActivity = activityResult.status === "fulfilled" ? activityResult.value : [];
+    const arrivals = arrivalsRes.status === "fulfilled" ? arrivalsRes.value : [];
+    const departures = departuresRes.status === "fulfilled" ? departuresRes.value : [];
+    const inHouseGuests = inHouseRes.status === "fulfilled" ? inHouseRes.value : 0;
+    const recentActivity = activityRes.status === "fulfilled" ? activityRes.value : [];
 
     // Derive operational attention items
     const attentionItems = await queryOperationalAttention(supabase, propertyId, roomSummary);

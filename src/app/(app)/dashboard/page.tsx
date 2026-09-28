@@ -17,19 +17,29 @@ import {
 } from "@/components/dashboard";
 import { ErrorState, EmptyState } from "@/components/ui/states";
 import { Hotel } from "lucide-react";
-
 import { useRouter } from "next/navigation";
+
+// In-memory instant client cache for 0ms navigation transition
+const dashboardCache = new Map<string, DashboardData>();
 
 export default function DashboardPage() {
   const router = useRouter();
   const { currentProperty, loading: authLoading } = useAuth();
+  const activePropertyId = currentProperty?.property_id;
 
-  const [dashboardData, setDashboardData] = React.useState<DashboardData | null>(null);
-  const [dataLoading, setDataLoading] = React.useState(true);
+  const [dashboardData, setDashboardData] = React.useState<DashboardData | null>(() => {
+    if (activePropertyId && dashboardCache.has(activePropertyId)) {
+      return dashboardCache.get(activePropertyId)!;
+    }
+    return null;
+  });
+
+  const [dataLoading, setDataLoading] = React.useState(() => {
+    return !(activePropertyId && dashboardCache.has(activePropertyId));
+  });
+
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-
-  const activePropertyId = currentProperty?.property_id;
 
   const loadData = React.useCallback(
     async (isManualRefresh = false) => {
@@ -41,7 +51,7 @@ export default function DashboardPage() {
 
       if (isManualRefresh) {
         setRefreshing(true);
-      } else {
+      } else if (!dashboardCache.has(activePropertyId)) {
         setDataLoading(true);
       }
       setError(null);
@@ -50,33 +60,36 @@ export default function DashboardPage() {
         const response = await getDashboardData(activePropertyId);
         if (response.success && response.data) {
           setDashboardData(response.data);
-        } else {
+          dashboardCache.set(activePropertyId, response.data);
+        } else if (!dashboardData) {
           setError(response.error || "Failed to load dashboard data.");
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
-        setError("An unexpected network error occurred while updating the dashboard.");
+        if (!dashboardData) {
+          setError("An unexpected network error occurred while updating the dashboard.");
+        }
       } finally {
         setDataLoading(false);
         setRefreshing(false);
       }
     },
-    [activePropertyId]
+    [activePropertyId, dashboardData]
   );
 
   // Property Switch / Initial Load Effect
   React.useEffect(() => {
     let isMounted = true;
 
-    if (!authLoading) {
-      void Promise.resolve().then(() => {
-        if (!isMounted) return;
-        if (activePropertyId) {
-          loadData();
-        } else {
-          setDataLoading(false);
-        }
-      });
+    if (!authLoading && activePropertyId) {
+      // Check cache first for instant render
+      if (dashboardCache.has(activePropertyId)) {
+        setDashboardData(dashboardCache.get(activePropertyId)!);
+        setDataLoading(false);
+      }
+      void loadData();
+    } else if (!authLoading && !activePropertyId) {
+      setDataLoading(false);
     }
 
     return () => {
@@ -84,7 +97,17 @@ export default function DashboardPage() {
     };
   }, [authLoading, activePropertyId, loadData]);
 
-  // 1. Initial Auth or Data Loading State
+  // Fast 2s visible-only background refresh
+  React.useEffect(() => {
+    if (!activePropertyId) return;
+    const timer = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadData(false);
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [activePropertyId, loadData]);
+
+  // 1. Initial Auth or Data Loading State (only if no cached data exists)
   if (authLoading || (dataLoading && !dashboardData)) {
     return (
       <div className="space-y-6">
@@ -107,12 +130,12 @@ export default function DashboardPage() {
         <DashboardKpiGrid metrics={null} loading={true} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl p-6 h-64 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
-            <div className="rounded-2xl p-6 h-64 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
+            <div className="rounded-2xl p-6 h-64 animate-pulse bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-xs" />
+            <div className="rounded-2xl p-6 h-64 animate-pulse bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-xs" />
           </div>
           <div className="space-y-6">
-            <div className="rounded-2xl p-6 h-48 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
-            <div className="rounded-2xl p-6 h-48 animate-pulse bg-white border border-slate-200/80 shadow-sm" />
+            <div className="rounded-2xl p-6 h-48 animate-pulse bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-xs" />
+            <div className="rounded-2xl p-6 h-48 animate-pulse bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-xs" />
           </div>
         </div>
       </div>
@@ -133,7 +156,7 @@ export default function DashboardPage() {
               router.push("/onboarding");
             },
           }}
-          className="rounded-2xl bg-white border border-slate-200 p-10 max-w-lg mx-auto shadow-sm"
+          className="rounded-2xl bg-white dark:bg-card border border-slate-200 dark:border-border p-10 max-w-lg mx-auto shadow-xs"
         />
       </div>
     );
@@ -147,7 +170,7 @@ export default function DashboardPage() {
           title="Dashboard Unavailable"
           description={error}
           onRetry={() => loadData(true)}
-          className="rounded-2xl bg-white border border-slate-200 p-10 max-w-lg mx-auto shadow-sm"
+          className="rounded-2xl bg-white dark:bg-card border border-slate-200 dark:border-border p-10 max-w-lg mx-auto shadow-xs"
         />
       </div>
     );

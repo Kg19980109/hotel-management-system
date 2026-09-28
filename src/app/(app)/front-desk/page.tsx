@@ -138,16 +138,6 @@ export default function FrontDeskPage() {
     };
   }, [authLoading, activePropertyId, loadData]);
 
-  // Fast 2s visible-only auto refresh
-  React.useEffect(() => {
-    if (!activePropertyId) return;
-    const timer = setInterval(() => {
-      if (document.visibilityState !== "visible") return;
-      void loadData();
-    }, 2000);
-    return () => clearInterval(timer);
-  }, [activePropertyId, loadData]);
-
   // Filtered collections by search query
   const q = search.trim().toLowerCase();
 

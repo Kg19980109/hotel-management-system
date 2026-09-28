@@ -54,27 +54,29 @@ export function GuestShell({ children, session }: GuestShellProps) {
   const showFloatingCart = totalItems > 0 && !pathname.startsWith("/guest/cart");
 
   return (
-    <div className="min-h-screen bg-[#F0EBE1] text-slate-900 flex flex-col font-sans selection:bg-[#D4AF37]/30">
+    <div className="min-h-screen bg-[#070D18] text-slate-900 flex flex-col font-sans selection:bg-[#D4AF37]/30">
       {/* Mobile Max-Width Container (390px - 480px, responsive on tablet/desktop) */}
       <div className="w-full max-w-md md:max-w-lg mx-auto flex-1 flex flex-col bg-[#FAF8F5] border-x border-[#EAE3D2] shadow-2xl relative min-h-screen">
         
         {/* Luxury Hospitality Global Header */}
-        <header className="sticky top-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-b border-[#EAE3D2] px-4 py-3 flex items-center justify-between transition-colors">
+        <header className="sticky top-0 z-40 bg-[#0B1526]/95 backdrop-blur-xl border-b border-[#D4AF37]/25 px-4 py-3 flex items-center justify-between transition-colors shadow-sm">
           <div className="flex items-center space-x-3 min-w-0">
             {/* Property Luxury Monogram Mark */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0B1526] to-[#111D31] border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] shadow-sm shrink-0">
-              <Compass className="w-4 h-4 text-[#E4C980]" />
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] p-[1px] shadow-md shadow-amber-500/20 shrink-0">
+              <div className="w-full h-full rounded-[11px] bg-[#0B1526] flex items-center justify-center">
+                <Compass className="w-4 h-4 text-[#E4C980]" />
+              </div>
             </div>
             
             {/* Title & Verified In-House Guest Status */}
             <div className="min-w-0">
-              <h1 className="text-sm font-semibold tracking-tight text-slate-900 line-clamp-1 font-serif">
-                {session?.property_name || "StayHub Resort & Spa"}
+              <h1 className="text-xs sm:text-sm font-semibold tracking-tight text-white line-clamp-1 font-serif">
+                {session?.property_name || "StayHub Luxury Resort & Spa"}
               </h1>
-              <p className="text-[10px] text-[#A67C1E] font-medium tracking-wide flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 inline text-[#B88E2F] shrink-0" />
+              <p className="text-[10px] text-[#E4C980] font-medium tracking-wide flex items-center gap-1.5">
+                <ShieldCheck className="w-3 h-3 inline text-[#D4AF37] shrink-0" />
                 <span className="truncate">
-                  {isVerifiedStay ? `Room ${session?.room_number} · In-House Guest` : "Digital Concierge"}
+                  {isVerifiedStay ? `Suite ${session?.room_number} · In-House Guest` : "Digital Concierge Portal"}
                 </span>
               </p>
             </div>
@@ -85,7 +87,7 @@ export function GuestShell({ children, session }: GuestShellProps) {
             {session?.front_desk_phone && (
               <a
                 href={`tel:${session.front_desk_phone}`}
-                className="w-8 h-8 rounded-full bg-white border border-[#EAE3D2] text-[#A67C1E] hover:bg-[#F3EEE5] hover:text-[#8C6819] flex items-center justify-center shadow-2xs transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-white/10 border border-[#D4AF37]/35 text-[#E4C980] hover:bg-white/20 hover:text-white flex items-center justify-center shadow-2xs transition-all active:scale-95 duration-75 tap-active"
                 title="Call Front Desk Concierge"
                 aria-label="Call Front Desk Concierge"
               >
@@ -95,7 +97,7 @@ export function GuestShell({ children, session }: GuestShellProps) {
             {session && (
               <button
                 onClick={handleSignOut}
-                className="w-8 h-8 rounded-full bg-white border border-[#EAE3D2] text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 flex items-center justify-center shadow-2xs transition-all active:scale-95"
+                className="w-8 h-8 rounded-full bg-white/10 border border-white/15 text-slate-300 hover:text-rose-400 hover:border-rose-400/40 hover:bg-rose-950/40 flex items-center justify-center shadow-2xs transition-all active:scale-95 duration-75 tap-active"
                 title="Exit Guest Session"
                 aria-label="Exit Guest Session"
               >
@@ -115,33 +117,34 @@ export function GuestShell({ children, session }: GuestShellProps) {
           <div className="fixed bottom-20 left-0 right-0 z-40 max-w-md md:max-w-lg mx-auto px-4 pointer-events-none animate-in fade-in slide-in-from-bottom-3 duration-300">
             <Link
               href="/guest/cart"
-              className="pointer-events-auto flex items-center justify-between p-3.5 rounded-2xl bg-[#0B1526] text-white border border-[#D4AF37]/35 shadow-xl shadow-black/20 active:scale-[0.98] transition group"
+              className="pointer-events-auto flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-[#0B1526] via-[#111D31] to-[#0B1526] text-white border border-[#D4AF37]/50 shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-95 duration-75 tap-active transition group relative overflow-hidden"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#D4AF37] text-[#0B1526] flex items-center justify-center font-bold text-xs shadow-xs">
-                  <ShoppingBag className="w-4 h-4" />
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37]" />
+              <div className="flex items-center gap-3 pt-0.5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37] to-[#AA7C11] text-[#0B1526] flex items-center justify-center font-bold text-xs shadow-md shadow-amber-500/30">
+                  <ShoppingBag className="w-4 h-4 text-[#0B1526]" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-white tracking-wide">
+                  <p className="text-xs font-bold text-white tracking-wide">
                     View Dining Cart
                   </p>
-                  <p className="text-[11px] font-medium text-[#E4C980]">
+                  <p className="text-[11px] font-bold text-[#E4C980] font-mono">
                     {totalItems} item{totalItems > 1 ? "s" : ""} · ₹{subtotal.toFixed(2)}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 text-xs font-semibold text-[#E4C980] group-hover:text-white transition-colors">
-                <span>Review &amp; Order</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-xs font-bold text-[#E4C980] group-hover:bg-[#D4AF37] group-hover:text-[#0B1526] transition-colors">
+                <span>Review Order</span>
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </Link>
           </div>
         )}
 
         {/* Bottom Mobile Navigation Bar — Luxury Floating Glass Dock */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 max-w-md md:max-w-lg mx-auto px-3 pb-2.5 pt-1.5 pointer-events-none">
-          <div className="pointer-events-auto bg-[#0B1526]/95 backdrop-blur-2xl border border-[#D4AF37]/30 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.36)] px-2 py-1.5">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 max-w-md md:max-w-lg mx-auto px-3 pb-3 pt-1 pointer-events-none">
+          <div className="pointer-events-auto bg-[#070D18]/94 backdrop-blur-2xl border border-[#D4AF37]/35 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.55)] px-2 py-1.5 ring-1 ring-white/10">
             <div className="grid grid-cols-5 items-center">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -159,21 +162,21 @@ export function GuestShell({ children, session }: GuestShellProps) {
                     <div
                       className={`p-1.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
                         isActive
-                          ? "bg-gradient-to-r from-[#D4AF37] to-[#E4C980] text-[#0B1526] shadow-md shadow-[#D4AF37]/30 scale-105"
-                          : "group-hover:bg-white/5 text-slate-300"
+                          ? "bg-gradient-to-br from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-[#0B1526] shadow-lg shadow-amber-500/35 scale-105"
+                          : "group-hover:bg-white/5 text-slate-400 group-hover:text-slate-200"
                       }`}
                     >
                       <Icon className={`w-4 h-4 ${isActive ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
                     </div>
                     <span
-                      className={`text-[10px] tracking-tight mt-0.5 transition-colors ${
+                      className={`text-[9.5px] tracking-tight mt-0.5 transition-colors ${
                         isActive ? "font-bold text-[#E4C980]" : "font-medium text-slate-400"
                       }`}
                     >
                       {item.label}
                     </span>
                     {isActive && (
-                      <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#E4C980] shadow-[0_0_6px_#E4C980]" />
+                      <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#E4C980] shadow-[0_0_8px_#E4C980]" />
                     )}
                   </Link>
                 );

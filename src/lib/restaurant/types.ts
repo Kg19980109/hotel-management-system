@@ -198,6 +198,8 @@ export interface CreateOrderInput {
   restaurant_id: string;
   order_type: OrderType;
   table_id?: string | null;
+  room_id?: string | null;
+  room_number?: string | null;
   guest_id?: string | null;
   stay_id?: string | null;
   notes?: string | null;

@@ -419,6 +419,7 @@ export function PosTerminal({
         property_id: propertyId,
         restaurant_id: restaurant.id,
         order_type: orderType,
+        room_number: orderType === "ROOM_SERVICE" && roomNumberInput.trim() ? roomNumberInput.trim() : undefined,
         table_id: orderType === "DINE_IN" ? selectedTableId : null,
         notes: formattedNotes || null,
         discount_amount: sanitizedDiscount,

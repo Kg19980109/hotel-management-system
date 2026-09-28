@@ -706,6 +706,43 @@ export async function createOrderAction(
 
   const supabase = await createClient();
 
+  // Resolve active room stay if room number / room service is specified
+  let targetStayId = input.stay_id || null;
+  let targetGuestId = input.guest_id || null;
+  let targetRoomId = input.room_id || null;
+
+  let roomNumberToSearch = input.room_number?.trim();
+  if (!roomNumberToSearch && input.notes) {
+    const roomMatch = input.notes.match(/\[Room:\s*([^\]]+)\]/i) || input.notes.match(/Room\s*([0-9A-Za-z_-]+)/i);
+    if (roomMatch) roomNumberToSearch = roomMatch[1].trim();
+  }
+
+  if (!targetStayId && roomNumberToSearch) {
+    const { data: matchedStay } = await supabase
+      .from("stays")
+      .select(`
+        id,
+        guest_id,
+        room_id,
+        rooms!inner (
+          id,
+          room_number
+        )
+      `)
+      .eq("property_id", input.property_id)
+      .eq("status", "CHECKED_IN")
+      .ilike("rooms.room_number", roomNumberToSearch)
+      .order("actual_check_in_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (matchedStay) {
+      targetStayId = matchedStay.id;
+      targetGuestId = matchedStay.guest_id;
+      targetRoomId = matchedStay.room_id;
+    }
+  }
+
   const { data, error } = await supabase.rpc("create_restaurant_order", {
     p_property_id: input.property_id,
     p_restaurant_id: input.restaurant_id,
@@ -716,12 +753,39 @@ export async function createOrderAction(
     p_tax_amount: 0,
     p_service_charge_amount: 0,
     p_notes: input.notes?.trim() || null,
-    p_guest_id: input.guest_id || null,
-    p_stay_id: input.stay_id || null,
+    p_guest_id: targetGuestId,
+    p_stay_id: targetStayId,
   });
 
   if (error) {
     return { success: false, error: error.message };
+  }
+
+  // Ensure room_id, stay_id, guest_id linkage is updated on the order record
+  if (data?.order_id && (targetRoomId || targetStayId || targetGuestId)) {
+    const updatePayload: Record<string, unknown> = {};
+    if (targetRoomId) updatePayload.room_id = targetRoomId;
+    if (targetStayId) updatePayload.stay_id = targetStayId;
+    if (targetGuestId) updatePayload.guest_id = targetGuestId;
+
+    await supabase
+      .from("restaurant_orders")
+      .update(updatePayload)
+      .eq("id", data.order_id);
+  }
+
+  // Automatically post Room Service / Stay order to active guest room folio
+  if (targetStayId && data?.order_id) {
+    try {
+      await supabase.rpc("post_restaurant_order_to_folio", {
+        p_order_id: data.order_id,
+        p_stay_id: targetStayId,
+        p_property_id: input.property_id,
+        p_performed_by: auth.userId,
+      });
+    } catch (folioErr) {
+      console.warn("Auto-post restaurant order to folio notice:", folioErr);
+    }
   }
 
   // Fire kitchen ticket for KDS integration ONLY if requested (e.g. live food cooking order)
@@ -744,6 +808,9 @@ export async function createOrderAction(
   revalidatePath("/kitchen");
   revalidatePath("/restaurant/kds");
   revalidatePath("/pos");
+  revalidatePath("/billing");
+  revalidatePath("/billing/folios");
+  revalidatePath("/front-desk");
 
   return {
     success: true,
@@ -811,11 +878,53 @@ export async function completeOrderAction(
     return { success: false, error: error.message };
   }
 
+  // Check if order is associated with a stay or has a room number in notes
+  try {
+    const { data: orderRec } = await supabase
+      .from("restaurant_orders")
+      .select("id, stay_id, notes, order_type")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (orderRec) {
+      let stayId = orderRec.stay_id;
+      if (!stayId && orderRec.notes) {
+        const roomMatch = orderRec.notes.match(/\[Room:\s*([^\]]+)\]/i) || orderRec.notes.match(/Room\s*([0-9A-Za-z_-]+)/i);
+        if (roomMatch) {
+          const roomNum = roomMatch[1].trim();
+          const { data: matchedStay } = await supabase
+            .from("stays")
+            .select("id")
+            .eq("property_id", propertyId)
+            .eq("status", "CHECKED_IN")
+            .ilike("rooms.room_number", roomNum)
+            .limit(1)
+            .maybeSingle();
+          if (matchedStay) stayId = matchedStay.id;
+        }
+      }
+
+      if (stayId) {
+        await supabase.rpc("post_restaurant_order_to_folio", {
+          p_order_id: orderId,
+          p_stay_id: stayId,
+          p_property_id: propertyId,
+          p_performed_by: auth.userId,
+        });
+      }
+    }
+  } catch (syncErr) {
+    console.warn("Post-completion folio sync notice:", syncErr);
+  }
+
   revalidatePath("/restaurant");
   revalidatePath("/restaurant/pos");
   revalidatePath("/restaurant/tables");
   revalidatePath("/restaurant/orders");
   revalidatePath(`/restaurant/orders/${orderId}`);
+  revalidatePath("/billing");
+  revalidatePath("/billing/folios");
+  revalidatePath("/front-desk");
   return { success: true };
 }
 

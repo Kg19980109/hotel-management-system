@@ -139,30 +139,46 @@ export function GuestShell({ children, session }: GuestShellProps) {
           </div>
         )}
 
-        {/* Bottom Mobile Navigation Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#EAE3D2] max-w-md md:max-w-lg mx-auto shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
-          <div className="grid grid-cols-5 items-center h-16 px-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href || (item.href !== "/guest/home" && pathname.startsWith(item.href));
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex flex-col items-center justify-center h-full min-h-[48px] space-y-1 transition-all select-none ${
-                    isActive
-                      ? "text-[#A67C1E] font-semibold"
-                      : "text-slate-400 hover:text-slate-600"
-                  }`}
-                  aria-label={item.label}
-                >
-                  <div className={`p-1.5 rounded-xl transition ${isActive ? "bg-[#FAF4E6] text-[#A67C1E]" : ""}`}>
-                    <Icon className={`w-4 h-4 ${isActive ? "stroke-[2.25]" : "stroke-[1.75]"}`} />
-                  </div>
-                  <span className="text-[10.5px] tracking-tight">{item.label}</span>
-                </Link>
-              );
-            })}
+        {/* Bottom Mobile Navigation Bar — Luxury Floating Glass Dock */}
+        <nav className="fixed bottom-0 left-0 right-0 z-40 max-w-md md:max-w-lg mx-auto px-3 pb-2.5 pt-1.5 pointer-events-none">
+          <div className="pointer-events-auto bg-[#0B1526]/95 backdrop-blur-2xl border border-[#D4AF37]/30 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.36)] px-2 py-1.5">
+            <div className="grid grid-cols-5 items-center">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href || (item.href !== "/guest/home" && pathname.startsWith(item.href));
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    prefetch={true}
+                    className={`relative flex flex-col items-center justify-center py-1 rounded-xl transition-transform duration-75 active:scale-90 select-none group ${
+                      isActive ? "text-[#E4C980]" : "text-slate-400 hover:text-slate-200"
+                    }`}
+                    aria-label={item.label}
+                  >
+                    <div
+                      className={`p-1.5 rounded-xl transition-all duration-150 flex items-center justify-center ${
+                        isActive
+                          ? "bg-gradient-to-r from-[#D4AF37] to-[#E4C980] text-[#0B1526] shadow-md shadow-[#D4AF37]/30 scale-105"
+                          : "group-hover:bg-white/5 text-slate-300"
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
+                    </div>
+                    <span
+                      className={`text-[10px] tracking-tight mt-0.5 transition-colors ${
+                        isActive ? "font-bold text-[#E4C980]" : "font-medium text-slate-400"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                    {isActive && (
+                      <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-[#E4C980] shadow-[0_0_6px_#E4C980]" />
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </nav>
       </div>

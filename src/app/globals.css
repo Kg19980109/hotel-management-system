@@ -646,41 +646,25 @@ body {
   padding: 0 1rem;
 }
 
+
 /* ============================================================
-   OPERATIONAL ALERTS VISUAL FOUNDATION
+   MOBILE & TOUCH REACTION OPTIMIZATIONS
+   Eliminate 300ms touch delay and provide instant tactile feedback
    ============================================================ */
-
-.ops-alert-dot-urgent {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--danger);
-  animation: ops-pulse 1.4s ease infinite;
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
-.ops-alert-dot-high {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--warning);
+button, a, input, select, textarea, [role="button"], label {
+  touch-action: manipulation;
 }
 
-.ops-alert-dot-normal {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--info);
+.tap-active {
+  transition: transform 75ms cubic-bezier(0.16, 1, 0.3, 1), opacity 75ms ease;
 }
 
-.ops-alert-dot-low {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--foreground-subtle);
+.tap-active:active {
+  transform: scale(0.97);
+  opacity: 0.9;
 }
 
-@keyframes ops-pulse {
-  0%   { box-shadow: 0 0 0 0   rgba(224,82,82,0.40); }
-  70%  { box-shadow: 0 0 0 8px rgba(224,82,82,0.00); }
-  100% { box-shadow: 0 0 0 0   rgba(224,82,82,0.00); }
-}

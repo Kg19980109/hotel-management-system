@@ -53,6 +53,15 @@ interface ServiceCategoryMeta {
   icon: React.ComponentType<{ className?: string }>;
   iconColor: string;
   iconBg: string;
+  cardBg: string;
+  cardBorder: string;
+  accentBar: string;
+  chipBg: string;
+  chipText: string;
+  chipBorder: string;
+  chipHover: string;
+  btnBg: string;
+  btnText: string;
   badgeBg: string;
   badgeText: string;
   badgeBorder: string;
@@ -69,10 +78,19 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     name: "Housekeeping",
     group: "ROOM",
     icon: Sparkles,
-    iconColor: "text-[#D4AF37]",
-    iconBg: "bg-[#FAF4E6] text-[#A67C1E] border-[#D4AF37]/30",
-    badgeBg: "bg-emerald-50",
-    badgeText: "text-emerald-700",
+    iconColor: "text-amber-600",
+    iconBg: "bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/25",
+    cardBg: "bg-gradient-to-br from-amber-50/80 via-white to-amber-50/30",
+    cardBorder: "border-amber-200/90 hover:border-amber-400",
+    accentBar: "from-amber-400 to-amber-600",
+    chipBg: "bg-amber-100/60",
+    chipText: "text-amber-950",
+    chipBorder: "border-amber-200",
+    chipHover: "hover:bg-amber-100 hover:border-amber-300",
+    btnBg: "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-xs shadow-amber-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-emerald-100 text-emerald-800",
+    badgeText: "text-emerald-800 font-bold",
     badgeBorder: "border-emerald-200",
     description: "Linens, fresh towels, turndown & toiletries replenishment",
     isPaid: false,
@@ -92,9 +110,18 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     group: "ROOM",
     icon: Wrench,
     iconColor: "text-sky-600",
-    iconBg: "bg-sky-50 text-sky-700 border-sky-200",
-    badgeBg: "bg-sky-50",
-    badgeText: "text-sky-700",
+    iconBg: "bg-gradient-to-br from-sky-400 via-blue-500 to-blue-600 text-white shadow-md shadow-sky-500/25",
+    cardBg: "bg-gradient-to-br from-sky-50/80 via-white to-blue-50/30",
+    cardBorder: "border-sky-200/90 hover:border-sky-400",
+    accentBar: "from-sky-400 to-blue-600",
+    chipBg: "bg-sky-100/60",
+    chipText: "text-sky-950",
+    chipBorder: "border-sky-200",
+    chipHover: "hover:bg-sky-100 hover:border-sky-300",
+    btnBg: "bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-xs shadow-sky-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-sky-100 text-sky-800",
+    badgeText: "text-sky-800 font-bold",
     badgeBorder: "border-sky-200",
     description: "In-room climate control, electronics, plumbing & repairs",
     isPaid: false,
@@ -114,10 +141,19 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     group: "ROOM",
     icon: Shirt,
     iconColor: "text-indigo-600",
-    iconBg: "bg-indigo-50 text-indigo-700 border-indigo-200",
-    badgeBg: "bg-[#FAF4E6]",
-    badgeText: "text-[#A67C1E]",
-    badgeBorder: "border-[#D4AF37]/30",
+    iconBg: "bg-gradient-to-br from-indigo-400 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/25",
+    cardBg: "bg-gradient-to-br from-indigo-50/80 via-white to-purple-50/30",
+    cardBorder: "border-indigo-200/90 hover:border-indigo-400",
+    accentBar: "from-indigo-400 to-purple-600",
+    chipBg: "bg-indigo-100/60",
+    chipText: "text-indigo-950",
+    chipBorder: "border-indigo-200",
+    chipHover: "hover:bg-indigo-100 hover:border-indigo-300",
+    btnBg: "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-xs shadow-indigo-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-indigo-100 text-indigo-800",
+    badgeText: "text-indigo-800 font-bold",
+    badgeBorder: "border-indigo-200",
     description: "Express valet, garment pressing, wash & dry cleaning",
     isPaid: true,
     tag: "Billed to Folio",
@@ -137,10 +173,19 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     name: "Front Desk & Reception",
     group: "ASSISTANCE",
     icon: BedDouble,
-    iconColor: "text-amber-700",
-    iconBg: "bg-amber-50 text-amber-800 border-amber-200",
-    badgeBg: "bg-emerald-50",
-    badgeText: "text-emerald-700",
+    iconColor: "text-emerald-600",
+    iconBg: "bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25",
+    cardBg: "bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/30",
+    cardBorder: "border-emerald-200/90 hover:border-emerald-400",
+    accentBar: "from-emerald-400 to-teal-600",
+    chipBg: "bg-emerald-100/60",
+    chipText: "text-emerald-950",
+    chipBorder: "border-emerald-200",
+    chipHover: "hover:bg-emerald-100 hover:border-emerald-300",
+    btnBg: "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-xs shadow-emerald-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-emerald-100 text-emerald-800",
+    badgeText: "text-emerald-800 font-bold",
     badgeBorder: "border-emerald-200",
     description: "Luggage assistance, wake-up calls, keys & reception inquiries",
     isPaid: false,
@@ -160,9 +205,18 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     group: "ASSISTANCE",
     icon: Compass,
     iconColor: "text-purple-600",
-    iconBg: "bg-purple-50 text-purple-700 border-purple-200",
-    badgeBg: "bg-purple-50",
-    badgeText: "text-purple-700",
+    iconBg: "bg-gradient-to-br from-purple-400 via-purple-500 to-pink-600 text-white shadow-md shadow-purple-500/25",
+    cardBg: "bg-gradient-to-br from-purple-50/80 via-white to-pink-50/30",
+    cardBorder: "border-purple-200/90 hover:border-purple-400",
+    accentBar: "from-purple-400 to-pink-600",
+    chipBg: "bg-purple-100/60",
+    chipText: "text-purple-950",
+    chipBorder: "border-purple-200",
+    chipHover: "hover:bg-purple-100 hover:border-purple-300",
+    btnBg: "bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-xs shadow-purple-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-purple-100 text-purple-800",
+    badgeText: "text-purple-800 font-bold",
     badgeBorder: "border-purple-200",
     description: "Fine dining reservations, city itineraries & VIP tickets",
     isPaid: false,
@@ -178,14 +232,23 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
   },
   {
     id: "TRANSPORT",
-    name: "Chauffeur & Airport Transfers",
+    name: "Chauffeur & Transfers",
     group: "ASSISTANCE",
     icon: Car,
     iconColor: "text-teal-600",
-    iconBg: "bg-teal-50 text-teal-700 border-teal-200",
-    badgeBg: "bg-[#FAF4E6]",
-    badgeText: "text-[#A67C1E]",
-    badgeBorder: "border-[#D4AF37]/30",
+    iconBg: "bg-gradient-to-br from-teal-400 via-teal-500 to-cyan-600 text-white shadow-md shadow-teal-500/25",
+    cardBg: "bg-gradient-to-br from-teal-50/80 via-white to-cyan-50/30",
+    cardBorder: "border-teal-200/90 hover:border-teal-400",
+    accentBar: "from-teal-400 to-cyan-600",
+    chipBg: "bg-teal-100/60",
+    chipText: "text-teal-950",
+    chipBorder: "border-teal-200",
+    chipHover: "hover:bg-teal-100 hover:border-teal-300",
+    btnBg: "bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white shadow-xs shadow-teal-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-teal-100 text-teal-800",
+    badgeText: "text-teal-800 font-bold",
+    badgeBorder: "border-teal-200",
     description: "Airport limousine, private driver & station transfers",
     isPaid: true,
     tag: "Billed to Folio",
@@ -206,10 +269,19 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     group: "EXPERIENCE",
     icon: Coffee,
     iconColor: "text-rose-600",
-    iconBg: "bg-rose-50 text-rose-700 border-rose-200",
-    badgeBg: "bg-emerald-50",
-    badgeText: "text-emerald-700",
-    badgeBorder: "border-emerald-200",
+    iconBg: "bg-gradient-to-br from-rose-400 via-rose-500 to-red-600 text-white shadow-md shadow-rose-500/25",
+    cardBg: "bg-gradient-to-br from-rose-50/80 via-white to-orange-50/30",
+    cardBorder: "border-rose-200/90 hover:border-rose-400",
+    accentBar: "from-rose-400 to-red-600",
+    chipBg: "bg-rose-100/60",
+    chipText: "text-rose-950",
+    chipBorder: "border-rose-200",
+    chipHover: "hover:bg-rose-100 hover:border-rose-300",
+    btnBg: "bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white shadow-xs shadow-rose-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-rose-100 text-rose-800",
+    badgeText: "text-rose-800 font-bold",
+    badgeBorder: "border-rose-200",
     description: "Ice buckets, extra cutlery, glassware & minibar refills",
     isPaid: false,
     tag: "Complimentary",
@@ -228,10 +300,19 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     group: "EXPERIENCE",
     icon: Flower2,
     iconColor: "text-pink-600",
-    iconBg: "bg-pink-50 text-pink-700 border-pink-200",
-    badgeBg: "bg-[#FAF4E6]",
-    badgeText: "text-[#A67C1E]",
-    badgeBorder: "border-[#D4AF37]/30",
+    iconBg: "bg-gradient-to-br from-pink-400 via-pink-500 to-rose-600 text-white shadow-md shadow-pink-500/25",
+    cardBg: "bg-gradient-to-br from-pink-50/80 via-white to-rose-50/30",
+    cardBorder: "border-pink-200/90 hover:border-pink-400",
+    accentBar: "from-pink-400 to-rose-600",
+    chipBg: "bg-pink-100/60",
+    chipText: "text-pink-950",
+    chipBorder: "border-pink-200",
+    chipHover: "hover:bg-pink-100 hover:border-pink-300",
+    btnBg: "bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white shadow-xs shadow-pink-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-pink-100 text-pink-800",
+    badgeText: "text-pink-800 font-bold",
+    badgeBorder: "border-pink-200",
     description: "Holistic massages, aromatherapy, sauna & beauty therapies",
     isPaid: true,
     tag: "Wellness Service",
@@ -250,10 +331,19 @@ const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
     group: "EXPERIENCE",
     icon: Crown,
     iconColor: "text-amber-600",
-    iconBg: "bg-amber-50 text-amber-700 border-amber-200",
-    badgeBg: "bg-[#FAF4E6]",
-    badgeText: "text-[#A67C1E]",
-    badgeBorder: "border-[#D4AF37]/30",
+    iconBg: "bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-white shadow-md shadow-amber-500/25",
+    cardBg: "bg-gradient-to-br from-amber-100/60 via-white to-yellow-50/40",
+    cardBorder: "border-amber-300/90 hover:border-amber-500",
+    accentBar: "from-amber-400 to-yellow-600",
+    chipBg: "bg-amber-100/70",
+    chipText: "text-amber-950",
+    chipBorder: "border-amber-300",
+    chipHover: "hover:bg-amber-100 hover:border-amber-400",
+    btnBg: "bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white shadow-xs shadow-amber-500/20",
+    btnText: "text-white",
+    badgeBg: "bg-amber-100 text-amber-800",
+    badgeText: "text-amber-800 font-bold",
+    badgeBorder: "border-amber-200",
     description: "Rollaway beds, banquet suites, room upgrades & special needs",
     isPaid: true,
     tag: "Custom / Upgrade",
@@ -536,33 +626,65 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
       </div>
 
       <div className="px-4 space-y-5">
-        {/* ── 2. IN-ROOM DINING PROMOTION BANNER ── */}
-        <div className="p-4 rounded-2xl bg-white border border-[#EAE3D2] shadow-sm flex items-center justify-between gap-3 hover:border-[#D4AF37]/40 transition-all">
+        {/* ── 2. QUICK CATEGORY SHORTCUTS CAROUSEL / GRID ── */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-0.5">
+            <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider font-serif">
+              Quick Services
+            </span>
+            <span className="text-[10px] text-slate-500">Tap to request</span>
+          </div>
+
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 pt-0.5 scrollbar-none">
+            {SERVICE_CATEGORIES.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => openCategoryModal(cat)}
+                  className="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-white border border-[#EAE3D2] hover:border-[#D4AF37]/50 shadow-2xs transition-transform duration-75 active:scale-90 shrink-0 w-20 text-center select-none group"
+                >
+                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105", cat.iconBg)}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-800 line-clamp-1 leading-tight">
+                    {cat.name.split(" ")[0]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── 3. IN-ROOM DINING PROMOTION BANNER ── */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0B1526] via-[#152542] to-[#0B1526] text-white border border-[#D4AF37]/35 shadow-md flex items-center justify-between gap-3 transition-transform duration-75 active:scale-[0.99]">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/30 flex items-center justify-center font-bold shadow-2xs shrink-0">
-              <Utensils className="w-5 h-5 text-[#D4AF37]" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center font-bold shadow-md shadow-amber-500/25 shrink-0">
+              <Utensils className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[#A67C1E] uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#E4C980] uppercase tracking-wider">
                 <span>In-Room Dining</span>
               </div>
-              <h3 className="text-xs sm:text-sm font-serif font-semibold text-slate-900 truncate">
+              <h3 className="text-xs sm:text-sm font-serif font-semibold text-white truncate">
                 Chef-Crafted Room Delivery
               </h3>
-              <p className="text-[11px] text-slate-500 line-clamp-1">Freshly prepared gourmet dishes &amp; drinks</p>
+              <p className="text-[11px] text-slate-300/80 line-clamp-1">Freshly prepared gourmet dishes &amp; drinks</p>
             </div>
           </div>
 
           <Link
             href="/guest/dining"
-            className="px-3.5 py-2 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 font-semibold text-xs transition shadow-2xs shrink-0 flex items-center gap-1 active:scale-95"
+            prefetch={true}
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#E4C980] hover:from-[#C5A030] hover:to-[#D4AF37] text-[#0B1526] font-bold text-xs transition-transform duration-75 active:scale-95 shadow-md shadow-[#D4AF37]/20 shrink-0 flex items-center gap-1"
           >
             <span>View Menu</span>
             <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
           </Link>
         </div>
 
-        {/* ── 3. SEARCH & REFINED FILTER TABS ── */}
+        {/* ── 4. SEARCH & VIBRANT FILTER TABS ── */}
         <div className="space-y-3">
           {/* Search bar */}
           <div className="relative">
@@ -585,15 +707,15 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
             )}
           </div>
 
-          {/* Filter Pills */}
+          {/* Filter Pills with rich tactile feedback */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
               type="button"
               onClick={() => setActiveTab("ALL")}
               className={cn(
-                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition",
+                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-transform duration-75 active:scale-95 select-none",
                 activeTab === "ALL"
-                  ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/35 shadow-xs"
+                  ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/50 shadow-xs"
                   : "bg-white text-slate-600 hover:text-slate-900 border border-[#EAE3D2]"
               )}
             >
@@ -604,13 +726,13 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
               type="button"
               onClick={() => setActiveTab("COMPLIMENTARY")}
               className={cn(
-                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5",
+                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-transform duration-75 active:scale-95 flex items-center gap-1.5 select-none",
                 activeTab === "COMPLIMENTARY"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "bg-white text-slate-600 hover:text-emerald-800 border border-[#EAE3D2]"
+                  ? "bg-emerald-600 text-white shadow-xs font-bold"
+                  : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
               )}
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <ShieldCheck className="w-3.5 h-3.5" />
               <span>Complimentary (5)</span>
             </button>
 
@@ -618,19 +740,19 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
               type="button"
               onClick={() => setActiveTab("PAID")}
               className={cn(
-                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5",
+                "px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-transform duration-75 active:scale-95 flex items-center gap-1.5 select-none",
                 activeTab === "PAID"
-                  ? "bg-[#FAF4E6] text-[#A67C1E] border border-[#D4AF37]/50 font-bold shadow-xs"
-                  : "bg-white text-slate-600 hover:text-[#A67C1E] border border-[#EAE3D2]"
+                  ? "bg-indigo-600 text-white shadow-xs font-bold"
+                  : "bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200"
               )}
             >
-              <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
+              <Tag className="w-3.5 h-3.5" />
               <span>Chargeable Services (4)</span>
             </button>
           </div>
         </div>
 
-        {/* ── 4. REFINED SERVICE GROUPS & CARDS ── */}
+        {/* ── 5. COLORFUL SERVICE GROUPS & CARDS ── */}
         {groupedCategories.length === 0 ? (
           <div className="p-8 rounded-3xl bg-white border border-[#EAE3D2] text-center space-y-3 shadow-sm">
             <div className="w-12 h-12 rounded-full bg-[#FAF4E6] border border-[#D4AF37]/30 text-[#A67C1E] mx-auto flex items-center justify-center">
@@ -646,7 +768,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                 setSearchQuery("");
                 setActiveTab("ALL");
               }}
-              className="px-4 py-2 rounded-full bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/30 text-xs font-semibold transition"
+              className="px-4 py-2 rounded-full bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/30 text-xs font-semibold transition active:scale-95"
             >
               Reset Filters
             </button>
@@ -665,64 +787,86 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                     <p className="text-[11px] text-slate-500">{meta.subtitle}</p>
                   </div>
 
-                  {/* Cards Grid */}
-                  <div className="space-y-3">
+                  {/* Colorful Cards Grid */}
+                  <div className="space-y-3.5">
                     {group.items.map((cat) => {
                       const Icon = cat.icon;
 
                       return (
                         <div
                           key={cat.id}
-                          className="p-4 rounded-2xl bg-white border border-[#EAE3D2] hover:border-[#D4AF37]/50 shadow-2xs hover:shadow-sm space-y-3 transition-all"
+                          className={cn(
+                            "rounded-2xl border p-4 shadow-2xs hover:shadow-md transition-all duration-150 space-y-3 relative overflow-hidden",
+                            cat.cardBg,
+                            cat.cardBorder
+                          )}
                         >
-                          {/* Top Row */}
-                          <div className="flex items-start justify-between gap-3">
+                          {/* Accent line indicator at the top */}
+                          <div className={cn("absolute top-0 left-0 right-0 h-1 bg-gradient-to-r", cat.accentBar)} />
+
+                          {/* Top Row: Icon + Title & Description + Badge */}
+                          <div className="flex items-start justify-between gap-3 pt-0.5">
                             <div className="flex items-start gap-3 min-w-0">
-                              <div className={cn("w-11 h-11 rounded-2xl flex items-center justify-center border shadow-2xs shrink-0", cat.iconBg)}>
-                                <Icon className="w-5 h-5" />
+                              <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-md", cat.iconBg)}>
+                                <Icon className="w-6 h-6" />
                               </div>
                               <div className="min-w-0">
-                                <h3 className="text-sm font-serif font-semibold text-slate-900 leading-snug">
+                                <h3 className="text-sm font-serif font-bold text-slate-900 leading-snug">
                                   {cat.name}
                                 </h3>
-                                <p className="text-[11.5px] text-slate-500 mt-0.5 leading-snug line-clamp-2">
+                                <p className="text-[11.5px] text-slate-600 mt-0.5 leading-snug line-clamp-2">
                                   {cat.description}
                                 </p>
                               </div>
                             </div>
 
-                            <span className={cn("text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0", cat.badgeBg, cat.badgeText, cat.badgeBorder)}>
+                            <span className={cn("text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 shadow-2xs", cat.badgeBg, cat.badgeBorder)}>
                               {cat.tag}
                             </span>
                           </div>
 
-                          {/* Quick Options Chips */}
-                          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                            {cat.commonQuickOptions.slice(0, 3).map((opt) => (
-                              <button
-                                key={opt}
-                                type="button"
-                                onClick={() => openCategoryModal(cat, opt)}
-                                className="text-[11px] font-medium text-slate-700 bg-[#FAF8F5] hover:bg-[#FAF4E6] hover:text-[#A67C1E] px-2.5 py-1 rounded-lg border border-[#EAE3D2] hover:border-[#D4AF37]/50 transition-all active:scale-95"
-                              >
-                                + {opt}
-                              </button>
-                            ))}
+                          {/* Quick Options Chips with Colorful Theme */}
+                          <div className="space-y-1.5 pt-0.5">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                              Popular Requests
+                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {cat.commonQuickOptions.slice(0, 3).map((opt) => (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={() => openCategoryModal(cat, opt)}
+                                  className={cn(
+                                    "text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-transform duration-75 active:scale-95 shadow-2xs flex items-center gap-1 select-none",
+                                    cat.chipBg,
+                                    cat.chipText,
+                                    cat.chipBorder,
+                                    cat.chipHover
+                                  )}
+                                >
+                                  <span>+</span>
+                                  <span>{opt}</span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
 
                           {/* Action Row */}
-                          <div className="pt-2.5 border-t border-[#EAE3D2]/70 flex items-center justify-between">
-                            <span className="text-[10.5px] text-slate-500">
+                          <div className="pt-2.5 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                            <span className="text-[10.5px] font-medium text-slate-500">
                               {cat.isPaid ? "Billed directly to room folio" : "Provided with compliments"}
                             </span>
 
                             <button
                               type="button"
                               onClick={() => openCategoryModal(cat)}
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-[#A67C1E] hover:text-[#886214] transition"
+                              className={cn(
+                                "px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-transform duration-75 active:scale-95 shrink-0 shadow-xs",
+                                cat.btnBg
+                              )}
                             >
-                              <span>Request Service</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
+                              <span>Request</span>
+                              <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                             </button>
                           </div>
                         </div>
@@ -814,7 +958,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                                 }
                               }}
                               className={cn(
-                                "p-3 rounded-xl text-left transition flex items-center justify-between gap-3 border",
+                                "p-3 rounded-xl text-left transition-transform duration-75 active:scale-[0.98] flex items-center justify-between gap-3 border select-none",
                                 isSelected
                                   ? "bg-[#FAF4E6] border-[#D4AF37] text-slate-900 shadow-2xs font-semibold"
                                   : "bg-white border-[#EAE3D2] hover:border-slate-300 text-slate-700"
@@ -870,7 +1014,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                             }
                           }}
                           className={cn(
-                            "p-2.5 rounded-xl text-xs text-left transition flex items-center justify-between border",
+                            "p-2.5 rounded-xl text-xs text-left transition-transform duration-75 active:scale-95 flex items-center justify-between border select-none",
                             isSelected
                               ? "bg-[#0B1526] text-[#E4C980] font-semibold border-[#D4AF37]/50 shadow-2xs"
                               : "bg-[#FAF8F5] border-[#EAE3D2] text-slate-700 hover:bg-slate-100"
@@ -912,7 +1056,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                       type="button"
                       onClick={() => setPriority("MEDIUM")}
                       className={cn(
-                        "py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 border",
+                        "py-2 rounded-xl text-xs font-semibold transition-transform duration-75 active:scale-95 flex items-center justify-center gap-1.5 border select-none",
                         priority === "MEDIUM"
                           ? "bg-[#0B1526] text-[#E4C980] border-[#D4AF37]/50 shadow-2xs"
                           : "bg-[#FAF8F5] text-slate-600 border-[#EAE3D2] hover:bg-slate-100"
@@ -926,7 +1070,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                       type="button"
                       onClick={() => setPriority("URGENT")}
                       className={cn(
-                        "py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 border",
+                        "py-2 rounded-xl text-xs font-semibold transition-transform duration-75 active:scale-95 flex items-center justify-center gap-1.5 border select-none",
                         priority === "URGENT"
                           ? "bg-amber-600 text-white border-amber-600 shadow-2xs"
                           : "bg-[#FAF8F5] text-slate-600 border-[#EAE3D2] hover:bg-slate-100"
@@ -950,7 +1094,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   type="button"
                   onClick={handleSubmitRequest}
                   disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 disabled:opacity-50 font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition active:scale-[0.99]"
+                  className="w-full py-3.5 px-4 rounded-xl bg-[#0B1526] hover:bg-[#111D31] text-[#E4C980] border border-[#D4AF37]/35 disabled:opacity-50 font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition-transform duration-75 active:scale-[0.98] select-none"
                 >
                   {isSubmitting ? (
                     <>

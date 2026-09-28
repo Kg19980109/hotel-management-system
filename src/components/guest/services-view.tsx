@@ -406,13 +406,13 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     }
   }, [matchedInitialCat]);
 
-  // Helper to filter POS items strictly relevant to the active category
+  // Helper to filter POS items strictly relevant to the active category, deduplicated & curated
   const getCategoryPaidItems = React.useCallback(
     (cat: ServiceCategoryMeta): PayableServiceItem[] => {
       if (!payableServices || payableServices.length === 0) return [];
 
       const id = cat.id;
-      return payableServices.filter((item) => {
+      const matched = payableServices.filter((item) => {
         const name = item.name.toLowerCase();
         const catName = (item.category_name || "").toLowerCase();
 
@@ -433,6 +433,19 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
         }
         return false;
       });
+
+      // Deduplicate by name and price to ensure no duplicate packages appear
+      const seen = new Set<string>();
+      const uniqueItems: PayableServiceItem[] = [];
+      for (const item of matched) {
+        const key = `${item.name.trim().toLowerCase()}_${item.price}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueItems.push(item);
+        }
+      }
+
+      return uniqueItems;
     },
     [payableServices]
   );
@@ -935,18 +948,45 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   if (paidItems.length === 0) return null;
 
                   return (
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
-                        <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>Select Service / Package (Billed to Room Folio)</span>
-                      </label>
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
+                          <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Select Curated Package (Billed to Room Folio)</span>
+                        </label>
+                        <span className="text-[10px] text-amber-800 font-bold bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300/60">
+                          {paidItems.length} Available
+                        </span>
+                      </div>
 
-                      <div className="grid grid-cols-1 gap-2 max-h-44 overflow-y-auto p-1 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] scrollbar-thin">
-                        {paidItems.map((item) => {
+                      <div className="grid grid-cols-1 gap-3 max-h-72 overflow-y-auto p-1.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] scrollbar-thin">
+                        {paidItems.map((item, idx) => {
                           const isSelected = selectedPaidItem?.id === item.id;
+                          const itemName = item.name.toLowerCase();
+                          
+                          // Contextual badges & icons
+                          let packageBadge = "💎 Exclusive Package";
+                          let packageIcon = "✨";
+                          if (idx === 0) {
+                            packageBadge = "★ Most Popular";
+                            packageIcon = "👑";
+                          } else if (itemName.includes("ayurvedic") || itemName.includes("therapy") || itemName.includes("spa")) {
+                            packageBadge = "🌿 Wellness Experience";
+                            packageIcon = "🌸";
+                          } else if (itemName.includes("airport") || itemName.includes("cab") || itemName.includes("chauffeur")) {
+                            packageBadge = "🚗 VIP Chauffeur";
+                            packageIcon = "✨";
+                          } else if (itemName.includes("laundry") || itemName.includes("dry clean")) {
+                            packageBadge = "👔 Valet Express";
+                            packageIcon = "⚡";
+                          } else if (itemName.includes("suite") || itemName.includes("tariff") || itemName.includes("extra bed")) {
+                            packageBadge = "🛎️ Suite Privilege";
+                            packageIcon = "🌟";
+                          }
+
                           return (
                             <button
-                              key={item.id}
+                              key={`${item.id}-${idx}`}
                               type="button"
                               onClick={() => {
                                 if (isSelected) {
@@ -957,29 +997,70 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                                 }
                               }}
                               className={cn(
-                                "p-3 rounded-xl text-left transition-transform duration-75 active:scale-[0.98] flex items-center justify-between gap-3 border select-none",
+                                "p-3.5 rounded-2xl text-left transition-all duration-150 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border select-none relative overflow-hidden group",
                                 isSelected
-                                  ? "bg-[#FAF4E6] border-[#D4AF37] text-slate-900 shadow-2xs font-semibold"
-                                  : "bg-white border-[#EAE3D2] hover:border-slate-300 text-slate-700"
+                                  ? "bg-gradient-to-br from-amber-50/95 via-white to-amber-100/70 border-amber-500 ring-2 ring-amber-400/50 shadow-md scale-[1.01]"
+                                  : "bg-white border-[#EAE3D2] hover:border-amber-400/80 hover:bg-amber-50/20 shadow-xs active:scale-[0.99]"
                               )}
                             >
-                              <div className="space-y-0.5 min-w-0">
-                                <p className="text-xs font-semibold text-slate-900 truncate">{item.name}</p>
-                                {item.description && (
-                                  <p className="text-[10px] text-slate-500 line-clamp-1">{item.description}</p>
-                                )}
+                              {/* Left / Top Side: Badges, Title, Benefits */}
+                              <div className="space-y-1.5 min-w-0 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={cn(
+                                    "text-[9.5px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex items-center gap-1 shadow-2xs",
+                                    isSelected
+                                      ? "bg-amber-500 text-white border-amber-600 font-extrabold"
+                                      : "bg-amber-100/90 text-amber-900 border-amber-300/80"
+                                  )}>
+                                    <span>{packageIcon}</span>
+                                    <span>{packageBadge}</span>
+                                  </span>
+                                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    Direct Room Charge
+                                  </span>
+                                </div>
+
+                                <div>
+                                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-serif group-hover:text-amber-950 transition-colors">
+                                    {item.name}
+                                  </h4>
+                                  <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed mt-0.5">
+                                    {item.description || "Curated 5-star hotel service package billed directly to your room folio upon completion."}
+                                  </p>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-[10px] text-slate-600 font-medium pt-0.5 flex-wrap">
+                                  <span className="text-emerald-700 font-bold flex items-center gap-0.5">
+                                    ✓ No Pre-payment
+                                  </span>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="text-indigo-700 font-bold flex items-center gap-0.5">
+                                    ✓ Priority Desk Dispatch
+                                  </span>
+                                </div>
                               </div>
 
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="font-mono text-xs font-bold text-slate-900">
-                                  ₹{item.price.toFixed(2)}
-                                </span>
+                              {/* Right / Bottom Side: Pricing Pill & Selection Toggle */}
+                              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-amber-100">
+                                <div className="flex flex-col sm:items-end">
+                                  <div className="flex items-baseline gap-0.5">
+                                    <span className="text-[11px] font-bold text-slate-500">₹</span>
+                                    <span className="text-base sm:text-lg font-black font-mono text-slate-900 tracking-tight">
+                                      {item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                  <span className="text-[9px] text-slate-400 font-medium">Billed to Folio</span>
+                                </div>
+
                                 {isSelected ? (
-                                  <div className="w-5 h-5 rounded-full bg-[#0B1526] text-[#E4C980] flex items-center justify-center">
+                                  <div className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center gap-1.5 text-[10.5px] font-bold shadow-xs">
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                    <span>Selected</span>
                                   </div>
                                 ) : (
-                                  <div className="w-5 h-5 rounded-full border border-slate-300" />
+                                  <div className="px-3 py-1 rounded-full bg-slate-100 group-hover:bg-amber-100 text-slate-700 group-hover:text-amber-900 border border-slate-200 group-hover:border-amber-300 flex items-center gap-1 text-[10.5px] font-semibold transition-colors">
+                                    <span>+ Select</span>
+                                  </div>
                                 )}
                               </div>
                             </button>

@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
-import { Hotel, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { Sparkles } from "lucide-react";
 
 export default function AuthLayout({
   children,
@@ -18,16 +19,15 @@ export default function AuthLayout({
       {/* Brand Header */}
       <header className="w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] rounded-[var(--radius)]">
-          <div className="h-9 w-9 rounded-[var(--radius)] bg-[var(--primary)] flex items-center justify-center shadow-md">
-            <Hotel className="h-5 w-5 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold text-[17px] text-[var(--foreground)] tracking-tight leading-none">
-              StayHub
-            </span>
-            <span className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-widest font-semibold mt-0.5">
-              Hospitality OS
-            </span>
+          <div className="bg-white/95 rounded-xl px-3 py-1.5 border border-white/20 shadow-md flex items-center justify-center">
+            <Image
+              src="/images/logo-brand.png"
+              alt="ASSO Logo"
+              width={130}
+              height={38}
+              className="h-8 w-auto object-contain"
+              priority
+            />
           </div>
         </Link>
 

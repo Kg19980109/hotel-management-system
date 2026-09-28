@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "./global-search";
@@ -35,8 +37,8 @@ export function Topbar({
         borderColor: "var(--topbar-border, rgba(255,255,255,0.08))",
       }}
     >
-      {/* Left: Mobile menu & property selector */}
-      <div className="flex items-center gap-2.5 shrink-0">
+      {/* Left: Mobile menu & Brand Logo & property selector */}
+      <div className="flex items-center gap-3 shrink-0">
         <button
           type="button"
           onClick={onOpenMobileNav}
@@ -45,6 +47,24 @@ export function Topbar({
         >
           <Menu className="h-5 w-5" />
         </button>
+
+        {/* Brand Logo visible on top */}
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-xl"
+          aria-label="Home Dashboard"
+        >
+          <div className="bg-white/95 rounded-xl px-2.5 py-1 border border-white/25 shadow-md shadow-black/25 flex items-center justify-center hover:bg-white transition-all hover:scale-[1.02]">
+            <Image
+              src="/images/logo-brand.png"
+              alt="ASSO Logo"
+              width={105}
+              height={30}
+              className="h-6.5 sm:h-7 w-auto object-contain"
+              priority
+            />
+          </div>
+        </Link>
 
         {/* Mobile / tablet property selector */}
         <div className="block lg:hidden">

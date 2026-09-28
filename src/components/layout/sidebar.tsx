@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, Hotel } from "lucide-react";
 import { navigationConfig, isNavItemActive } from "@/config/navigation";
 import { PropertySelector } from "./property-selector";
@@ -45,27 +46,29 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
             "flex items-center gap-2.5 rounded-[var(--radius-md)] p-1 -ml-1",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 group"
           )}
-          aria-label="StayHub Dashboard"
+          aria-label="ASSO Dashboard"
         >
-          {/* Icon mark */}
-          <div
-            className="h-8 w-8 rounded-[var(--radius-md)] shrink-0 flex items-center justify-center shadow-lg overflow-hidden"
-            style={{ background: "var(--gradient-brand)" }}
-          >
-            <Hotel className="h-4.5 w-4.5 text-white" style={{ width: 18, height: 18 }} />
-          </div>
-
-          {!collapsed && (
-            <div className="flex flex-col leading-none">
-              <span className="text-white font-bold text-[14px] tracking-tight">
-                StayHub
-              </span>
-              <span
-                className="text-[8.5px] font-bold uppercase tracking-[0.16em] mt-[3px]"
-                style={{ color: "var(--sidebar-section-label)" }}
-              >
-                Hospitality OS
-              </span>
+          {collapsed ? (
+            <div className="h-8.5 w-8.5 rounded-xl bg-white/95 border border-white/20 shadow-md flex items-center justify-center p-1 hover:scale-105 transition-transform">
+              <Image
+                src="/images/logo-brand.png"
+                alt="ASSO"
+                width={32}
+                height={32}
+                className="h-5.5 w-auto object-contain"
+                priority
+              />
+            </div>
+          ) : (
+            <div className="bg-white/95 rounded-xl px-2.5 py-1 border border-white/20 shadow-md shadow-black/20 flex items-center justify-center hover:bg-white transition-all hover:scale-[1.02]">
+              <Image
+                src="/images/logo-brand.png"
+                alt="ASSO Logo"
+                width={120}
+                height={36}
+                className="h-7.5 w-auto object-contain"
+                priority
+              />
             </div>
           )}
         </Link>

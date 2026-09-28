@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { Hotel, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { navigationConfig, isNavItemActive } from "@/config/navigation";
@@ -75,16 +76,15 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
             onClick={onClose}
             className="flex items-center gap-2.5 focus:outline-none"
           >
-            <div className="h-8 w-8 rounded-[var(--radius)] bg-[var(--primary)] flex items-center justify-center shrink-0">
-              <Hotel className="h-4.5 w-4.5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-white font-bold text-[16px] tracking-tight leading-none">
-                StayHub
-              </span>
-              <span className="text-[10px] text-[var(--sidebar-text)] opacity-70 tracking-widest uppercase font-semibold mt-0.5">
-                Hospitality OS
-              </span>
+            <div className="bg-white/95 rounded-xl px-2.5 py-1 border border-white/20 shadow-md flex items-center justify-center">
+              <Image
+                src="/images/logo-brand.png"
+                alt="ASSO Logo"
+                width={110}
+                height={32}
+                className="h-7 w-auto object-contain"
+                priority
+              />
             </div>
           </Link>
 

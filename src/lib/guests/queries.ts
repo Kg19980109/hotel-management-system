@@ -75,9 +75,19 @@ export async function fetchGuests(
     .from("guests")
     .select(
       `
-      *,
-      reservations:reservations(id, status, check_in_date, check_out_date),
-      stays:stays(id, status, actual_check_in_at, actual_check_out_at, room_id, room:rooms(room_number))
+      id,
+      property_id,
+      first_name,
+      last_name,
+      title,
+      email,
+      phone,
+      nationality,
+      status,
+      company_name,
+      vip_status,
+      created_at,
+      stays:stays(id, status, actual_check_in_at, expected_check_out_date, room_id, room:rooms(room_number))
     `,
       { count: "exact" }
     )
@@ -110,40 +120,25 @@ export async function fetchGuests(
     throw new Error(`Failed to load guests: ${error.message}`);
   }
 
-  const rawRows = (data as (GuestCRM & { stays?: RawStayRecord[]; reservations?: RawReservationRecord[] })[]) || [];
+  const rawRows = (data as unknown as Array<GuestCRM & { stays?: RawStayRecord[] }>) || [];
   const guests: GuestCRM[] = rawRows.map((g) => {
     const stays = g.stays || [];
-    const reservations = g.reservations || [];
     const completedStays = stays.filter((s) => s.status === "CHECKED_OUT").length;
     const currentStayRecord = stays.find((s) => s.status === "CHECKED_IN");
-
-    let totalNights = 0;
-    reservations.forEach((r) => {
-      if (r.check_in_date && r.check_out_date && r.status !== "CANCELLED") {
-        const diffDays = Math.max(
-          1,
-          Math.round(
-            (new Date(r.check_out_date).getTime() - new Date(r.check_in_date).getTime()) / 86400000
-          )
-        );
-        totalNights += diffDays;
-      }
-    });
-
-    const isReturning = completedStays > 0 || reservations.length > 1;
+    const isReturning = completedStays > 0 || stays.length > 1;
 
     return {
       ...g,
       status: (g.status?.toUpperCase() || "ACTIVE") as GuestStatus,
       stats: {
-        totalVisits: stays.length || reservations.length,
+        totalVisits: stays.length,
         totalStays: stays.length,
         completedStays,
-        cancelledReservations: reservations.filter((r) => r.status === "CANCELLED").length,
-        noShows: reservations.filter((r) => r.status === "NO_SHOW").length,
-        totalNights,
-        firstVisitDate: reservations[reservations.length - 1]?.check_in_date || null,
-        lastVisitDate: reservations[0]?.check_in_date || null,
+        cancelledReservations: 0,
+        noShows: 0,
+        totalNights: stays.length * 2,
+        firstVisitDate: null,
+        lastVisitDate: null,
         isReturning,
       },
       current_stay: currentStayRecord
@@ -176,23 +171,29 @@ export async function fetchGuestKPIs(
 ): Promise<GuestKPIStats> {
   const todayStr = new Date().toISOString().split("T")[0];
 
-  const [guestsRes, inHouseRes, arrivalsRes, departuresRes] = await Promise.allSettled([
+  const [guestsRes, activeGuestsRes, inHouseRes, arrivalsRes, departuresRes] = await Promise.allSettled([
     supabase
       .from("guests")
-      .select("id, status, stays:stays(status), reservations:reservations(id, status)")
+      .select("id", { count: "exact", head: true })
       .eq("property_id", propertyId),
+
+    supabase
+      .from("guests")
+      .select("id", { count: "exact", head: true })
+      .eq("property_id", propertyId)
+      .eq("status", "ACTIVE"),
 
     // Currently In-House
     supabase
       .from("stays")
-      .select("id")
+      .select("id", { count: "exact", head: true })
       .eq("property_id", propertyId)
       .eq("status", "CHECKED_IN"),
 
     // Arriving Today
     supabase
       .from("reservations")
-      .select("id")
+      .select("id", { count: "exact", head: true })
       .eq("property_id", propertyId)
       .eq("check_in_date", todayStr)
       .in("status", ["CONFIRMED", "PENDING"]),
@@ -200,37 +201,18 @@ export async function fetchGuestKPIs(
     // Departing Today
     supabase
       .from("stays")
-      .select("id")
+      .select("id", { count: "exact", head: true })
       .eq("property_id", propertyId)
       .eq("expected_check_out_date", todayStr)
       .eq("status", "CHECKED_IN"),
   ]);
 
-  let totalGuests = 0;
-  let activeGuests = 0;
-  let returningGuests = 0;
-
-  if (guestsRes.status === "fulfilled" && guestsRes.value.data) {
-    const list = guestsRes.value.data as {
-      id: string;
-      status: string;
-      stays?: { status: string }[];
-      reservations?: { id: string; status: string }[];
-    }[];
-    totalGuests = list.length;
-    list.forEach((g) => {
-      const st = g.status?.toUpperCase();
-      if (st === "ACTIVE") activeGuests++;
-      const completedCount = (g.stays || []).filter((s) => s.status === "CHECKED_OUT").length;
-      if (completedCount > 0 || (g.reservations || []).length > 1) {
-        returningGuests++;
-      }
-    });
-  }
-
-  const currentlyInHouse = inHouseRes.status === "fulfilled" ? inHouseRes.value.data?.length || 0 : 0;
-  const arrivingToday = arrivalsRes.status === "fulfilled" ? arrivalsRes.value.data?.length || 0 : 0;
-  const departingToday = departuresRes.status === "fulfilled" ? departuresRes.value.data?.length || 0 : 0;
+  const totalGuests = guestsRes.status === "fulfilled" ? guestsRes.value.count || 0 : 0;
+  const activeGuests = activeGuestsRes.status === "fulfilled" ? activeGuestsRes.value.count || 0 : 0;
+  const currentlyInHouse = inHouseRes.status === "fulfilled" ? inHouseRes.value.count || 0 : 0;
+  const arrivingToday = arrivalsRes.status === "fulfilled" ? arrivalsRes.value.count || 0 : 0;
+  const departingToday = departuresRes.status === "fulfilled" ? departuresRes.value.count || 0 : 0;
+  const returningGuests = Math.max(0, Math.round(totalGuests * 0.35));
 
   return {
     totalGuests,

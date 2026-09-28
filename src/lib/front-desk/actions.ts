@@ -415,11 +415,17 @@ export interface DirectAssignmentGuestOption {
   email?: string | null;
 }
 
+const directAssignmentOptionsCache = new Map<
+  string,
+  { data: { rooms: DirectAssignmentRoomOption[]; guests: DirectAssignmentGuestOption[] }; timestamp: number }
+>();
+
 /**
  * Fetch available rooms and recent guests for direct room assignment
  */
 export async function getDirectAssignmentOptionsAction(
-  propertyId: string
+  propertyId: string,
+  skipCache = false
 ): Promise<ActionResponse<{
   rooms: DirectAssignmentRoomOption[];
   guests: DirectAssignmentGuestOption[];
@@ -428,59 +434,84 @@ export async function getDirectAssignmentOptionsAction(
     return { success: false, error: "Property context is required." };
   }
 
+  const cached = directAssignmentOptionsCache.get(propertyId);
+  if (!skipCache && cached && Date.now() - cached.timestamp < 15000) {
+    return { success: true, data: cached.data };
+  }
+
   const supabase = await createClient();
 
   try {
-    // 1. Fetch rooms with room_types and active stays
-    const { data: rawRooms, error: roomsErr } = await supabase
-      .from("rooms")
-      .select(`
-        id,
-        room_number,
-        room_name,
-        status,
-        housekeeping_status,
-        is_active,
-        room_types:room_type_id (
+    // Parallelize lean single-purpose indexed queries
+    const [roomsRes, activeStaysRes, guestsRes] = await Promise.all([
+      supabase
+        .from("rooms")
+        .select(`
           id,
-          name,
-          code,
-          base_rate,
-          max_occupancy
-        ),
-        stays (
-          id,
+          room_number,
+          room_name,
           status,
-          guests (
-            first_name,
-            last_name
+          housekeeping_status,
+          is_active,
+          room_types:room_type_id (
+            id,
+            name,
+            code,
+            base_rate,
+            max_occupancy
           )
-        )
-      `)
-      .eq("property_id", propertyId)
-      .eq("is_active", true)
-      .order("room_number", { ascending: true });
+        `)
+        .eq("property_id", propertyId)
+        .eq("is_active", true)
+        .order("room_number", { ascending: true }),
 
-    if (roomsErr) {
-      console.error("getDirectAssignmentOptionsAction rooms error:", roomsErr);
-      return { success: false, error: roomsErr.message };
+      supabase
+        .from("stays")
+        .select("room_id, status, guests:guest_id(first_name, last_name)")
+        .eq("property_id", propertyId)
+        .eq("status", "CHECKED_IN"),
+
+      supabase
+        .from("guests")
+        .select("id, first_name, last_name, phone, email")
+        .eq("property_id", propertyId)
+        .order("created_at", { ascending: false })
+        .limit(100),
+    ]);
+
+    if (roomsRes.error) {
+      console.error("getDirectAssignmentOptionsAction rooms error:", roomsRes.error);
+      return { success: false, error: roomsRes.error.message };
     }
 
-    const rooms: DirectAssignmentRoomOption[] = (rawRooms || []).map((r: any) => {
-      const activeStay = (r.stays || []).find((s: any) => s.status === "CHECKED_IN");
-      const isOccupied = !!activeStay || r.status === "OCCUPIED";
-      const guestObj = activeStay?.guests;
-      const activeGuestName = guestObj
-        ? `${guestObj.first_name} ${guestObj.last_name || ""}`.trim()
-        : null;
+    const activeStaysByRoom = new Map<string, string>();
+    ((activeStaysRes.data as unknown as Array<{ room_id?: string; guests?: { first_name?: string; last_name?: string } }>) || []).forEach((s) => {
+      if (s.room_id) {
+        const g = s.guests;
+        const name = g ? `${g.first_name || ""} ${g.last_name || ""}`.trim() : "Guest in-house";
+        activeStaysByRoom.set(s.room_id, name || "Guest in-house");
+      }
+    });
 
+    const rooms: DirectAssignmentRoomOption[] = ((roomsRes.data as unknown as Array<{
+      id: string;
+      room_number: string;
+      room_name?: string | null;
+      status: string;
+      housekeeping_status?: string | null;
+      is_active: boolean;
+      room_types?: { id: string; name: string; code: string; base_rate: number; max_occupancy?: number } | null;
+    }>) || []).map((r) => {
+      const activeGuestName = activeStaysByRoom.get(r.id) || null;
+      const isOccupied = !!activeGuestName || r.status === "OCCUPIED";
       const rt = r.room_types;
+
       return {
         id: r.id,
         room_number: r.room_number,
         room_name: r.room_name,
         status: r.status,
-        housekeeping_status: r.housekeeping_status,
+        housekeeping_status: r.housekeeping_status || "CLEAN",
         is_active: r.is_active,
         is_occupied: isOccupied,
         active_guest_name: activeGuestName,
@@ -496,19 +527,13 @@ export async function getDirectAssignmentOptionsAction(
       };
     });
 
-    // 2. Fetch recent guests
-    const { data: rawGuests, error: guestsErr } = await supabase
-      .from("guests")
-      .select("id, first_name, last_name, phone, email")
-      .eq("property_id", propertyId)
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (guestsErr) {
-      console.error("getDirectAssignmentOptionsAction guests error:", guestsErr);
-    }
-
-    const guests: DirectAssignmentGuestOption[] = (rawGuests || []).map((g: any) => ({
+    const guests: DirectAssignmentGuestOption[] = ((guestsRes.data as unknown as Array<{
+      id: string;
+      first_name: string;
+      last_name?: string | null;
+      phone?: string | null;
+      email?: string | null;
+    }>) || []).map((g) => ({
       id: g.id,
       first_name: g.first_name,
       last_name: g.last_name,
@@ -516,12 +541,12 @@ export async function getDirectAssignmentOptionsAction(
       email: g.email,
     }));
 
+    const resultData = { rooms, guests };
+    directAssignmentOptionsCache.set(propertyId, { data: resultData, timestamp: Date.now() });
+
     return {
       success: true,
-      data: {
-        rooms,
-        guests,
-      },
+      data: resultData,
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Failed to load assignment options";

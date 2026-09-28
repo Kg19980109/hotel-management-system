@@ -20,12 +20,14 @@ const STATUS_TABS: { label: string; value: GuestStatus | "ALL"; color: string; a
   { label: "Blocked", value: "BLOCKED", color: "bg-red-600 text-white", activeClass: "bg-red-600 text-white shadow-sm shadow-red-200" },
 ];
 
+const guestPageCache = new Map<string, { kpi: GuestKPIStats; guests: GuestCRM[]; total: number; time: number }>();
+
 export default function GuestsPage() {
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);
   const activePropertyId = currentProperty?.property_id;
 
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [guests, setGuests] = React.useState<GuestCRM[]>([]);
   const [total, setTotal] = React.useState(0);
@@ -48,13 +50,27 @@ export default function GuestsPage() {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
-    }, 250);
+    }, 150);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const loadData = React.useCallback(async () => {
-    if (!activePropertyId) { setLoading(false); return; }
-    setLoading(true);
+  const loadData = React.useCallback(async (force = false) => {
+    if (!activePropertyId) return;
+
+    const cacheKey = `${activePropertyId}:${statusFilter}:${page}:${debouncedSearch}`;
+    const cached = guestPageCache.get(cacheKey);
+
+    if (!force && cached && Date.now() - cached.time < 30000) {
+      setKpiStats(cached.kpi);
+      setGuests(cached.guests);
+      setTotal(cached.total);
+      setLoading(false);
+      return;
+    }
+
+    if (!cached) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const [kpiData, guestData] = await Promise.all([
@@ -64,6 +80,7 @@ export default function GuestsPage() {
       setKpiStats(kpiData);
       setGuests(guestData.guests);
       setTotal(guestData.total);
+      guestPageCache.set(cacheKey, { kpi: kpiData, guests: guestData.guests, total: guestData.total, time: Date.now() });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load guest records.");
     } finally {
@@ -120,7 +137,7 @@ export default function GuestsPage() {
           {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={loadData}
+              onClick={() => loadData(true)}
               disabled={loading}
               className="h-9 px-3.5 rounded-xl flex items-center gap-2 text-sm font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/10 transition-all"
             >
@@ -200,7 +217,7 @@ export default function GuestsPage() {
         isOpen={isAssignModalOpen}
         propertyId={activePropertyId || ""}
         onClose={() => setIsAssignModalOpen(false)}
-        onSuccess={loadData}
+        onSuccess={() => void loadData(true)}
       />
     </div>
   );

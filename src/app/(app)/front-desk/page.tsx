@@ -49,6 +49,15 @@ import {
   Info,
 } from "lucide-react";
 
+const frontDeskCache = new Map<string, {
+  stats: FrontDeskKPIStats;
+  arrivals: ArrivalRecord[];
+  departures: DepartureRecord[];
+  inHouse: InHouseRecord[];
+  attention: RoomAttentionRecord[];
+  time: number;
+}>();
+
 export default function FrontDeskPage() {
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);
@@ -58,7 +67,7 @@ export default function FrontDeskPage() {
   const [activeTab, setActiveTab] = React.useState<"in_house" | "arrivals" | "departures" | "rooms">("in_house");
   const [search, setSearch] = React.useState("");
 
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const [stats, setStats] = React.useState<FrontDeskKPIStats>({
@@ -91,12 +100,26 @@ export default function FrontDeskPage() {
     reservationRoom: ReservationRoom | null;
   }>({ reservationId: "", reservationRoom: null });
 
-  const loadData = React.useCallback(async () => {
+  const loadData = React.useCallback(async (force = false) => {
     if (!activePropertyId) {
       setLoading(false);
       return;
     }
-    setLoading(true);
+
+    const cached = frontDeskCache.get(activePropertyId);
+    if (!force && cached && Date.now() - cached.time < 20000) {
+      setStats(cached.stats);
+      setArrivals(cached.arrivals);
+      setDepartures(cached.departures);
+      setInHouseStays(cached.inHouse);
+      setRoomAttentionList(cached.attention);
+      setLoading(false);
+      return;
+    }
+
+    if (!cached) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -113,6 +136,15 @@ export default function FrontDeskPage() {
       setDepartures(deps);
       setInHouseStays(inHouse);
       setRoomAttentionList(attention);
+
+      frontDeskCache.set(activePropertyId, {
+        stats: kpis,
+        arrivals: arrs,
+        departures: deps,
+        inHouse,
+        attention,
+        time: Date.now(),
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load front desk data";
       setError(msg);
@@ -276,7 +308,7 @@ export default function FrontDeskPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={loadData}
+              onClick={() => void loadData(true)}
               title="Refresh Live Console"
               className="text-white/80 hover:text-white hover:bg-white/10 border border-white/10 h-9 px-2.5 cursor-pointer"
             >
@@ -558,7 +590,7 @@ export default function FrontDeskPage() {
         arrival={checkInArrival}
         propertyId={activePropertyId || ""}
         onClose={() => setCheckInArrival(null)}
-        onSuccess={loadData}
+        onSuccess={() => loadData(true)}
       />
 
       {/* Check Out Modal */}
@@ -567,7 +599,7 @@ export default function FrontDeskPage() {
         stay={checkOutStay}
         propertyId={activePropertyId || ""}
         onClose={() => setCheckOutStay(null)}
-        onSuccess={loadData}
+        onSuccess={() => loadData(true)}
       />
 
       {/* No Show Modal */}
@@ -576,7 +608,7 @@ export default function FrontDeskPage() {
         arrival={noShowArrival}
         propertyId={activePropertyId || ""}
         onClose={() => setNoShowArrival(null)}
-        onSuccess={loadData}
+        onSuccess={() => loadData(true)}
       />
 
       {/* Reassign In-House Room Modal */}
@@ -585,7 +617,7 @@ export default function FrontDeskPage() {
         stay={reassignStay}
         propertyId={activePropertyId || ""}
         onClose={() => setReassignStay(null)}
-        onSuccess={loadData}
+        onSuccess={() => loadData(true)}
       />
 
       {/* Direct Guest-to-Room Assignment Modal */}
@@ -593,7 +625,7 @@ export default function FrontDeskPage() {
         isOpen={isDirectAssignOpen}
         propertyId={activePropertyId || ""}
         onClose={() => setIsDirectAssignOpen(false)}
-        onSuccess={loadData}
+        onSuccess={() => loadData(true)}
       />
 
       {/* Assign Physical Room Modal (Pre-Checkin) */}
@@ -603,7 +635,7 @@ export default function FrontDeskPage() {
         reservationRoom={assignRoomState.reservationRoom}
         propertyId={activePropertyId || ""}
         onClose={() => setAssignRoomState({ reservationId: "", reservationRoom: null })}
-        onSuccess={loadData}
+        onSuccess={() => loadData(true)}
       />
     </div>
   );

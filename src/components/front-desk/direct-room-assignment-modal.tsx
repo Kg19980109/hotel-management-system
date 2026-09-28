@@ -140,16 +140,20 @@ export function DirectRoomAssignmentModal({
     }
   };
 
-  const filteredGuests = guests.filter((g) => {
-    if (!guestSearch.trim()) return true;
+  const filteredGuests = React.useMemo(() => {
+    if (!guestSearch.trim()) return guests;
     const q = guestSearch.toLowerCase();
-    const fullName = `${g.first_name} ${g.last_name || ""}`.toLowerCase();
-    return fullName.includes(q) || g.phone?.includes(q) || g.email?.toLowerCase().includes(q);
-  });
+    return guests.filter((g) => {
+      const fullName = `${g.first_name} ${g.last_name || ""}`.toLowerCase();
+      return fullName.includes(q) || g.phone?.includes(q) || g.email?.toLowerCase().includes(q);
+    });
+  }, [guests, guestSearch]);
 
-  const availableRooms = rooms.filter(
-    (r) => r.status === "AVAILABLE" || r.status === "CLEAN" || r.id === defaultRoomId
-  );
+  const availableRooms = React.useMemo(() => {
+    return rooms.filter(
+      (r) => r.status === "AVAILABLE" || r.status === "CLEAN" || r.id === defaultRoomId
+    );
+  }, [rooms, defaultRoomId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

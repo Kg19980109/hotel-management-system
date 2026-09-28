@@ -45,6 +45,13 @@ interface BookingMonthlyCalendarProps {
   onAssignRoomClick: (res: Reservation, roomItem: ReservationRoom) => void;
 }
 
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function BookingMonthlyCalendar({
   reservations,
   currentDate,
@@ -81,13 +88,13 @@ export function BookingMonthlyCalendar({
     isSelected: boolean;
   }[] = [];
 
-  const todayStr = new Date().toISOString().split("T")[0];
-  const selectedDayStr = selectedDay.toISOString().split("T")[0];
+  const todayStr = formatLocalDate(new Date());
+  const selectedDayStr = formatLocalDate(selectedDay);
 
   // Prev month padding
   for (let i = startDayOfWeek - 1; i >= 0; i--) {
     const d = new Date(year, month - 1, prevMonthLastDay - i);
-    const dateStr = d.toISOString().split("T")[0];
+    const dateStr = formatLocalDate(d);
     calendarDays.push({
       date: d,
       dateStr,
@@ -101,7 +108,7 @@ export function BookingMonthlyCalendar({
   // Current month days
   for (let d = 1; d <= daysInMonth; d++) {
     const current = new Date(year, month, d);
-    const dateStr = current.toISOString().split("T")[0];
+    const dateStr = formatLocalDate(current);
     calendarDays.push({
       date: current,
       dateStr,
@@ -116,7 +123,7 @@ export function BookingMonthlyCalendar({
   const remaining = (7 - (calendarDays.length % 7)) % 7;
   for (let d = 1; d <= remaining; d++) {
     const nextD = new Date(year, month + 1, d);
-    const dateStr = nextD.toISOString().split("T")[0];
+    const dateStr = formatLocalDate(nextD);
     calendarDays.push({
       date: nextD,
       dateStr,
@@ -166,6 +173,7 @@ export function BookingMonthlyCalendar({
     filteredReservations.forEach((res) => {
       const checkInStr = res.check_in_date;
       const checkOutStr = res.check_out_date;
+      if (!checkInStr || !checkOutStr) return;
 
       // Add to check-in day
       if (!map[checkInStr]) map[checkInStr] = { arrivals: [], departures: [], inHouse: [] };
@@ -176,12 +184,13 @@ export function BookingMonthlyCalendar({
       map[checkOutStr].departures.push(res);
 
       // Add to all intermediate in-house days
-      const start = new Date(checkInStr);
-      const end = new Date(checkOutStr);
-      const cur = new Date(start.getTime() + 86400000);
+      const [sy, sm, sd] = checkInStr.split("-").map(Number);
+      const [ey, em, ed] = checkOutStr.split("-").map(Number);
+      const cur = new Date(sy, sm - 1, sd + 1, 12, 0, 0);
+      const end = new Date(ey, em - 1, ed, 12, 0, 0);
 
       while (cur < end) {
-        const curStr = cur.toISOString().split("T")[0];
+        const curStr = formatLocalDate(cur);
         if (!map[curStr]) map[curStr] = { arrivals: [], departures: [], inHouse: [] };
         map[curStr].inHouse.push(res);
         cur.setDate(cur.getDate() + 1);
@@ -199,14 +208,17 @@ export function BookingMonthlyCalendar({
     const uniqueResIds = new Set<string>();
 
     filteredReservations.forEach((r) => {
-      const checkIn = new Date(r.check_in_date);
-      const checkOut = new Date(r.check_out_date);
-
-      if (checkIn.getMonth() === month && checkIn.getFullYear() === year) {
-        totalArrivals++;
+      if (r.check_in_date) {
+        const [y, m] = r.check_in_date.split("-").map(Number);
+        if (m - 1 === month && y === year) {
+          totalArrivals++;
+        }
       }
-      if (checkOut.getMonth() === month && checkOut.getFullYear() === year) {
-        totalDepartures++;
+      if (r.check_out_date) {
+        const [y, m] = r.check_out_date.split("-").map(Number);
+        if (m - 1 === month && y === year) {
+          totalDepartures++;
+        }
       }
       if (!uniqueResIds.has(r.id)) {
         uniqueResIds.add(r.id);
@@ -230,15 +242,11 @@ export function BookingMonthlyCalendar({
   };
 
   const selectedDayAllBookings = React.useMemo(() => {
-    const map = new Map<string, { res: Reservation; role: "ARRIVAL" | "DEPARTURE" | "IN_HOUSE" }>();
-    selectedDayData.arrivals.forEach((r) => map.set(r.id, { res: r, role: "ARRIVAL" }));
-    selectedDayData.departures.forEach((r) => {
-      if (!map.has(r.id)) map.set(r.id, { res: r, role: "DEPARTURE" });
-    });
-    selectedDayData.inHouse.forEach((r) => {
-      if (!map.has(r.id)) map.set(r.id, { res: r, role: "IN_HOUSE" });
-    });
-    return Array.from(map.values());
+    const list: { res: Reservation; role: "ARRIVAL" | "DEPARTURE" | "IN_HOUSE" }[] = [];
+    selectedDayData.arrivals.forEach((r) => list.push({ res: r, role: "ARRIVAL" }));
+    selectedDayData.departures.forEach((r) => list.push({ res: r, role: "DEPARTURE" }));
+    selectedDayData.inHouse.forEach((r) => list.push({ res: r, role: "IN_HOUSE" }));
+    return list;
   }, [selectedDayData]);
 
   // Month navigation handlers

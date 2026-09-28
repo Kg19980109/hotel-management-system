@@ -32,6 +32,13 @@ interface BookingCalendarViewProps {
   loading?: boolean;
 }
 
+function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function BookingCalendarView({
   rooms,
   bookings,
@@ -42,11 +49,11 @@ export function BookingCalendarView({
 }: BookingCalendarViewProps) {
   // Generate date columns
   const dateColumns: { date: Date; dateStr: string; label: string; dayName: string; isToday: boolean }[] = [];
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = formatLocalDate(new Date());
 
   for (let i = 0; i < daysToShow; i++) {
-    const d = new Date(startDate.getTime() + i * 86400000);
-    const dateStr = d.toISOString().split("T")[0];
+    const d = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i);
+    const dateStr = formatLocalDate(d);
     const isToday = dateStr === todayStr;
     const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
     const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });

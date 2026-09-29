@@ -133,15 +133,25 @@ function GuestRequestsContent() {
         .subscribe();
     });
 
-    // 2s visible-only fast sync poll
+    // 20s visible-only backup sync poll + instant on-focus sync
     const pollInterval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refreshQuiet();
-    }, 2000);
+    }, 20000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void refreshQuiet();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
 
     return () => {
       cancelled = true;
       clearInterval(pollInterval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
       if (channel) void supabase.removeChannel(channel);
     };
   }, [activePropertyId, refreshQuiet]);

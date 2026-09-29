@@ -185,10 +185,19 @@ export function OperationalAlertProvider({
     // Initial sync
     void syncOpenRequests(propertyId, currentRole);
 
+    // Efficient heartbeat backup (30s) with instant sync on tab focus
     const heartbeatInterval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void syncOpenRequests(propertyId, currentRole);
-    }, 2000);
+    }, 30000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void syncOpenRequests(propertyId, currentRole);
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
 
     // Stable channel dedicated to this property's operational events
     const channelName = `stayhub:operational-alerts:${propertyId}`;
@@ -339,6 +348,8 @@ export function OperationalAlertProvider({
 
     return () => {
       clearInterval(heartbeatInterval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
       void supabase.removeChannel(channel);
       operationalAlertManager.clearAll(false);
       setInternalStatus("DISCONNECTED");

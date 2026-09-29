@@ -288,10 +288,20 @@ function KitchenKdsContent() {
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refreshTickets();
-    }, 2000);
+    }, 15000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void refreshTickets();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
 
     return () => {
       clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
       void supabase.removeChannel(channel);
     };
   }, [propertyId, selectedRestaurant, refreshTickets, playAlertSound]);

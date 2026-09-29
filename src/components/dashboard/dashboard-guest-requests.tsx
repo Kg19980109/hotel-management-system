@@ -174,10 +174,21 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadRequests();
-    }, 2000);
+    }, 20000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void loadRequests();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
     return () => {
       cancelled = true;
       clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
       if (channel) void supabase.removeChannel(channel);
     };
   }, [propertyId, loadRequests]);

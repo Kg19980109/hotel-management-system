@@ -97,15 +97,29 @@ export default function DashboardPage() {
     };
   }, [authLoading, activePropertyId, loadData]);
 
-  // Fast 2s visible-only background refresh
+  // Efficient 30s background refresh + instant on-focus sync
   React.useEffect(() => {
     if (!activePropertyId) return;
     const timer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadData(false);
-    }, 2000);
-    return () => clearInterval(timer);
+    }, 30000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void loadData(false);
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
   }, [activePropertyId, loadData]);
+
 
   // 1. Initial Auth Loading State
   if (authLoading) {

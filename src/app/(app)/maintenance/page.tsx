@@ -167,10 +167,20 @@ function MaintenancePageContent() {
     const poll = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadData();
-    }, 2000);
+    }, 20000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void loadData();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
 
     return () => {
       clearInterval(poll);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
       void supabase.removeChannel(channel);
     };
   }, [activePropertyId, loadData]);

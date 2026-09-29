@@ -145,11 +145,21 @@ function GuestRequestDetailContent() {
     const poll = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refreshQuiet();
-    }, 2000);
+    }, 15000);
+
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void refreshQuiet();
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
 
     return () => {
       cancelled = true;
       clearInterval(poll);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
       if (requestChannel) void supabase.removeChannel(requestChannel);
       if (eventsChannel) void supabase.removeChannel(eventsChannel);
     };

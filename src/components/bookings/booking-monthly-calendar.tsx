@@ -518,8 +518,10 @@ export function BookingMonthlyCalendar({
       {/* ── 2. SIDE-BY-SIDE VIEW: CALENDAR (LEFT) & BOOKINGS INSPECTOR (RIGHT) ── */}
       {subView === "month" && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full max-w-full items-start">
-          {/* ── LEFT COLUMN: COLORFUL CALENDAR MATRIX (7-8 COLS) ── */}
-          <div className="lg:col-span-7 xl:col-span-8 w-full min-w-0 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
+          {/* ── LEFT COLUMN: CALENDAR GRID + OPERATIONS DOCK (7-8 COLS) ── */}
+          <div className="lg:col-span-7 xl:col-span-8 w-full min-w-0 space-y-4">
+            {/* Calendar Grid Card */}
+            <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
             {/* Weekdays Header Strip */}
             <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800/90 dark:via-slate-800/60 dark:to-slate-800/90 text-center text-[10.5px] font-black uppercase tracking-wider py-2.5">
               <span className="text-rose-600 dark:text-rose-400">Sun</span>
@@ -663,6 +665,154 @@ export function BookingMonthlyCalendar({
               })}
             </div>
           </div>
+
+          {/* ── HOTEL OPERATIONS & INVENTORY INTELLIGENCE DOCK (BELOW CALENDAR) ── */}
+          <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xl space-y-4">
+            {/* Dock Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-black">
+                  <Flame className="h-4 w-4 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Front Desk Intelligence &amp; Operational Flow
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Live operational metrics for {selectedDay.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Jump Buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Link href="/front-desk">
+                  <Button variant="outline" size="sm" className="h-7 px-2.5 text-[11px] font-bold rounded-lg border-emerald-300 text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300">
+                    <LogIn className="h-3 w-3 mr-1" />
+                    Front Desk
+                  </Button>
+                </Link>
+                <Link href="/housekeeping">
+                  <Button variant="outline" size="sm" className="h-7 px-2.5 text-[11px] font-bold rounded-lg border-indigo-300 text-indigo-800 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-300">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Housekeeping
+                  </Button>
+                </Link>
+                <Link href="/bookings/calendar">
+                  <Button variant="outline" size="sm" className="h-7 px-2.5 text-[11px] font-bold rounded-lg border-slate-300 text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200">
+                    <LayoutGrid className="h-3 w-3 mr-1" />
+                    Tape Chart
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* 4 Colorful Operational Metric Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Arrivals Card */}
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-emerald-800 dark:text-emerald-300">
+                  <span className="text-[10px] font-black uppercase tracking-wider">Arrivals</span>
+                  <LogIn className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-xl font-black text-emerald-900 dark:text-emerald-200 font-mono">
+                  {selectedDayData.arrivals.length}
+                </div>
+                <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
+                  {selectedDayData.arrivals.filter((r) => r.rooms?.some((rm) => !!rm.room_number)).length} with rooms assigned
+                </div>
+              </div>
+
+              {/* Departures Card */}
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/30 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-rose-800 dark:text-rose-300">
+                  <span className="text-[10px] font-black uppercase tracking-wider">Departures</span>
+                  <LogOut className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-xl font-black text-rose-900 dark:text-rose-200 font-mono">
+                  {selectedDayData.departures.length}
+                </div>
+                <div className="text-[10px] text-rose-700 dark:text-rose-400 font-medium">
+                  Check-out &amp; Folio settlement
+                </div>
+              </div>
+
+              {/* In-House Card */}
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-indigo-500/10 via-indigo-500/5 to-transparent border border-indigo-500/30 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-indigo-800 dark:text-indigo-300">
+                  <span className="text-[10px] font-black uppercase tracking-wider">In-House</span>
+                  <BedDouble className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-xl font-black text-indigo-900 dark:text-indigo-200 font-mono">
+                  {selectedDayData.inHouse.length}
+                </div>
+                <div className="text-[10px] text-indigo-700 dark:text-indigo-400 font-medium">
+                  Active guest stays in rooms
+                </div>
+              </div>
+
+              {/* Unassigned Card */}
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-amber-800 dark:text-amber-300">
+                  <span className="text-[10px] font-black uppercase tracking-wider">Unassigned</span>
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                </div>
+                <div className="text-xl font-black text-amber-900 dark:text-amber-200 font-mono">
+                  {filteredReservations.filter((r) => r.rooms?.some((rm) => !rm.room_number) && r.status !== "CANCELLED").length}
+                </div>
+                <div className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
+                  Awaiting room assignment
+                </div>
+              </div>
+            </div>
+
+            {/* Room Demand & Category Distribution */}
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                <span className="flex items-center gap-1.5">
+                  <Layers className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Room Type Distribution in Current View</span>
+                </span>
+                <span className="text-slate-500 font-mono text-[10.5px]">
+                  {filteredReservations.length} Active Bookings
+                </span>
+              </div>
+
+              {/* Mini distribution bars */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-xs">
+                {Object.entries(
+                  filteredReservations.reduce<Record<string, number>>((acc, r) => {
+                    r.rooms?.forEach((rm) => {
+                      const name = rm.room_type_name || "Standard Room";
+                      acc[name] = (acc[name] || 0) + 1;
+                    });
+                    return acc;
+                  }, {})
+                ).slice(0, 3).map(([typeName, count], idx) => {
+                  const colors = [
+                    "bg-amber-500 text-amber-900 border-amber-300",
+                    "bg-indigo-500 text-indigo-900 border-indigo-300",
+                    "bg-emerald-500 text-emerald-900 border-emerald-300",
+                  ];
+                  return (
+                    <div
+                      key={typeName}
+                      className="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className={cn("h-2 w-2 rounded-full", colors[idx % colors.length].split(" ")[0])} />
+                        <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">{typeName}</span>
+                      </div>
+                      <span className="font-mono font-black text-xs text-slate-900 dark:text-white pl-2">
+                        {count} {count === 1 ? "stay" : "stays"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
 
           {/* ── RIGHT COLUMN: SELECTED DATE & BOOKINGS INSPECTOR (4-5 COLS) ── */}
           <div className="lg:col-span-5 xl:col-span-4 w-full min-w-0 space-y-3 sticky top-4">

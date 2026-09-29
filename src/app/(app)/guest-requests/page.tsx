@@ -176,39 +176,29 @@ function GuestRequestsContent() {
   const activeCount = requests.filter((r) => r.status === "IN_PROGRESS" || r.status === "ASSIGNED" || r.status === "ACKNOWLEDGED").length;
 
   return (
-    <div className="space-y-6">
-      {/* Luxury Command Center Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#08111F] via-[#0D172E] to-[#111A3C] p-6 lg:p-8 text-white shadow-xl border border-white/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.12),transparent_50%)]" />
-        <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="space-y-4">
+      {/* Executive Command Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border/60">
+        <PageHeader
+          title="Guest Service Requests"
+          description="Real-time operational dispatch center for in-stay QR orders, housekeeping, repairs, and concierge services."
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Guest Requests" },
+          ]}
+          className="mb-0"
+        />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/30 text-[#E5C158] text-xs font-bold tracking-wider uppercase">
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-              Guest Concierge & Service Command
-            </div>
-            <h1 className="text-2xl lg:text-3xl font-black tracking-tight text-white">
-              Guest Service Requests
-            </h1>
-            <p className="text-sm text-slate-300 max-w-2xl leading-relaxed">
-              Real-time operational dispatch center for in-stay guest QR orders, housekeeping items, repair tickets, and concierge services.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-              <div className="text-xs text-slate-400 font-medium">Pending Triage</div>
-              <div className="text-xl font-black text-amber-400">{submittedCount}</div>
-            </div>
-            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-              <div className="text-xs text-slate-400 font-medium">In Dispatch</div>
-              <div className="text-xl font-black text-blue-400">{activeCount}</div>
-            </div>
-            <div className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-              <div className="text-xs text-slate-400 font-medium">Total Volume</div>
-              <div className="text-xl font-black text-white">{requests.length}</div>
-            </div>
+        <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border/80 shadow-2xs text-xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="font-semibold text-foreground text-[11.5px]">Live Dispatch</span>
+            <span className="text-muted-foreground/60 text-[11px] font-mono">
+              ({requests.length} total)
+            </span>
           </div>
         </div>
       </div>
@@ -222,3 +212,4 @@ function GuestRequestsContent() {
     </div>
   );
 }
+

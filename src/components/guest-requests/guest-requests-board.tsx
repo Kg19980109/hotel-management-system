@@ -26,7 +26,10 @@ import {
   Flame,
   Check,
   Play,
-  Filter,
+  X,
+  ChevronRight,
+  ShieldCheck,
+  Layers,
 } from "lucide-react";
 import {
   StaffGuestServiceRequest,
@@ -37,7 +40,6 @@ import { Input } from "@/components/ui/input";
 import { AssignRequestModal } from "./assign-request-modal";
 import { StatusActionModal, StatusActionType } from "./status-action-modal";
 import { cn } from "@/lib/utils";
-
 import { useAuth } from "@/lib/auth/context";
 
 interface GuestRequestsBoardProps {
@@ -55,6 +57,21 @@ interface GuestRequestsBoardProps {
   hideTopKpiGrid?: boolean;
 }
 
+function getRelativeTime(dateStr: string): string {
+  try {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  } catch {
+    return "";
+  }
+}
+
 export function GuestRequestsBoard({
   propertyId,
   requests,
@@ -68,10 +85,11 @@ export function GuestRequestsBoard({
 
   const [search, setSearch] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("ALL");
-  const [selectedStatus, setSelectedStatus] = React.useState("ALL");
+  const [selectedStatusTab, setSelectedStatusTab] = React.useState<"ALL" | "SUBMITTED" | "IN_PROGRESS" | "COMPLETED" | "MY_WORK">("ALL");
   const [selectedPriority, setSelectedPriority] = React.useState("ALL");
   const [selectedAssignee, setSelectedAssignee] = React.useState("ALL");
   const [viewMode, setViewMode] = React.useState<"table" | "grid">("table");
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   // Modal States
   const [assignTarget, setAssignTarget] =
@@ -81,32 +99,88 @@ export function GuestRequestsBoard({
     type: StatusActionType;
   } | null>(null);
 
+  const handleRefreshClick = () => {
+    setIsRefreshing(true);
+    onRefresh();
+    setTimeout(() => setIsRefreshing(false), 600);
+  };
+
+  // Quick KPI counts
+  const totalCount = requests.length;
+  const submittedCount = requests.filter((r) => r.status === "SUBMITTED").length;
+  const inProgressCount = requests.filter(
+    (r) =>
+      r.status === "IN_PROGRESS" ||
+      r.status === "ASSIGNED" ||
+      r.status === "ACKNOWLEDGED"
+  ).length;
+  const completedCount = requests.filter((r) => r.status === "COMPLETED").length;
+  const myWorkCount = requests.filter(
+    (r) =>
+      (currentUserId && r.assigned_to === currentUserId) ||
+      (currentProfileId && r.assigned_to === currentProfileId)
+  ).length;
+
   // Filtered requests
   const filtered = React.useMemo(() => {
     return requests.filter((r) => {
+      // 1. Status / Segment Tab
+      if (selectedStatusTab === "SUBMITTED") {
+        if (r.status !== "SUBMITTED") return false;
+      } else if (selectedStatusTab === "IN_PROGRESS") {
+        if (
+          r.status !== "IN_PROGRESS" &&
+          r.status !== "ASSIGNED" &&
+          r.status !== "ACKNOWLEDGED"
+        )
+          return false;
+      } else if (selectedStatusTab === "COMPLETED") {
+        if (r.status !== "COMPLETED") return false;
+      } else if (selectedStatusTab === "MY_WORK") {
+        if (
+          r.assigned_to !== currentUserId &&
+          r.assigned_to !== currentProfileId
+        )
+          return false;
+      }
+
+      // 2. Category Filter
       if (selectedCategory !== "ALL" && r.category !== selectedCategory)
         return false;
-      if (selectedStatus !== "ALL" && r.status !== selectedStatus) return false;
+
+      // 3. Priority Filter
       if (selectedPriority !== "ALL" && r.priority !== selectedPriority)
         return false;
-      if (selectedAssignee === "MY_WORK") {
-        if (r.assigned_to !== currentUserId && r.assigned_to !== currentProfileId) return false;
+
+      // 4. Assignee Filter
+      if (selectedAssignee === "UNASSIGNED") {
+        if (r.assigned_to) return false;
+      } else if (selectedAssignee === "MY_WORK") {
+        if (
+          r.assigned_to !== currentUserId &&
+          r.assigned_to !== currentProfileId
+        )
+          return false;
       } else if (selectedAssignee !== "ALL") {
         if (r.assigned_to !== selectedAssignee) return false;
       }
 
+      // 5. Text Search
       if (search.trim().length > 0) {
         const s = search.toLowerCase().trim();
         const room = (r.room?.room_number || "").toLowerCase();
-        const guest =
-          `${r.guest?.first_name || ""} ${r.guest?.last_name || ""}`.toLowerCase();
+        const guest = `${r.guest?.first_name || ""} ${r.guest?.last_name || ""}`.toLowerCase();
         const title = (r.title || "").toLowerCase();
+        const desc = (r.description || "").toLowerCase();
         const id = (r.id || "").toLowerCase();
+        const staff = (r.assigned_staff?.full_name || "").toLowerCase();
         if (
           !room.includes(s) &&
           !guest.includes(s) &&
           !title.includes(s) &&
-          !id.includes(s)
+          !desc.includes(s) &&
+          !id.includes(s) &&
+          !staff.includes(s)
         ) {
           return false;
         }
@@ -114,43 +188,56 @@ export function GuestRequestsBoard({
 
       return true;
     });
-  }, [requests, selectedCategory, selectedStatus, selectedPriority, selectedAssignee, search, currentUserId, currentProfileId]);
+  }, [
+    requests,
+    selectedStatusTab,
+    selectedCategory,
+    selectedPriority,
+    selectedAssignee,
+    search,
+    currentUserId,
+    currentProfileId,
+  ]);
 
-  // KPI calculations
-  const total = requests.length;
-  const submitted = requests.filter((r) => r.status === "SUBMITTED").length;
-  const inProgress = requests.filter(
-    (r) =>
-      r.status === "IN_PROGRESS" ||
-      r.status === "ASSIGNED" ||
-      r.status === "ACKNOWLEDGED"
-  ).length;
-  const completed = requests.filter((r) => r.status === "COMPLETED").length;
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    selectedCategory !== "ALL" ||
+    selectedPriority !== "ALL" ||
+    selectedAssignee !== "ALL" ||
+    selectedStatusTab !== "ALL";
+
+  const handleResetFilters = () => {
+    setSearch("");
+    setSelectedCategory("ALL");
+    setSelectedPriority("ALL");
+    setSelectedAssignee("ALL");
+    setSelectedStatusTab("ALL");
+  };
 
   const getPriorityBadge = (p: string) => {
-    switch (p) {
+    switch (p?.toUpperCase()) {
       case "URGENT":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs animate-pulse">
-            <Flame className="w-2.5 h-2.5 text-rose-600 fill-rose-500" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200/80 shadow-2xs animate-pulse">
+            <Flame className="w-3 h-3 text-rose-600 fill-rose-500" />
             URGENT
           </span>
         );
       case "HIGH":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200/80">
             HIGH
           </span>
         );
       case "LOW":
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold text-slate-500 bg-slate-100 border border-slate-200">
             LOW
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
             NORMAL
           </span>
         );
@@ -161,44 +248,44 @@ export function GuestRequestsBoard({
     switch (s) {
       case "COMPLETED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-            COMPLETED
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            Completed
           </span>
         );
       case "IN_PROGRESS":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-pulse" />
-            IN PROGRESS
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-ping" />
+            In Progress
           </span>
         );
       case "ASSIGNED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-sky-600" />
-            ASSIGNED
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+            Assigned
           </span>
         );
       case "ACKNOWLEDGED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
-            ACKNOWLEDGED
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            Acknowledged
           </span>
         );
       case "CANCELLED":
       case "REJECTED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
             {s}
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-black bg-amber-500 text-white shadow-2xs animate-pulse">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-500 text-white shadow-2xs animate-pulse">
             <span className="h-1.5 w-1.5 rounded-full bg-white" />
-            NEW SUBMISSION
+            New Submission
           </span>
         );
     }
@@ -208,196 +295,213 @@ export function GuestRequestsBoard({
     switch (cat?.toUpperCase()) {
       case "HOUSEKEEPING":
         return {
+          label: "Housekeeping",
           icon: Sparkles,
-          bg: "bg-emerald-50 border-emerald-200 text-emerald-700",
+          color: "text-emerald-700 bg-emerald-50 border-emerald-200/70",
         };
       case "MAINTENANCE":
         return {
+          label: "Maintenance",
           icon: Wrench,
-          bg: "bg-blue-50 border-blue-200 text-blue-700",
+          color: "text-sky-700 bg-sky-50 border-sky-200/70",
         };
       case "ROOM_SERVICE":
       case "FOOD":
       case "DINING":
         return {
+          label: "In-Room Dining",
           icon: Utensils,
-          bg: "bg-amber-50 border-amber-200 text-amber-700",
+          color: "text-amber-700 bg-amber-50 border-amber-200/70",
         };
       case "LAUNDRY":
         return {
+          label: "Laundry",
           icon: Shirt,
-          bg: "bg-indigo-50 border-indigo-200 text-indigo-700",
+          color: "text-indigo-700 bg-indigo-50 border-indigo-200/70",
         };
       case "SPA":
         return {
+          label: "Spa & Wellness",
           icon: Flower2,
-          bg: "bg-pink-50 border-pink-200 text-pink-700",
+          color: "text-pink-700 bg-pink-50 border-pink-200/70",
         };
       case "TRANSPORT":
         return {
+          label: "Transport",
           icon: Car,
-          bg: "bg-teal-50 border-teal-200 text-teal-700",
+          color: "text-teal-700 bg-teal-50 border-teal-200/70",
         };
       case "FRONT_DESK":
         return {
+          label: "Front Desk",
           icon: BedDouble,
-          bg: "bg-amber-50 border-amber-200 text-amber-700",
+          color: "text-blue-700 bg-blue-50 border-blue-200/70",
         };
       case "CONCIERGE":
         return {
+          label: "Concierge",
           icon: Compass,
-          bg: "bg-purple-50 border-purple-200 text-purple-700",
+          color: "text-purple-700 bg-purple-50 border-purple-200/70",
         };
       default:
         return {
+          label: cat || "Service",
           icon: BellRing,
-          bg: "bg-slate-100 border-slate-200 text-slate-700",
+          color: "text-slate-700 bg-slate-50 border-slate-200/70",
         };
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* 1. Sleek Interactive Status Filters Strip */}
+    <div className="space-y-3.5">
+      {/* ── 1. FAST OPERATIONAL SEGMENT TABS ── */}
       {!hideTopKpiGrid && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
           {[
             {
-              id: "ALL",
-              title: "Total Requests",
-              value: total,
-              sub: "All Tickets",
+              id: "ALL" as const,
+              label: "All Requests",
+              count: totalCount,
               icon: Inbox,
-              iconColor: "text-blue-500",
-              iconBg: "bg-blue-500/10 border-blue-500/20",
-              activeStyle: "ring-2 ring-blue-500/80 border-blue-500/40 bg-blue-500/5",
+              badgeStyle: "bg-slate-100 text-slate-700 border-slate-200",
             },
             {
-              id: "SUBMITTED",
-              title: "New / Submitted",
-              value: submitted,
-              sub: submitted > 0 ? "Requires Triage" : "All clear",
+              id: "SUBMITTED" as const,
+              label: "Needs Triage",
+              count: submittedCount,
               icon: AlertTriangle,
-              iconColor: "text-amber-500",
-              iconBg: "bg-amber-500/10 border-amber-500/20",
-              activeStyle: "ring-2 ring-amber-500/80 border-amber-500/40 bg-amber-500/5",
+              highlight: submittedCount > 0,
+              badgeStyle: submittedCount > 0 ? "bg-amber-500 text-white animate-pulse font-black" : "bg-slate-100 text-slate-600",
             },
             {
-              id: "IN_PROGRESS",
-              title: "Active / In-Progress",
-              value: inProgress,
-              sub: "In Dispatch",
+              id: "IN_PROGRESS" as const,
+              label: "In Dispatch",
+              count: inProgressCount,
               icon: Clock,
-              iconColor: "text-indigo-500",
-              iconBg: "bg-indigo-500/10 border-indigo-500/20",
-              activeStyle: "ring-2 ring-indigo-500/80 border-indigo-500/40 bg-indigo-500/5",
+              badgeStyle: "bg-indigo-50 text-indigo-700 border-indigo-200 font-bold",
             },
             {
-              id: "COMPLETED",
-              title: "Completed Today",
-              value: completed,
-              sub: "Resolved",
+              id: "COMPLETED" as const,
+              label: "Completed",
+              count: completedCount,
               icon: CheckCircle2,
-              iconColor: "text-emerald-500",
-              iconBg: "bg-emerald-500/10 border-emerald-500/20",
-              activeStyle: "ring-2 ring-emerald-500/80 border-emerald-500/40 bg-emerald-500/5",
+              badgeStyle: "bg-emerald-50 text-emerald-700 border-emerald-200 font-bold",
             },
-          ].map((item) => {
-            const Icon = item.icon;
-            const isSelected = selectedStatus === item.id;
+            {
+              id: "MY_WORK" as const,
+              label: "My Assigned",
+              count: myWorkCount,
+              icon: UserCheck,
+              badgeStyle: "bg-blue-50 text-blue-700 border-blue-200 font-bold",
+            },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isSelected = selectedStatusTab === tab.id;
 
             return (
               <button
-                key={item.id}
+                key={tab.id}
                 type="button"
-                onClick={() =>
-                  setSelectedStatus(isSelected && item.id !== "ALL" ? "ALL" : item.id)
-                }
+                onClick={() => setSelectedStatusTab(tab.id)}
                 className={cn(
-                  "group relative flex items-center justify-between p-3.5 rounded-xl bg-card border border-border/70 text-left transition-all duration-200 select-none hover:-translate-y-0.5 hover:shadow-md hover:border-border cursor-pointer",
+                  "flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border shrink-0 cursor-pointer",
                   isSelected
-                    ? cn(item.activeStyle, "shadow-sm")
-                    : "shadow-2xs"
+                    ? "bg-slate-900 text-white border-slate-900 shadow-sm font-bold"
+                    : "bg-card text-foreground/80 border-border/70 hover:bg-muted/60 hover:text-foreground"
                 )}
               >
-                <div>
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground block">
-                    {item.title}
-                  </span>
-                  <span className="text-2xl font-black text-foreground mt-0.5 block tabular-nums">
-                    {item.value}
-                  </span>
-                  <span className="text-[11px] font-medium text-muted-foreground/80 block mt-0.5">
-                    {item.sub}
-                  </span>
-                </div>
-                <div
+                <Icon
                   className={cn(
-                    "w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105",
-                    item.iconBg,
-                    item.iconColor
+                    "w-3.5 h-3.5",
+                    isSelected
+                      ? "text-amber-400"
+                      : tab.highlight
+                      ? "text-amber-500"
+                      : "text-muted-foreground"
+                  )}
+                />
+                <span>{tab.label}</span>
+                <span
+                  className={cn(
+                    "px-1.5 py-0.2 rounded-md text-[11px] tabular-nums",
+                    isSelected
+                      ? "bg-white/20 text-white font-bold"
+                      : tab.badgeStyle
                   )}
                 >
-                  <Icon className="w-4 h-4" />
-                </div>
+                  {tab.count}
+                </span>
               </button>
             );
           })}
         </div>
       )}
 
-      {/* 2. Controls & Search Filter Bar */}
-      <div className="stayhub-card p-3.5">
-        <div className="flex flex-col md:flex-row gap-2.5 items-center justify-between">
+      {/* ── 2. STREAMLINED SEARCH & FILTER CONTROL BAR ── */}
+      <div className="bg-card border border-border/80 rounded-2xl p-3 shadow-2xs space-y-2.5">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
           {/* Search Box */}
-          <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search room, guest name, ticket title..."
-              className="pl-9 bg-slate-50 border-slate-200 h-9.5 rounded-xl text-xs"
+              placeholder="Search room, guest name, ticket title, or notes..."
+              className="pl-9 pr-8 bg-muted/40 border-border/80 h-9.5 rounded-xl text-xs focus-visible:ring-1"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          {/* Filters & View Toggle */}
-          <div className="flex flex-wrap gap-2 w-full md:w-auto items-center justify-end">
+          {/* Filter Dropdowns & View Actions */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Category Dropdown */}
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="h-9.5 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-2xs cursor-pointer"
+              className="h-9 px-3 rounded-xl border border-border/80 bg-card text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
             >
-              <option value="ALL">All Categories</option>
-              <option value="HOUSEKEEPING">Housekeeping</option>
-              <option value="MAINTENANCE">Maintenance</option>
-              <option value="FRONT_DESK">Front Desk</option>
-              <option value="CONCIERGE">Concierge</option>
-              <option value="LAUNDRY">Laundry</option>
-              <option value="SPA">Spa</option>
-              <option value="TRANSPORT">Transport</option>
-              <option value="ROOM_SERVICE">In-Room Dining</option>
-              <option value="OTHER">Other</option>
+              <option value="ALL">All Departments</option>
+              <option value="HOUSEKEEPING">✨ Housekeeping</option>
+              <option value="MAINTENANCE">🔧 Maintenance</option>
+              <option value="FRONT_DESK">🛎️ Front Desk</option>
+              <option value="ROOM_SERVICE">🍽️ In-Room Dining</option>
+              <option value="CONCIERGE">🧭 Concierge</option>
+              <option value="LAUNDRY">🧺 Laundry</option>
+              <option value="SPA">🌸 Spa & Wellness</option>
+              <option value="TRANSPORT">🚗 Transport</option>
+              <option value="OTHER">📦 Other Services</option>
             </select>
 
+            {/* Priority Dropdown */}
             <select
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
-              className="h-9.5 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-2xs cursor-pointer"
+              className="h-9 px-3 rounded-xl border border-border/80 bg-card text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
             >
               <option value="ALL">All Priorities</option>
-              <option value="URGENT">Urgent</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
+              <option value="URGENT">🔥 Urgent</option>
+              <option value="HIGH">⚡ High</option>
+              <option value="NORMAL">Normal</option>
               <option value="LOW">Low</option>
             </select>
 
+            {/* Assignee Dropdown */}
             <select
               value={selectedAssignee}
               onChange={(e) => setSelectedAssignee(e.target.value)}
-              className="h-9.5 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-2xs cursor-pointer"
+              className="h-9 px-3 rounded-xl border border-border/80 bg-card text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer max-w-[160px] truncate"
             >
-              <option value="ALL">All Assignees</option>
-              <option value="MY_WORK">My Assigned Requests</option>
+              <option value="ALL">All Staff</option>
+              <option value="UNASSIGNED">⚠️ Unassigned Only</option>
+              <option value="MY_WORK">👤 My Assigned</option>
               {staffMembers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.full_name}
@@ -405,29 +509,32 @@ export function GuestRequestsBoard({
               ))}
             </select>
 
-            <Button
-              type="button"
-              variant={selectedAssignee === "MY_WORK" ? "primary" : "outline"}
-              size="sm"
-              onClick={() => setSelectedAssignee((prev) => (prev === "MY_WORK" ? "ALL" : "MY_WORK"))}
-              className="h-9.5 text-xs font-semibold"
-            >
-              <BellRing className="h-3.5 w-3.5 mr-1" />
-              My Requests
-            </Button>
+            {/* Reset Filters Shortcut */}
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleResetFilters}
+                className="h-9 px-2 text-xs font-semibold text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-3.5 h-3.5 mr-1" />
+                Reset
+              </Button>
+            )}
 
             {/* View Mode Switcher */}
-            <div className="flex items-center border border-slate-200 rounded-xl p-0.5 bg-slate-100 shadow-2xs">
+            <div className="flex items-center border border-border/80 rounded-xl p-0.5 bg-muted/40 shadow-2xs">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
                 className={cn(
-                  "p-1.5 rounded-lg transition-all",
+                  "p-1.5 rounded-lg transition-all cursor-pointer",
                   viewMode === "table"
-                    ? "bg-white text-slate-900 shadow-xs font-bold"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-card text-foreground shadow-2xs font-bold"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
-                title="Table View"
+                title="Table List View"
               >
                 <List className="w-4 h-4" />
               </button>
@@ -435,142 +542,208 @@ export function GuestRequestsBoard({
                 type="button"
                 onClick={() => setViewMode("grid")}
                 className={cn(
-                  "p-1.5 rounded-lg transition-all",
+                  "p-1.5 rounded-lg transition-all cursor-pointer",
                   viewMode === "grid"
-                    ? "bg-white text-slate-900 shadow-xs font-bold"
-                    : "text-slate-500 hover:text-slate-800"
+                    ? "bg-card text-foreground shadow-2xs font-bold"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
-                title="Card View"
+                title="Card Grid View"
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
             </div>
 
+            {/* Refresh Button */}
             <Button
               variant="outline"
               size="icon"
-              onClick={onRefresh}
+              onClick={handleRefreshClick}
               title="Refresh Requests"
-              className="h-9.5 w-9.5 rounded-xl bg-white border-slate-200"
+              className="h-9 w-9 rounded-xl bg-card border-border/80 shrink-0"
             >
-              <RotateCcw className="w-4 h-4 text-slate-600" />
+              <RotateCcw
+                className={cn(
+                  "w-3.5 h-3.5 text-foreground/80 transition-transform duration-500",
+                  isRefreshing && "rotate-180 animate-spin"
+                )}
+              />
             </Button>
           </div>
         </div>
+
+        {/* Quick Result Indicator */}
+        <div className="flex items-center justify-between text-[11.5px] text-muted-foreground px-0.5 pt-0.5">
+          <span>
+            Showing <strong className="text-foreground">{filtered.length}</strong> of{" "}
+            {requests.length} requests
+            {selectedStatusTab !== "ALL" && (
+              <span> in <strong className="text-foreground capitalize">{selectedStatusTab.toLowerCase().replace("_", " ")}</strong></span>
+            )}
+          </span>
+          {hasActiveFilters && (
+            <span className="text-[11px] text-amber-600 font-medium">
+              Filters Active
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* 3. Empty State */}
+      {/* ── 3. EMPTY STATE ── */}
       {filtered.length === 0 ? (
-        <div className="stayhub-card p-12 text-center border-dashed space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-            <Clock className="w-6 h-6" />
+        <div className="bg-card border border-dashed border-border/80 rounded-2xl p-10 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-muted/60 border border-border/60 flex items-center justify-center mx-auto text-muted-foreground">
+            <Inbox className="w-6 h-6" />
           </div>
-          <h3 className="text-base font-extrabold text-slate-900">
-            No guest requests match your filters
-          </h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try adjusting your search query or reset status filters to view active hotel tickets.
-          </p>
-          {(search || selectedCategory !== "ALL" || selectedStatus !== "ALL" || selectedPriority !== "ALL") && (
+          <div>
+            <h3 className="text-sm font-bold text-foreground">
+              No service requests match your criteria
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+              Try adjusting your search query, clearing department/priority filters, or selecting a different status tab.
+            </p>
+          </div>
+          {hasActiveFilters && (
             <Button
               size="sm"
               variant="outline"
-              onClick={() => {
-                setSearch("");
-                setSelectedCategory("ALL");
-                setSelectedStatus("ALL");
-                setSelectedPriority("ALL");
-              }}
-              className="text-xs font-bold h-8"
+              onClick={handleResetFilters}
+              className="text-xs font-semibold h-8 rounded-xl"
             >
-              Reset Filters
+              Clear All Filters
             </Button>
           )}
         </div>
       ) : viewMode === "grid" ? (
-        /* ── GRID CARD VIEW ── */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        /* ── 4. MODERN GRID / CARD VIEW ── */
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
           {filtered.map((r) => {
             const cat = getCategoryInfo(r.category);
             const CatIcon = cat.icon;
-            const guestName =
-              r.guest ? `${r.guest.first_name || ""} ${r.guest.last_name || ""}`.trim() : "In-House Guest";
+            const guestName = r.guest
+              ? `${r.guest.first_name || ""} ${r.guest.last_name || ""}`.trim()
+              : "In-House Guest";
+            const relativeTime = getRelativeTime(r.requested_at);
 
             return (
               <div
                 key={r.id}
-                className="group relative flex flex-col rounded-2xl bg-white border border-slate-200/90 p-4 shadow-2xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 space-y-3"
+                className="group relative flex flex-col rounded-2xl bg-card border border-border/80 p-4 shadow-2xs hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 space-y-3"
               >
-                {/* Header Row: Room Pill + Priority + Category */}
+                {/* Header: Room Pill + Priority + Category */}
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 text-white text-xs font-black shadow-2xs">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 text-white text-xs font-bold shadow-2xs">
                       <BedDouble className="w-3.5 h-3.5 text-amber-400" />
                       Room {r.room?.room_number || "—"}
                     </span>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border",
-                        cat.bg
+                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10.5px] font-bold border",
+                        cat.color
                       )}
                     >
                       <CatIcon className="w-3 h-3" />
-                      <span>{r.category}</span>
+                      <span>{cat.label}</span>
                     </span>
                   </div>
 
                   {getPriorityBadge(r.priority)}
                 </div>
 
-                {/* Request Content */}
+                {/* Content */}
                 <div className="space-y-1">
-                  <h4 className="text-[13.5px] font-black text-slate-900 leading-snug">
+                  <Link
+                    href={`/guest-requests/${r.id}`}
+                    className="text-[13.5px] font-bold text-foreground hover:text-primary leading-snug line-clamp-2 block transition-colors"
+                  >
                     {r.title}
-                  </h4>
+                  </Link>
                   {r.description && (
-                    <p className="text-[11.5px] text-slate-500 line-clamp-2 leading-relaxed">
+                    <p className="text-[11.5px] text-muted-foreground line-clamp-2 leading-relaxed">
                       {r.description}
                     </p>
                   )}
                 </div>
 
                 {/* Guest & Timing Strip */}
-                <div className="p-2.5 rounded-xl bg-slate-50/80 border border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
+                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 flex items-center justify-between text-[11px]">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px] shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                       {guestName.slice(0, 2).toUpperCase()}
                     </div>
-                    <span className="font-bold text-slate-800 truncate">
+                    <span className="font-semibold text-foreground truncate">
                       {guestName}
                     </span>
                   </div>
-                  <span className="font-mono text-[10.5px] text-slate-400 shrink-0 flex items-center gap-1">
+                  <div className="flex items-center gap-1 text-muted-foreground font-mono text-[10.5px] shrink-0">
                     <Clock className="w-3 h-3" />
-                    {new Date(r.requested_at).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
+                    <span>{relativeTime || new Date(r.requested_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  </div>
                 </div>
 
-                {/* Status & Assigned Staff Row */}
-                <div className="flex items-center justify-between text-[11.5px] pt-1">
-                  <span className="font-bold text-slate-500">Status:</span>
+                {/* Status Row */}
+                <div className="flex items-center justify-between text-xs pt-0.5">
+                  <span className="text-muted-foreground text-[11px] font-medium">Current Status:</span>
                   {getStatusBadge(r.status)}
                 </div>
 
+                {/* Assigned Staff Preview */}
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-border/50">
+                  <span className="text-muted-foreground text-[11px]">Assigned Staff:</span>
+                  {r.assigned_staff ? (
+                    <span className="font-semibold text-foreground text-xs flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      {r.assigned_staff.full_name}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setAssignTarget(r)}
+                      className="text-amber-600 hover:text-amber-700 text-xs font-bold hover:underline"
+                    >
+                      + Assign Staff
+                    </button>
+                  )}
+                </div>
+
                 {/* Bottom Action Footer */}
-                <div className="flex items-center gap-1.5 pt-2 border-t border-slate-100 mt-auto">
+                <div className="flex items-center gap-1.5 pt-2 border-t border-border/60 mt-auto">
                   {r.status === "SUBMITTED" && (
                     <Button
                       size="sm"
-                      className="flex-1 h-8 text-[11px] font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white gap-1 shadow-2xs"
+                      className="flex-1 h-8 text-[11.5px] font-bold rounded-xl bg-amber-500 hover:bg-amber-600 text-white gap-1 shadow-2xs"
                       onClick={() =>
                         setActionTarget({ request: r, type: "ACKNOWLEDGE" })
                       }
                     >
-                      <Check className="w-3 h-3" />
-                      <span>Accept Ticket</span>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Accept</span>
+                    </Button>
+                  )}
+
+                  {r.status === "ASSIGNED" && (
+                    <Button
+                      size="sm"
+                      className="flex-1 h-8 text-[11.5px] font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white gap-1 shadow-2xs"
+                      onClick={() =>
+                        setActionTarget({ request: r, type: "START" })
+                      }
+                    >
+                      <Play className="w-3.5 h-3.5" />
+                      <span>Start Work</span>
+                    </Button>
+                  )}
+
+                  {r.status === "IN_PROGRESS" && (
+                    <Button
+                      size="sm"
+                      className="flex-1 h-8 text-[11.5px] font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1 shadow-2xs"
+                      onClick={() =>
+                        setActionTarget({ request: r, type: "COMPLETE" })
+                      }
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Complete</span>
                     </Button>
                   )}
 
@@ -580,47 +753,19 @@ export function GuestRequestsBoard({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 px-2.5 text-[11px] font-bold rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100"
+                        className="h-8 px-2.5 text-[11px] font-semibold rounded-xl border-border/80 text-foreground hover:bg-muted"
                         onClick={() => setAssignTarget(r)}
                       >
                         <UserCheck className="w-3 h-3 mr-1" />
-                        {r.assigned_staff
-                          ? r.assigned_staff.full_name.split(" ")[0]
-                          : "Assign"}
+                        {r.assigned_staff ? "Reassign" : "Assign"}
                       </Button>
                     )}
-
-                  {r.status === "ASSIGNED" && (
-                    <Button
-                      size="sm"
-                      className="flex-1 h-8 text-[11px] font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white gap-1 shadow-2xs"
-                      onClick={() =>
-                        setActionTarget({ request: r, type: "START" })
-                      }
-                    >
-                      <Play className="w-3 h-3" />
-                      <span>Start Work</span>
-                    </Button>
-                  )}
-
-                  {r.status === "IN_PROGRESS" && (
-                    <Button
-                      size="sm"
-                      className="flex-1 h-8 text-[11px] font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1 shadow-2xs"
-                      onClick={() =>
-                        setActionTarget({ request: r, type: "COMPLETE" })
-                      }
-                    >
-                      <Check className="w-3 h-3" />
-                      <span>Mark Complete</span>
-                    </Button>
-                  )}
 
                   <Link href={`/guest-requests/${r.id}`}>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 w-8 p-0 rounded-xl border-slate-200 text-slate-600 hover:text-slate-900"
+                      className="h-8 w-8 p-0 rounded-xl border-border/80 text-muted-foreground hover:text-foreground hover:bg-muted"
                       title="View Dossier"
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -632,71 +777,78 @@ export function GuestRequestsBoard({
           })}
         </div>
       ) : (
-        /* ── LUXURY COMMAND TABLE VIEW ── */
-        <div className="stayhub-card p-0 overflow-hidden shadow-sm">
+        /* ── 5. EXECUTIVE SUPERADMIN TABLE VIEW ── */
+        <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50/90 border-b border-slate-200 text-slate-500 uppercase font-extrabold tracking-wider text-[10.5px]">
+              <thead className="bg-muted/50 border-b border-border/80 text-muted-foreground uppercase font-bold tracking-wider text-[10.5px]">
                 <tr>
-                  <th className="py-3 px-4">Room</th>
-                  <th className="py-3 px-4">Guest</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Ticket Details</th>
-                  <th className="py-3 px-4">Priority</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Assigned Staff</th>
-                  <th className="py-3 px-4">Time</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3 px-3.5">Room</th>
+                  <th className="py-3 px-3.5">Guest</th>
+                  <th className="py-3 px-3.5">Department</th>
+                  <th className="py-3 px-3.5 min-w-[200px]">Ticket Details</th>
+                  <th className="py-3 px-3.5">Priority</th>
+                  <th className="py-3 px-3.5">Status</th>
+                  <th className="py-3 px-3.5">Assigned Staff</th>
+                  <th className="py-3 px-3.5">Time</th>
+                  <th className="py-3 px-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-border/60">
                 {filtered.map((r) => {
                   const cat = getCategoryInfo(r.category);
                   const CatIcon = cat.icon;
-                  const guestName =
-                    r.guest
-                      ? `${r.guest.first_name || ""} ${r.guest.last_name || ""}`.trim()
-                      : "In-House Guest";
+                  const guestName = r.guest
+                    ? `${r.guest.first_name || ""} ${r.guest.last_name || ""}`.trim()
+                    : "In-House Guest";
+                  const relativeTime = getRelativeTime(r.requested_at);
+                  const formattedExactTime = new Date(r.requested_at).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
 
                   return (
                     <tr
                       key={r.id}
-                      className="hover:bg-slate-50/70 transition-colors group"
+                      className="hover:bg-muted/40 transition-colors group"
                     >
-                      <td className="py-3 px-4 font-black whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-900 text-white font-extrabold text-[11.5px] shadow-2xs">
+                      {/* Room */}
+                      <td className="py-3 px-3.5 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900 text-white font-bold text-[11.5px] shadow-2xs">
                           <BedDouble className="w-3.5 h-3.5 text-amber-400" />
                           Room {r.room?.room_number || "—"}
                         </span>
                       </td>
 
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      {/* Guest */}
+                      <td className="py-3 px-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <div className="w-6.5 h-6.5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-[10px] shadow-2xs shrink-0">
                             {guestName.slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-bold text-slate-900 text-xs">
+                          <span className="font-semibold text-foreground text-xs">
                             {guestName}
                           </span>
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      {/* Category */}
+                      <td className="py-3 px-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <div
                             className={cn(
                               "p-1 rounded-lg border flex items-center justify-center",
-                              cat.bg
+                              cat.color
                             )}
                           >
                             <CatIcon className="w-3.5 h-3.5" />
                           </div>
                           <div>
-                            <span className="font-bold text-slate-800 block text-xs">
-                              {r.category}
+                            <span className="font-bold text-foreground block text-xs">
+                              {cat.label}
                             </span>
                             {r.request_type && (
-                              <span className="text-[10px] text-slate-400 block font-medium">
+                              <span className="text-[10px] text-muted-foreground block font-medium">
                                 {r.request_type}
                               </span>
                             )}
@@ -704,32 +856,39 @@ export function GuestRequestsBoard({
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 max-w-xs">
-                        <p className="font-extrabold text-slate-900 text-xs line-clamp-1">
+                      {/* Ticket Details */}
+                      <td className="py-3 px-3.5 max-w-xs">
+                        <Link
+                          href={`/guest-requests/${r.id}`}
+                          className="font-bold text-foreground text-xs hover:text-primary hover:underline line-clamp-1 block transition-colors"
+                        >
                           {r.title}
-                        </p>
+                        </Link>
                         {r.description && (
-                          <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                          <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
                             {r.description}
                           </p>
                         )}
                       </td>
 
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      {/* Priority */}
+                      <td className="py-3 px-3.5 whitespace-nowrap">
                         {getPriorityBadge(r.priority)}
                       </td>
 
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      {/* Status */}
+                      <td className="py-3 px-3.5 whitespace-nowrap">
                         {getStatusBadge(r.status)}
                       </td>
 
-                      <td className="py-3 px-4 whitespace-nowrap">
+                      {/* Assigned Staff */}
+                      <td className="py-3 px-3.5 whitespace-nowrap">
                         {r.assigned_staff ? (
                           <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[9.5px] font-bold">
+                            <div className="w-5 h-5 rounded-full bg-muted text-foreground flex items-center justify-center text-[9.5px] font-bold border border-border/80">
                               {r.assigned_staff.full_name.slice(0, 1)}
                             </div>
-                            <span className="font-semibold text-slate-800 text-xs">
+                            <span className="font-medium text-foreground text-xs">
                               {r.assigned_staff.full_name}
                             </span>
                           </div>
@@ -737,22 +896,24 @@ export function GuestRequestsBoard({
                           <button
                             type="button"
                             onClick={() => setAssignTarget(r)}
-                            className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold hover:underline flex items-center gap-1"
+                            className="text-amber-600 hover:text-amber-700 text-xs font-semibold hover:underline flex items-center gap-1"
                           >
                             <User className="w-3 h-3" />
-                            <span>Assign Staff</span>
+                            <span>Assign</span>
                           </button>
                         )}
                       </td>
 
-                      <td className="py-3 px-4 whitespace-nowrap text-slate-400 font-mono text-[11px]">
-                        {new Date(r.requested_at).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                      {/* Time */}
+                      <td className="py-3 px-3.5 whitespace-nowrap text-muted-foreground font-mono text-[11px]">
+                        <div>{formattedExactTime}</div>
+                        {relativeTime && (
+                          <div className="text-[10px] text-muted-foreground/70">{relativeTime}</div>
+                        )}
                       </td>
 
-                      <td className="py-3 px-4 text-right whitespace-nowrap space-x-1.5">
+                      {/* Actions */}
+                      <td className="py-3 px-3.5 text-right whitespace-nowrap space-x-1.5">
                         {r.status === "SUBMITTED" && (
                           <Button
                             size="sm"
@@ -767,19 +928,6 @@ export function GuestRequestsBoard({
                             Accept
                           </Button>
                         )}
-
-                        {r.status !== "COMPLETED" &&
-                          r.status !== "CANCELLED" &&
-                          r.status !== "REJECTED" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 px-2.5 text-[11px] font-bold rounded-lg border-slate-200 text-slate-700"
-                              onClick={() => setAssignTarget(r)}
-                            >
-                              Assign
-                            </Button>
-                          )}
 
                         {r.status === "ASSIGNED" && (
                           <Button
@@ -808,11 +956,24 @@ export function GuestRequestsBoard({
                           </Button>
                         )}
 
+                        {r.status !== "COMPLETED" &&
+                          r.status !== "CANCELLED" &&
+                          r.status !== "REJECTED" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-[11px] font-medium rounded-lg border-border/80 text-foreground hover:bg-muted"
+                              onClick={() => setAssignTarget(r)}
+                            >
+                              {r.assigned_staff ? "Reassign" : "Assign"}
+                            </Button>
+                          )}
+
                         <Link href={`/guest-requests/${r.id}`}>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 w-7 p-0 text-slate-400 hover:text-slate-800"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
                             title="View Dossier"
                           >
                             <Eye className="w-3.5 h-3.5" />

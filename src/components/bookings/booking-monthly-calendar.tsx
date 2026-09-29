@@ -312,18 +312,37 @@ export function BookingMonthlyCalendar({
     setSelectedDay(today);
   };
 
+  // Day navigation for the right inspector
+  const handlePrevDay = () => {
+    const prev = new Date(selectedDay);
+    prev.setDate(prev.getDate() - 1);
+    setSelectedDay(prev);
+    if (prev.getMonth() !== month) {
+      onDateChange(new Date(prev.getFullYear(), prev.getMonth(), 1));
+    }
+  };
+
+  const handleNextDay = () => {
+    const next = new Date(selectedDay);
+    next.setDate(next.getDate() + 1);
+    setSelectedDay(next);
+    if (next.getMonth() !== month) {
+      onDateChange(new Date(next.getFullYear(), next.getMonth(), 1));
+    }
+  };
+
   const monthName = currentDate.toLocaleString("default", { month: "long" });
 
   return (
     <div className="space-y-4 w-full max-w-full overflow-hidden">
       {/* ── 1. UNIFIED LUXURY COMMAND CENTER HERO ── */}
       <div
-        className="w-full rounded-2xl p-5 shadow-2xl text-white relative overflow-hidden border border-white/15"
+        className="w-full rounded-2xl p-4 sm:p-5 shadow-2xl text-white relative overflow-hidden border border-white/15"
         style={{
           background: "linear-gradient(135deg, #091224 0%, #0F1D38 45%, #14244A 100%)",
         }}
       >
-        {/* Ambient background glows */}
+        {/* Ambient glows */}
         <div
           className="absolute -top-16 -right-16 h-56 w-56 rounded-full pointer-events-none opacity-25"
           style={{ background: "radial-gradient(circle, #D4AF37 0%, transparent 70%)" }}
@@ -333,54 +352,54 @@ export function BookingMonthlyCalendar({
           style={{ background: "radial-gradient(circle, #6366F1 0%, transparent 70%)" }}
         />
 
-        <div className="relative z-10 space-y-4">
+        <div className="relative z-10 space-y-3.5">
           {/* Top Bar: Title, Date navigation & View mode switchers */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
             {/* Left: Brand / Title */}
-            <div className="flex items-center gap-3.5">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black flex items-center justify-center shadow-lg shadow-amber-500/25 shrink-0 ring-2 ring-amber-400/40">
-                <CalendarDays className="h-6 w-6" />
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black flex items-center justify-center shadow-lg shadow-amber-500/25 shrink-0 ring-2 ring-amber-400/40">
+                <CalendarDays className="h-5 w-5" />
               </div>
 
               <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-black text-white tracking-tight">
                     {monthName} {year}
                   </h1>
-                  <span className="text-[11px] font-black px-3 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30 flex items-center gap-1.5 shadow-xs">
+                  <span className="text-[10.5px] font-black px-2.5 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30 flex items-center gap-1 shadow-xs">
                     <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
                     {monthStats.totalBookings} Active Stays
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5 font-medium">
-                  Live Visual Reservation Grid, Room Occupancy &amp; Guest Schedules
+                <p className="text-[11.5px] text-slate-400 mt-0.5 font-medium">
+                  Live Visual Reservation Grid &amp; Interactive Side Inspector
                 </p>
               </div>
             </div>
 
-            {/* Right: View Segmented Toggle + Navigation + Action */}
-            <div className="flex items-center gap-2.5 flex-wrap justify-start lg:justify-end">
+            {/* Right: View Switchers + Navigation Controls */}
+            <div className="flex items-center gap-2 flex-wrap justify-start lg:justify-end">
               {/* Segmented View Mode */}
               <div className="flex items-center bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/15 shadow-inner">
                 <button
                   type="button"
                   onClick={() => setSubView("month")}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all",
+                    "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-black transition-all",
                     subView === "month"
                       ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md scale-[1.02]"
                       : "text-slate-300 hover:text-white"
                   )}
                 >
                   <LayoutGrid className="h-3.5 w-3.5" />
-                  <span>Month Matrix</span>
+                  <span>Calendar &amp; Inspector</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setSubView("week")}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all",
+                    "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-black transition-all",
                     subView === "week"
                       ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md scale-[1.02]"
                       : "text-slate-300 hover:text-white"
@@ -394,14 +413,14 @@ export function BookingMonthlyCalendar({
                   type="button"
                   onClick={() => setSubView("day")}
                   className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all",
+                    "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-black transition-all",
                     subView === "day"
                       ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md scale-[1.02]"
                       : "text-slate-300 hover:text-white"
                   )}
                 >
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Day Operations</span>
+                  <span>Day Agenda</span>
                 </button>
               </div>
 
@@ -411,7 +430,7 @@ export function BookingMonthlyCalendar({
                   variant="ghost"
                   size="sm"
                   onClick={handlePrevMonth}
-                  className="h-8 w-8 p-0 text-slate-200 hover:text-white hover:bg-white/15 rounded-lg"
+                  className="h-7 w-7 p-0 text-slate-200 hover:text-white hover:bg-white/15 rounded-lg"
                   title="Previous Month"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -420,7 +439,7 @@ export function BookingMonthlyCalendar({
                   variant="ghost"
                   size="sm"
                   onClick={handleToday}
-                  className="h-8 px-3 text-xs font-black text-amber-300 hover:text-amber-200 hover:bg-white/15 rounded-lg"
+                  className="h-7 px-2.5 text-xs font-black text-amber-300 hover:text-amber-200 hover:bg-white/15 rounded-lg"
                 >
                   Today
                 </Button>
@@ -428,7 +447,7 @@ export function BookingMonthlyCalendar({
                   variant="ghost"
                   size="sm"
                   onClick={handleNextMonth}
-                  className="h-8 w-8 p-0 text-slate-200 hover:text-white hover:bg-white/15 rounded-lg"
+                  className="h-7 w-7 p-0 text-slate-200 hover:text-white hover:bg-white/15 rounded-lg"
                   title="Next Month"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -438,26 +457,26 @@ export function BookingMonthlyCalendar({
               <Link href={`/bookings/new?checkIn=${selectedDayStr}`}>
                 <Button
                   size="sm"
-                  className="h-9 px-3.5 gap-1.5 font-black bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:brightness-105 text-slate-950 rounded-xl shadow-lg shadow-amber-500/20 text-xs"
+                  className="h-8 px-3 gap-1.5 font-black bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:brightness-105 text-slate-950 rounded-xl shadow-lg shadow-amber-500/20 text-xs"
                 >
-                  <Plus className="h-4 w-4 stroke-[3]" />
+                  <Plus className="h-3.5 w-3.5 stroke-[3]" />
                   <span>New Booking</span>
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Bottom Bar: Search, Status Filter & Live Glowing Metric Chips */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-3.5 border-t border-white/15 items-center">
+          {/* Bottom Filter & Metric Badges */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 pt-3 border-t border-white/15 items-center">
             {/* Search Input */}
             <div className="md:col-span-4 relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Quick search guest, room #, conf..."
+                placeholder="Search guest, room #, conf..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs bg-white/10 hover:bg-white/15 focus:bg-slate-950 border border-white/20 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400/60 rounded-xl h-9 transition"
+                className="w-full pl-8 pr-3 py-1 text-xs bg-white/10 hover:bg-white/15 focus:bg-slate-950 border border-white/20 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400/60 rounded-xl h-8 transition"
               />
             </div>
 
@@ -466,7 +485,7 @@ export function BookingMonthlyCalendar({
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full h-9 px-3 rounded-xl text-xs font-bold bg-slate-900 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/60 cursor-pointer"
+                className="w-full h-8 px-2.5 rounded-xl text-xs font-bold bg-slate-900 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/60 cursor-pointer"
               >
                 <option value="ALL">All Reservation Statuses</option>
                 <option value="CONFIRMED">Confirmed Only</option>
@@ -476,19 +495,19 @@ export function BookingMonthlyCalendar({
               </select>
             </div>
 
-            {/* Live Vibrant Stat Badges */}
+            {/* Live Metric Badges */}
             <div className="md:col-span-5 flex items-center gap-2 justify-start md:justify-end flex-wrap">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black shadow-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[11px] font-black shadow-xs">
                 <LogIn className="h-3.5 w-3.5 text-emerald-400" />
-                <span>{monthStats.totalArrivals} Arrivals</span>
+                <span>{monthStats.totalArrivals} In</span>
               </div>
 
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-black shadow-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-400/40 text-rose-300 text-[11px] font-black shadow-xs">
                 <LogOut className="h-3.5 w-3.5 text-rose-400" />
-                <span>{monthStats.totalDepartures} Departures</span>
+                <span>{monthStats.totalDepartures} Out</span>
               </div>
 
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-mono font-black shadow-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[11px] font-mono font-black shadow-xs">
                 <span>{formatCurrency(monthStats.totalRevenue, currency)}</span>
               </div>
             </div>
@@ -496,24 +515,20 @@ export function BookingMonthlyCalendar({
         </div>
       </div>
 
-      {/* ── 2. MAIN MONTH MATRIX (GRAPHICAL, HIGH-CONTRAST & COLORFUL) ── */}
+      {/* ── 2. SIDE-BY-SIDE VIEW: CALENDAR (LEFT) & BOOKINGS INSPECTOR (RIGHT) ── */}
       {subView === "month" && (
-        <div className="space-y-4 w-full">
-          {/* Month Calendar Grid Card */}
-          <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full max-w-full items-start">
+          {/* ── LEFT COLUMN: COLORFUL CALENDAR MATRIX (7-8 COLS) ── */}
+          <div className="lg:col-span-7 xl:col-span-8 w-full min-w-0 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
             {/* Weekdays Header Strip */}
-            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800/90 dark:via-slate-800/60 dark:to-slate-800/90 text-center text-[11px] font-black uppercase tracking-wider py-3">
-              <span className="text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1">
-                <span>Sun</span>
-              </span>
+            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800/90 dark:via-slate-800/60 dark:to-slate-800/90 text-center text-[10.5px] font-black uppercase tracking-wider py-2.5">
+              <span className="text-rose-600 dark:text-rose-400">Sun</span>
               <span className="text-slate-700 dark:text-slate-300">Mon</span>
               <span className="text-slate-700 dark:text-slate-300">Tue</span>
               <span className="text-slate-700 dark:text-slate-300">Wed</span>
               <span className="text-slate-700 dark:text-slate-300">Thu</span>
               <span className="text-slate-700 dark:text-slate-300">Fri</span>
-              <span className="text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">
-                <span>Sat</span>
-              </span>
+              <span className="text-amber-600 dark:text-amber-400">Sat</span>
             </div>
 
             {/* 7-Column Day Grid */}
@@ -543,18 +558,18 @@ export function BookingMonthlyCalendar({
                       }
                     }}
                     className={cn(
-                      "min-h-[92px] p-2 transition-all duration-150 cursor-pointer flex flex-col justify-between group relative select-none",
+                      "min-h-[86px] p-1.5 sm:p-2 transition-all duration-150 cursor-pointer flex flex-col justify-between group relative select-none",
                       !cell.isCurrentMonth && "bg-slate-50/40 dark:bg-slate-950/40 opacity-40 hover:opacity-80",
-                      cell.isCurrentMonth && "bg-white dark:bg-slate-900 hover:bg-amber-50/20 dark:hover:bg-slate-800/50",
+                      cell.isCurrentMonth && "bg-white dark:bg-slate-900 hover:bg-amber-50/30 dark:hover:bg-slate-800/50",
                       cell.isSelected && "ring-2 ring-amber-500 bg-amber-50/40 dark:bg-amber-950/30 z-10 shadow-md",
                       cell.isToday && "bg-gradient-to-br from-amber-100/50 via-amber-50/20 to-transparent dark:from-amber-950/40"
                     )}
                   >
-                    {/* Cell Top Header: Date badge + Total Stay Counter */}
+                    {/* Cell Top: Date Number & Count Badges */}
                     <div className="flex items-center justify-between">
                       <span
                         className={cn(
-                          "h-6 w-6 rounded-full flex items-center justify-center text-xs font-black transition-all",
+                          "h-5 w-5 rounded-full flex items-center justify-center text-[11px] font-black transition-all",
                           cell.isToday
                             ? "bg-amber-500 text-slate-950 font-black shadow-md ring-2 ring-amber-400/50 scale-105"
                             : cell.isSelected
@@ -568,20 +583,20 @@ export function BookingMonthlyCalendar({
                       {totalBookingsCount > 0 && (
                         <div className="flex items-center gap-1">
                           {dayData.arrivals.length > 0 && (
-                            <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-xs" title={`${dayData.arrivals.length} arrivals`} />
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-xs" title={`${dayData.arrivals.length} arrivals`} />
                           )}
                           {dayData.departures.length > 0 && (
-                            <span className="h-2 w-2 rounded-full bg-rose-500 shadow-xs" title={`${dayData.departures.length} departures`} />
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-xs" title={`${dayData.departures.length} departures`} />
                           )}
-                          <span className="text-[9.5px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
+                          <span className="text-[9px] font-black px-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
                             {totalBookingsCount}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    {/* Booking Graphical Pills */}
-                    <div className="space-y-1 my-1.5 flex-1 overflow-hidden">
+                    {/* Booking Pills */}
+                    <div className="space-y-1 my-1 flex-1 overflow-hidden">
                       {allDayList.slice(0, 2).map(({ res, type }) => {
                         const guestName = res.primary_guest
                           ? `${res.primary_guest.first_name} ${res.primary_guest.last_name?.[0] || ""}.`
@@ -597,7 +612,7 @@ export function BookingMonthlyCalendar({
                               setSelectedReservation(res);
                             }}
                             className={cn(
-                              "px-1.5 py-1 rounded-md text-[9.5px] font-black truncate flex items-center gap-1.5 border shadow-2xs transition-all hover:scale-[1.02]",
+                              "px-1.5 py-0.5 rounded-md text-[9px] font-black truncate flex items-center gap-1 border shadow-2xs transition-all hover:scale-[1.02]",
                               type === "arrival"
                                 ? "bg-gradient-to-r from-emerald-50 to-emerald-100/80 dark:from-emerald-950/80 dark:to-emerald-900/60 text-emerald-900 dark:text-emerald-300 border-emerald-300/80 dark:border-emerald-800"
                                 : type === "departure"
@@ -616,7 +631,7 @@ export function BookingMonthlyCalendar({
                                   : "bg-indigo-500"
                               )}
                             />
-                            <span className="font-mono font-black text-[9px] px-1 rounded bg-black/5 dark:bg-white/10 shrink-0">
+                            <span className="font-mono font-black text-[8.5px] px-0.5 rounded bg-black/5 dark:bg-white/10 shrink-0">
                               {roomNo !== "Unass" ? `R${roomNo}` : "Unass"}
                             </span>
                             <span className="truncate font-bold">
@@ -627,15 +642,15 @@ export function BookingMonthlyCalendar({
                       })}
 
                       {totalBookingsCount > 2 && (
-                        <div className="text-[9px] font-black text-amber-600 dark:text-amber-400 pl-1 flex items-center gap-1">
-                          <Flame className="h-2.5 w-2.5" />
-                          <span>+{totalBookingsCount - 2} more stays</span>
+                        <div className="text-[8.5px] font-black text-amber-600 dark:text-amber-400 pl-0.5 flex items-center gap-0.5">
+                          <Flame className="h-2 w-2" />
+                          <span>+{totalBookingsCount - 2} more</span>
                         </div>
                       )}
                     </div>
 
                     {/* Bottom Day Indicator Pills */}
-                    <div className="flex items-center justify-between text-[8.5px] font-extrabold text-slate-400 pt-0.5 border-t border-slate-100 dark:border-slate-800/80">
+                    <div className="flex items-center justify-between text-[8px] font-extrabold text-slate-400 pt-0.5 border-t border-slate-100 dark:border-slate-800/80">
                       <span className="text-emerald-600 dark:text-emerald-400">
                         {dayData.arrivals.length > 0 ? `↓ ${dayData.arrivals.length} In` : ""}
                       </span>
@@ -649,236 +664,256 @@ export function BookingMonthlyCalendar({
             </div>
           </div>
 
-          {/* ── 3. SELECTED DATE COMMAND STATION (RICH, LUXURIOUS & INTERACTIVE) ── */}
-          <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 shadow-xl space-y-4">
-            {/* Header: Date + Filter Tabs + New Booking Button */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-black shrink-0 ring-1 ring-amber-500/30">
-                  <CalendarDays className="h-5 w-5" />
+          {/* ── RIGHT COLUMN: SELECTED DATE & BOOKINGS INSPECTOR (4-5 COLS) ── */}
+          <div className="lg:col-span-5 xl:col-span-4 w-full min-w-0 space-y-3 sticky top-4">
+            {/* Selected Date Header Card */}
+            <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-4 shadow-xl space-y-3">
+              {/* Day Navigation & Title */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center font-black shadow-md shadow-amber-500/20 shrink-0">
+                    <CalendarDays className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
+                      {selectedDay.toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </h3>
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      {selectedDayAllBookings.length} total scheduled stays
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
-                    {selectedDay.toLocaleDateString("en-US", {
-                      weekday: "long",
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </h3>
-                  <p className="text-xs text-slate-500 font-medium">
-                    {selectedDayAllBookings.length} total scheduled stays ({selectedDayData.arrivals.length} arrivals, {selectedDayData.departures.length} departures)
-                  </p>
+
+                {/* Day Navigation Buttons */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePrevDay}
+                    className="h-6 w-6 p-0 text-slate-600 dark:text-slate-300 hover:text-slate-900 rounded-lg"
+                    title="Previous Day"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleNextDay}
+                    className="h-6 w-6 p-0 text-slate-600 dark:text-slate-300 hover:text-slate-900 rounded-lg"
+                    title="Next Day"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
 
-              {/* Sub-Tabs for this day & Action */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <button
-                    type="button"
-                    onClick={() => setDayTabFilter("ALL")}
-                    className={cn(
-                      "px-2.5 py-1 rounded-lg text-xs font-bold transition",
-                      dayTabFilter === "ALL"
-                        ? "bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-xs"
-                        : "text-slate-600 dark:text-slate-400"
-                    )}
-                  >
-                    All ({selectedDayAllBookings.length})
-                  </button>
+              {/* Day Sub-Filter Tabs */}
+              <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-[10.5px] font-black">
+                <button
+                  type="button"
+                  onClick={() => setDayTabFilter("ALL")}
+                  className={cn(
+                    "py-1 rounded-lg transition text-center",
+                    dayTabFilter === "ALL"
+                      ? "bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
+                  )}
+                >
+                  All ({selectedDayAllBookings.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDayTabFilter("ARRIVALS")}
+                  className={cn(
+                    "py-1 rounded-lg transition text-center text-emerald-700 dark:text-emerald-400",
+                    dayTabFilter === "ARRIVALS"
+                      ? "bg-emerald-500 text-slate-950 font-black shadow-xs"
+                      : "hover:bg-emerald-50/50"
+                  )}
+                >
+                  In ({selectedDayData.arrivals.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDayTabFilter("IN_HOUSE")}
+                  className={cn(
+                    "py-1 rounded-lg transition text-center text-indigo-700 dark:text-indigo-400",
+                    dayTabFilter === "IN_HOUSE"
+                      ? "bg-indigo-600 text-white font-black shadow-xs"
+                      : "hover:bg-indigo-50/50"
+                  )}
+                >
+                  Stay ({selectedDayData.inHouse.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDayTabFilter("DEPARTURES")}
+                  className={cn(
+                    "py-1 rounded-lg transition text-center text-rose-700 dark:text-rose-400",
+                    dayTabFilter === "DEPARTURES"
+                      ? "bg-rose-500 text-white font-black shadow-xs"
+                      : "hover:bg-rose-50/50"
+                  )}
+                >
+                  Out ({selectedDayData.departures.length})
+                </button>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setDayTabFilter("ARRIVALS")}
-                    className={cn(
-                      "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1",
-                      dayTabFilter === "ARRIVALS"
-                        ? "bg-emerald-500 text-slate-950 font-black shadow-xs"
-                        : "text-emerald-700 dark:text-emerald-400"
-                    )}
-                  >
-                    <span>Arrivals ({selectedDayData.arrivals.length})</span>
-                  </button>
+              {/* Stays List on Selected Day (Scrollable) */}
+              <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+                {filteredDayBookings.length === 0 ? (
+                  <div className="py-8 text-center space-y-2">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center">
+                      <BedDouble className="h-5 w-5" />
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      No stays matching this filter
+                    </h4>
+                    <p className="text-[10.5px] text-slate-500">
+                      Click below to create a new reservation.
+                    </p>
+                    <Link href={`/bookings/new?checkIn=${selectedDayStr}`} className="inline-block pt-1">
+                      <Button size="sm" className="h-7 px-3 text-xs font-black bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg">
+                        + New Booking
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  filteredDayBookings.map(({ res, role }) => {
+                    const guestName = res.primary_guest
+                      ? `${res.primary_guest.first_name} ${res.primary_guest.last_name}`.trim()
+                      : "Guest";
+                    const firstRoom = res.rooms?.[0];
+                    const roomNo = firstRoom?.room_number;
+                    const roomTypeName = firstRoom?.room_type_name || "Standard Room";
+                    const isCardSelected = selectedReservation?.id === res.id;
 
-                  <button
-                    type="button"
-                    onClick={() => setDayTabFilter("IN_HOUSE")}
-                    className={cn(
-                      "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1",
-                      dayTabFilter === "IN_HOUSE"
-                        ? "bg-indigo-600 text-white font-black shadow-xs"
-                        : "text-indigo-700 dark:text-indigo-400"
-                    )}
-                  >
-                    <span>In-House ({selectedDayData.inHouse.length})</span>
-                  </button>
+                    return (
+                      <div
+                        key={`${res.id}-${role}`}
+                        onClick={() => setSelectedReservation(res)}
+                        className={cn(
+                          "p-3 rounded-xl border transition-all cursor-pointer shadow-xs hover:shadow-md space-y-2",
+                          isCardSelected
+                            ? "bg-amber-50/50 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/30"
+                            : "bg-slate-50/60 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 hover:border-amber-400"
+                        )}
+                      >
+                        {/* Top: Role & Status */}
+                        <div className="flex items-center justify-between gap-1.5">
+                          <span
+                            className={cn(
+                              "px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1",
+                              role === "ARRIVAL"
+                                ? "bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80"
+                                : role === "DEPARTURE"
+                                ? "bg-rose-100 dark:bg-rose-950/90 text-rose-800 dark:text-rose-300 border border-rose-300/80"
+                                : "bg-indigo-100 dark:bg-indigo-950/90 text-indigo-800 dark:text-indigo-300 border border-indigo-300/80"
+                            )}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                            {role === "ARRIVAL"
+                              ? "Check-In"
+                              : role === "DEPARTURE"
+                              ? "Check-Out"
+                              : "In-House"}
+                          </span>
 
-                  <button
-                    type="button"
-                    onClick={() => setDayTabFilter("DEPARTURES")}
-                    className={cn(
-                      "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1",
-                      dayTabFilter === "DEPARTURES"
-                        ? "bg-rose-500 text-white font-black shadow-xs"
-                        : "text-rose-700 dark:text-rose-400"
-                    )}
-                  >
-                    <span>Departures ({selectedDayData.departures.length})</span>
-                  </button>
-                </div>
+                          <BookingStatusBadge status={res.status} />
+                        </div>
 
-                <Link href={`/bookings/new?checkIn=${selectedDayStr}`}>
-                  <Button size="sm" className="h-8 px-3 text-xs font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-105 text-slate-950 rounded-xl shadow-xs">
-                    + Book This Date
+                        {/* Guest & Amount */}
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">
+                              {guestName}
+                            </h4>
+                            <span className="font-mono text-xs font-black text-slate-900 dark:text-white shrink-0">
+                              {formatCurrency(res.total_amount, currency)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-0.5 flex-wrap font-medium">
+                            <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1 py-0.2 rounded">
+                              #{res.confirmation_number}
+                            </span>
+                            <span>•</span>
+                            <span className="font-bold text-slate-800 dark:text-slate-200">
+                              {roomNo ? `Room ${roomNo}` : "Unassigned"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Duration Strip */}
+                        <div className="px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between text-[10px]">
+                          <span className="text-slate-600 dark:text-slate-300">
+                            {res.check_in_date} → {res.check_out_date}
+                          </span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400">
+                            {res.nights || 1}N
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-end gap-1 pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
+                          {firstRoom && !firstRoom.room_number && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAssignRoomClick(res, firstRoom);
+                              }}
+                              className="h-6 px-2 text-[10px] font-bold rounded-md border-amber-300 text-amber-800 hover:bg-amber-50"
+                            >
+                              Assign Room
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onStatusClick(res);
+                            }}
+                            className="h-6 px-2 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900"
+                          >
+                            Status
+                          </Button>
+                          <Link href={`/bookings/${res.id}`} onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              size="sm"
+                              className="h-6 px-2.5 text-[10px] font-bold rounded-md bg-indigo-600 hover:bg-indigo-700 text-white gap-1"
+                            >
+                              <span>Inspect</span>
+                              <ArrowRight className="h-2.5 w-2.5" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Bottom Quick Action */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <Link href={`/bookings/new?checkIn=${selectedDayStr}`} className="block">
+                  <Button size="sm" className="w-full h-8 font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-105 text-slate-950 rounded-xl text-xs">
+                    + Create Booking for {selectedDay.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </Button>
                 </Link>
               </div>
             </div>
-
-            {/* List of Stays Grid for Selected Day */}
-            {filteredDayBookings.length === 0 ? (
-              <div className="py-10 text-center space-y-2">
-                <div className="h-12 w-12 rounded-2xl bg-amber-50 dark:bg-slate-800 text-amber-500 mx-auto flex items-center justify-center border border-amber-200/60 dark:border-slate-700">
-                  <BedDouble className="h-6 w-6" />
-                </div>
-                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                  No reservations matching filter on this date
-                </h4>
-                <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                  Click &ldquo;+ Book This Date&rdquo; to create a new reservation checking in on this day.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
-                {filteredDayBookings.map(({ res, role }) => {
-                  const guestName = res.primary_guest
-                    ? `${res.primary_guest.first_name} ${res.primary_guest.last_name}`.trim()
-                    : "Guest";
-                  const firstRoom = res.rooms?.[0];
-                  const roomNo = firstRoom?.room_number;
-                  const roomTypeName = firstRoom?.room_type_name || "Standard Room";
-                  const isCardSelected = selectedReservation?.id === res.id;
-
-                  return (
-                    <div
-                      key={`${res.id}-${role}`}
-                      onClick={() => setSelectedReservation(res)}
-                      className={cn(
-                        "p-4 rounded-2xl border transition-all cursor-pointer shadow-sm hover:shadow-md space-y-3",
-                        isCardSelected
-                          ? "bg-amber-50/50 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/30"
-                          : "bg-slate-50/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 hover:border-amber-400"
-                      )}
-                    >
-                      {/* Top Row: Role Badge & Reservation Status */}
-                      <div className="flex items-center justify-between gap-1.5">
-                        <span
-                          className={cn(
-                            "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs",
-                            role === "ARRIVAL"
-                              ? "bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80"
-                              : role === "DEPARTURE"
-                              ? "bg-rose-100 dark:bg-rose-950/90 text-rose-800 dark:text-rose-300 border border-rose-300/80"
-                              : "bg-indigo-100 dark:bg-indigo-950/90 text-indigo-800 dark:text-indigo-300 border border-indigo-300/80"
-                          )}
-                        >
-                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                          {role === "ARRIVAL"
-                            ? "Check-In"
-                            : role === "DEPARTURE"
-                            ? "Check-Out"
-                            : "In-House"}
-                        </span>
-
-                        <BookingStatusBadge status={res.status} />
-                      </div>
-
-                      {/* Guest Details & Pricing */}
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
-                            {guestName}
-                          </h4>
-                          <span className="font-mono text-sm font-black text-slate-900 dark:text-white shrink-0">
-                            {formatCurrency(res.total_amount, currency)}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap font-medium">
-                          <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
-                            #{res.confirmation_number}
-                          </span>
-                          <span>•</span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200">
-                            {roomNo ? `Room ${roomNo}` : "Unassigned Room"}
-                          </span>
-                          <span>•</span>
-                          <span className="text-slate-500">{roomTypeName}</span>
-                        </div>
-                      </div>
-
-                      {/* Stay Duration Timeline */}
-                      <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                        <div>
-                          <span className="text-slate-400 block text-[9px] uppercase font-bold">Check-In</span>
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{res.check_in_date}</span>
-                        </div>
-                        <div className="text-center font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                          {res.nights || 1}N
-                        </div>
-                        <div className="text-right">
-                          <span className="text-slate-400 block text-[9px] uppercase font-bold">Check-Out</span>
-                          <span className="font-bold text-amber-600 dark:text-amber-400">{res.check_out_date}</span>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
-                        {firstRoom && !firstRoom.room_number && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onAssignRoomClick(res, firstRoom);
-                            }}
-                            className="h-7 px-2.5 text-xs font-bold rounded-lg border-amber-300 text-amber-800 hover:bg-amber-50"
-                          >
-                            Assign Room
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onStatusClick(res);
-                          }}
-                          className="h-7 px-2.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900"
-                        >
-                          Status
-                        </Button>
-                        <Link href={`/bookings/${res.id}`} onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="sm"
-                            className="h-7 px-3 text-xs font-black rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white gap-1 shadow-xs"
-                          >
-                            <span>Inspect</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         </div>
       )}
 
-      {/* ── 4. 7-DAY WEEK VIEW (GRAPHICAL HORIZONTAL GANTT STRIP) ── */}
+      {/* ── 3. 7-DAY WEEK VIEW (GRAPHICAL HORIZONTAL GANTT STRIP) ── */}
       {subView === "week" && (
         <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -993,7 +1028,7 @@ export function BookingMonthlyCalendar({
         </div>
       )}
 
-      {/* ── 5. DAY OPERATIONS DESK (SWIMLANE WORKSTATION) ── */}
+      {/* ── 4. DAY OPERATIONS DESK (SWIMLANE WORKSTATION) ── */}
       {subView === "day" && (
         <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">

@@ -233,7 +233,7 @@ function BookingsContent() {
           </div>
 
           {/* Action buttons & View mode switcher */}
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
+          <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
             {/* View Mode Toggle Switch */}
             <div className="flex items-center bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-inner">
               <button

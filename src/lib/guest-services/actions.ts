@@ -401,6 +401,40 @@ export async function staffAssignGuestRequestAction(
   return { success: true };
 }
 
+async function isRequestAssignedToUser(
+  supabase: any,
+  propertyId: string,
+  assignedTo: string | null | undefined,
+  userId: string,
+  roleCode?: string
+): Promise<boolean> {
+  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
+    roleCode || ""
+  );
+  if (isManager) return true;
+  if (!assignedTo) return true;
+  if (assignedTo === userId) return true;
+
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  if (prof?.id && assignedTo === prof.id) return true;
+
+  const { data: staff } = await supabase
+    .from("staff_members")
+    .select("id")
+    .eq("property_id", propertyId)
+    .or(`profile_id.eq.${prof?.id || userId},id.eq.${userId}`)
+    .maybeSingle();
+
+  if (staff?.id && assignedTo === staff.id) return true;
+
+  return false;
+}
+
 export async function staffStartGuestRequestAction(
   propertyId: string,
   requestId: string,
@@ -422,10 +456,15 @@ export async function staffStartGuestRequestAction(
     return { success: false, error: "Guest service request not found for this property." };
   }
 
-  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
-    auth.roleCode || ""
+  const isAssigned = await isRequestAssignedToUser(
+    supabase,
+    propertyId,
+    req.assigned_to,
+    auth.userId!,
+    auth.roleCode
   );
-  if (!isManager && req.assigned_to && req.assigned_to !== auth.userId) {
+
+  if (!isAssigned) {
     return { success: false, error: "Access denied: This request is assigned to another staff member." };
   }
 
@@ -469,10 +508,15 @@ export async function staffCompleteGuestRequestAction(
     return { success: false, error: "Guest service request not found for this property." };
   }
 
-  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
-    auth.roleCode || ""
+  const isAssigned = await isRequestAssignedToUser(
+    supabase,
+    propertyId,
+    req.assigned_to,
+    auth.userId!,
+    auth.roleCode
   );
-  if (!isManager && req.assigned_to && req.assigned_to !== auth.userId) {
+
+  if (!isAssigned) {
     return { success: false, error: "Access denied: You can only complete requests assigned to you." };
   }
 

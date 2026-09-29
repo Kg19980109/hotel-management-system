@@ -206,6 +206,40 @@ export async function assignWorkOrderAction(
   }
 }
 
+async function isWorkOrderAssignedToUser(
+  supabase: any,
+  propertyId: string,
+  assignedTo: string | null | undefined,
+  userId: string,
+  roleCode?: string
+): Promise<boolean> {
+  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK"].includes(
+    roleCode || ""
+  );
+  if (isManager) return true;
+  if (!assignedTo) return true;
+  if (assignedTo === userId) return true;
+
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  if (prof?.id && assignedTo === prof.id) return true;
+
+  const { data: staff } = await supabase
+    .from("staff_members")
+    .select("id")
+    .eq("property_id", propertyId)
+    .or(`profile_id.eq.${prof?.id || userId},id.eq.${userId}`)
+    .maybeSingle();
+
+  if (staff?.id && assignedTo === staff.id) return true;
+
+  return false;
+}
+
 /**
  * Start working on a maintenance work order
  */
@@ -230,11 +264,15 @@ export async function startWorkOrderAction(
     return { success: false, error: authRes.error };
   }
 
-  // Validate technician ownership if not manager
-  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK"].includes(
-    authRes.auth?.roleCode || ""
+  const isAssigned = await isWorkOrderAssignedToUser(
+    supabase,
+    wo.property_id,
+    wo.assigned_to,
+    authRes.auth?.userId!,
+    authRes.auth?.roleCode
   );
-  if (!isManager && wo.assigned_to && wo.assigned_to !== authRes.auth?.userId) {
+
+  if (!isAssigned) {
     return { success: false, error: "Access denied: This work order is assigned to another technician." };
   }
 
@@ -400,10 +438,15 @@ export async function resolveWorkOrderAction(
   }
 
   // Validate technician ownership if not manager
-  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK"].includes(
-    authRes.auth?.roleCode || ""
+  const isAssigned = await isWorkOrderAssignedToUser(
+    supabase,
+    wo.property_id,
+    wo.assigned_to,
+    authRes.auth?.userId!,
+    authRes.auth?.roleCode
   );
-  if (!isManager && wo.assigned_to && wo.assigned_to !== authRes.auth?.userId) {
+
+  if (!isAssigned) {
     return { success: false, error: "Access denied: You can only resolve work orders assigned to you." };
   }
 

@@ -182,8 +182,42 @@ export async function assignHousekeepingTaskAction(
   }
 }
 
+async function isHousekeepingTaskAssignedToUser(
+  supabase: any,
+  propertyId: string,
+  assignedTo: string | null | undefined,
+  userId: string,
+  roleCode?: string
+): Promise<boolean> {
+  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
+    roleCode || ""
+  );
+  if (isManager) return true;
+  if (!assignedTo) return true;
+  if (assignedTo === userId) return true;
+
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("auth_user_id", userId)
+    .maybeSingle();
+
+  if (prof?.id && assignedTo === prof.id) return true;
+
+  const { data: staff } = await supabase
+    .from("staff_members")
+    .select("id")
+    .eq("property_id", propertyId)
+    .or(`profile_id.eq.${prof?.id || userId},id.eq.${userId}`)
+    .maybeSingle();
+
+  if (staff?.id && assignedTo === staff.id) return true;
+
+  return false;
+}
+
 /**
- * Start a housekeeping cleaning task (transitions task to IN_PROGRESS & room to CLEANING)
+ * Start a cleaning task (transitions task to IN_PROGRESS & room to DIRTY/CLEANING)
  */
 export async function startHousekeepingTaskAction(
   input: StartTaskInput
@@ -208,10 +242,15 @@ export async function startHousekeepingTaskAction(
       return { success: false, error: "Task not found for this property." };
     }
 
-    const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
-      authRes.auth?.roleCode || ""
+    const isAssigned = await isHousekeepingTaskAssignedToUser(
+      supabase,
+      input.propertyId,
+      task.assigned_to,
+      authRes.auth?.userId!,
+      authRes.auth?.roleCode
     );
-    if (!isManager && task.assigned_to && task.assigned_to !== authRes.auth?.userId) {
+
+    if (!isAssigned) {
       return { success: false, error: "Access denied: This cleaning task is assigned to another housekeeper." };
     }
 
@@ -263,10 +302,15 @@ export async function completeHousekeepingTaskAction(
       return { success: false, error: "Task not found for this property." };
     }
 
-    const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
-      authRes.auth?.roleCode || ""
+    const isAssigned = await isHousekeepingTaskAssignedToUser(
+      supabase,
+      input.propertyId,
+      task.assigned_to,
+      authRes.auth?.userId!,
+      authRes.auth?.roleCode
     );
-    if (!isManager && task.assigned_to && task.assigned_to !== authRes.auth?.userId) {
+
+    if (!isAssigned) {
       return { success: false, error: "Access denied: You can only complete tasks assigned to you." };
     }
 

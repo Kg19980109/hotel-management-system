@@ -72,14 +72,16 @@ export function MyWorkWorkspace() {
   const [actionLoadingId, setActionLoadingId] = React.useState<string | null>(null);
   const [resolveModalWo, setResolveModalWo] = React.useState<MaintenanceWorkOrder | null>(null);
 
-  const loadMyWork = React.useCallback(async () => {
+  const loadMyWork = React.useCallback(async (options?: { silent?: boolean }) => {
     if (!propertyId || !user) {
       setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      if (!options?.silent) {
+        setLoading(true);
+      }
       setError(null);
       const supabase = createClient();
       const currentUserId = user.id;
@@ -259,17 +261,17 @@ export function MyWorkWorkspace() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "housekeeping_tasks" },
-        () => void loadMyWork()
+        () => void loadMyWork({ silent: true })
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "maintenance_work_orders" },
-        () => void loadMyWork()
+        () => void loadMyWork({ silent: true })
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "guest_service_requests" },
-        () => void loadMyWork()
+        () => void loadMyWork({ silent: true })
       )
       .subscribe();
 
@@ -323,14 +325,24 @@ export function MyWorkWorkspace() {
     };
   }, [housekeepingTasks, maintenanceOrders, guestRequests]);
 
-  // Action handlers
+  // Action handlers with instant Optimistic UI updates
   const handleStartHousekeeping = async (task: HousekeepingTask) => {
     if (!propertyId) return;
+    const previous = [...housekeepingTasks];
+    setHousekeepingTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: "IN_PROGRESS", started_at: new Date().toISOString() } : t))
+    );
     setActionLoadingId(`hk-${task.id}`);
     try {
       const res = await startHousekeepingTaskAction({ propertyId, taskId: task.id });
-      if (!res.success) alert(res.error || "Failed to start task");
-      else await loadMyWork();
+      if (!res.success) {
+        setHousekeepingTasks(previous);
+        alert(res.error || "Failed to start task");
+      } else {
+        await loadMyWork({ silent: true });
+      }
+    } catch {
+      setHousekeepingTasks(previous);
     } finally {
       setActionLoadingId(null);
     }
@@ -338,22 +350,42 @@ export function MyWorkWorkspace() {
 
   const handleCompleteHousekeeping = async (task: HousekeepingTask) => {
     if (!propertyId) return;
+    const previous = [...housekeepingTasks];
+    setHousekeepingTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, status: "INSPECTION_PENDING", completed_at: new Date().toISOString() } : t))
+    );
     setActionLoadingId(`hk-${task.id}`);
     try {
       const res = await completeHousekeepingTaskAction({ propertyId, taskId: task.id });
-      if (!res.success) alert(res.error || "Failed to complete task");
-      else await loadMyWork();
+      if (!res.success) {
+        setHousekeepingTasks(previous);
+        alert(res.error || "Failed to complete task");
+      } else {
+        await loadMyWork({ silent: true });
+      }
+    } catch {
+      setHousekeepingTasks(previous);
     } finally {
       setActionLoadingId(null);
     }
   };
 
   const handleStartMaintenance = async (order: MaintenanceWorkOrder) => {
+    const previous = [...maintenanceOrders];
+    setMaintenanceOrders((prev) =>
+      prev.map((m) => (m.id === order.id ? { ...m, status: "IN_PROGRESS", started_at: new Date().toISOString() } : m))
+    );
     setActionLoadingId(`maint-${order.id}`);
     try {
       const res = await startWorkOrderAction(order.id);
-      if (!res.success) alert(res.error || "Failed to start work order");
-      else await loadMyWork();
+      if (!res.success) {
+        setMaintenanceOrders(previous);
+        alert(res.error || "Failed to start work order");
+      } else {
+        await loadMyWork({ silent: true });
+      }
+    } catch {
+      setMaintenanceOrders(previous);
     } finally {
       setActionLoadingId(null);
     }
@@ -361,11 +393,22 @@ export function MyWorkWorkspace() {
 
   const handleStartGuestRequest = async (req: StaffGuestServiceRequest) => {
     if (!propertyId) return;
+    const previous = [...guestRequests];
+    // Optimistic instant status switch
+    setGuestRequests((prev) =>
+      prev.map((g) => (g.id === req.id ? { ...g, status: "IN_PROGRESS", started_at: new Date().toISOString() } : g))
+    );
     setActionLoadingId(`guest-${req.id}`);
     try {
       const res = await staffStartGuestRequestAction(propertyId, req.id);
-      if (!res.success) alert(res.error || "Failed to start request");
-      else await loadMyWork();
+      if (!res.success) {
+        setGuestRequests(previous);
+        alert(res.error || "Failed to start request");
+      } else {
+        await loadMyWork({ silent: true });
+      }
+    } catch {
+      setGuestRequests(previous);
     } finally {
       setActionLoadingId(null);
     }
@@ -373,11 +416,22 @@ export function MyWorkWorkspace() {
 
   const handleCompleteGuestRequest = async (req: StaffGuestServiceRequest) => {
     if (!propertyId) return;
+    const previous = [...guestRequests];
+    // Optimistic instant status switch
+    setGuestRequests((prev) =>
+      prev.map((g) => (g.id === req.id ? { ...g, status: "COMPLETED", completed_at: new Date().toISOString() } : g))
+    );
     setActionLoadingId(`guest-${req.id}`);
     try {
       const res = await staffCompleteGuestRequestAction(propertyId, req.id, "Completed by staff", "Completed in operational workspace");
-      if (!res.success) alert(res.error || "Failed to complete request");
-      else await loadMyWork();
+      if (!res.success) {
+        setGuestRequests(previous);
+        alert(res.error || "Failed to complete request");
+      } else {
+        await loadMyWork({ silent: true });
+      }
+    } catch {
+      setGuestRequests(previous);
     } finally {
       setActionLoadingId(null);
     }
@@ -388,7 +442,7 @@ export function MyWorkWorkspace() {
   }
 
   if (error) {
-    return <ErrorState title="Error Loading My Work" description={error} onRetry={loadMyWork} />;
+    return <ErrorState title="Error Loading My Work" description={error} onRetry={() => loadMyWork()} />;
   }
 
   return (
@@ -445,7 +499,7 @@ export function MyWorkWorkspace() {
             <Button
               variant="outline"
               size="sm"
-              onClick={loadMyWork}
+              onClick={() => loadMyWork()}
               className="bg-white/10 hover:bg-white/20 text-white border-white/20 h-9 px-3 gap-1.5"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -979,7 +1033,7 @@ export function MyWorkWorkspace() {
           workOrder={resolveModalWo}
           isOpen={!!resolveModalWo}
           onClose={() => setResolveModalWo(null)}
-          onSuccess={loadMyWork}
+          onSuccess={() => loadMyWork()}
         />
       )}
     </div>

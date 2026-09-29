@@ -198,67 +198,55 @@ async function isHousekeepingTaskAssignedToUser(
   if (!assignedTo) return true;
   if (assignedTo === userId) return true;
 
-  const { data: prof } = await supabase
-    .from("profiles")
-    .select("id, email")
-    .eq("auth_user_id", userId)
-    .maybeSingle();
+  const effectiveEmail = (userEmail || "").toLowerCase().trim();
 
-  const profileId = prof?.id;
-  const effectiveEmail = (userEmail || prof?.email || "").toLowerCase().trim();
+  // Run initial queries in parallel in a single round trip
+  const [profRes, targetStaffRes, targetProfileRes] = await Promise.all([
+    supabase.from("profiles").select("id, email").eq("auth_user_id", userId).maybeSingle(),
+    supabase.from("staff_members").select("id, profile_id, email").eq("id", assignedTo).maybeSingle(),
+    supabase.from("profiles").select("id, auth_user_id, email").eq("id", assignedTo).maybeSingle(),
+  ]);
+
+  const profileId = profRes.data?.id;
+  const userProfileEmail = (profRes.data?.email || effectiveEmail).toLowerCase().trim();
 
   if (profileId && assignedTo === profileId) return true;
 
-  // 1. Direct match on staff_members by assignedTo ID
-  const { data: targetStaff } = await supabase
-    .from("staff_members")
-    .select("id, profile_id, email")
-    .eq("id", assignedTo)
-    .maybeSingle();
-
+  const targetStaff = targetStaffRes.data;
   if (targetStaff) {
     if (targetStaff.profile_id && (targetStaff.profile_id === profileId || targetStaff.profile_id === userId)) {
       return true;
     }
-    if (effectiveEmail && targetStaff.email && targetStaff.email.toLowerCase().trim() === effectiveEmail) {
+    if (userProfileEmail && targetStaff.email && targetStaff.email.toLowerCase().trim() === userProfileEmail) {
       return true;
     }
   }
 
-  // 2. Direct match on profiles by assignedTo ID
-  const { data: targetProfile } = await supabase
-    .from("profiles")
-    .select("id, auth_user_id, email")
-    .eq("id", assignedTo)
-    .maybeSingle();
-
+  const targetProfile = targetProfileRes.data;
   if (targetProfile) {
     if (targetProfile.auth_user_id && targetProfile.auth_user_id === userId) {
       return true;
     }
-    if (effectiveEmail && targetProfile.email && targetProfile.email.toLowerCase().trim() === effectiveEmail) {
+    if (userProfileEmail && targetProfile.email && targetProfile.email.toLowerCase().trim() === userProfileEmail) {
       return true;
     }
   }
 
-  // 3. Find any staff_members row corresponding to current user
-  let staffQuery = supabase
-    .from("staff_members")
-    .select("id, email, profile_id")
-    .eq("property_id", propertyId);
+  // Fallback check on staff_members for this user
+  if (profileId || userProfileEmail) {
+    const orConditions: string[] = [`profile_id.eq.${userId}`, `id.eq.${userId}`];
+    if (profileId) orConditions.push(`profile_id.eq.${profileId}`);
+    if (userProfileEmail) orConditions.push(`email.eq.${userProfileEmail}`);
 
-  const orConditions: string[] = [];
-  if (profileId) orConditions.push(`profile_id.eq.${profileId}`);
-  orConditions.push(`profile_id.eq.${userId}`);
-  orConditions.push(`id.eq.${userId}`);
-  if (effectiveEmail) orConditions.push(`email.eq.${effectiveEmail}`);
+    const { data: myStaffRecords } = await supabase
+      .from("staff_members")
+      .select("id")
+      .eq("property_id", propertyId)
+      .or(orConditions.join(","));
 
-  staffQuery = staffQuery.or(orConditions.join(","));
-
-  const { data: myStaffRecords } = await staffQuery;
-  if (myStaffRecords && myStaffRecords.length > 0) {
-    const isMatched = myStaffRecords.some((s: { id: string }) => s.id === assignedTo);
-    if (isMatched) return true;
+    if (myStaffRecords?.some((s: { id: string }) => s.id === assignedTo)) {
+      return true;
+    }
   }
 
   return false;

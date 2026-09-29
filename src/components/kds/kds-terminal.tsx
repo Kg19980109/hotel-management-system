@@ -98,13 +98,13 @@ export function KdsTerminal({
     }
   }, [propertyId, restaurantId, selectedStationId]);
 
-  // Initial load & fallback polling
+  // Initial load & fallback polling (60s safety net — realtime handles instant updates)
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
     const timer = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       loadData();
-    }, 15000);
+    }, 60000);
     return () => clearInterval(timer);
   }, [loadData]);
 
@@ -160,10 +160,12 @@ export function KdsTerminal({
       )
       .subscribe();
 
+    // Realtime subscription above fires on every kitchen_tickets / restaurant_orders change.
+    // This 60s interval is purely a safety fallback — do NOT set below 30s.
     const timer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadData();
-    }, 2000);
+    }, 60000);
 
     return () => {
       clearInterval(timer);

@@ -155,15 +155,29 @@ export function ExpenseManagerView({
     void loadAnalytics();
   }, [loadAnalytics]);
 
-  // Fast 2s visible-only poll for real-time live synchronization
+  // 45s fallback poll + on-focus sync for fresh data without UI jank
   React.useEffect(() => {
     const timer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadLedger();
       void loadAnalytics();
-    }, 2000);
+    }, 45000);
 
-    return () => clearInterval(timer);
+    const handleFocus = () => {
+      if (document.visibilityState === "visible") {
+        void loadLedger();
+        void loadAnalytics();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
   }, [loadLedger, loadAnalytics]);
 
   // Filter handlers

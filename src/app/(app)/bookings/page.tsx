@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/context";
 import { createClient } from "@/lib/supabase/client";
@@ -16,15 +17,32 @@ import {
   fetchBookingKPIStats,
   fetchMonthReservations,
 } from "@/lib/bookings/queries";
-import {
-  BookingKPIGrid,
-  BookingFilters,
-  BookingTable,
-  BookingMonthlyCalendar,
-  CancelBookingModal,
-  StatusChangeModal,
-  AssignRoomModal,
-} from "@/components/bookings";
+
+// Light components loaded eagerly (needed on first paint)
+import { BookingKPIGrid, BookingFilters } from "@/components/bookings";
+
+// Heavy view components — lazy-loaded so the initial page JS bundle is smaller
+const BookingMonthlyCalendar = dynamic(
+  () => import("@/components/bookings").then((m) => ({ default: m.BookingMonthlyCalendar })),
+  { ssr: false, loading: () => <div className="h-96 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" /> }
+);
+const BookingTable = dynamic(
+  () => import("@/components/bookings").then((m) => ({ default: m.BookingTable })),
+  { ssr: false, loading: () => <div className="h-64 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" /> }
+);
+const CancelBookingModal = dynamic(
+  () => import("@/components/bookings").then((m) => ({ default: m.CancelBookingModal })),
+  { ssr: false }
+);
+const StatusChangeModal = dynamic(
+  () => import("@/components/bookings").then((m) => ({ default: m.StatusChangeModal })),
+  { ssr: false }
+);
+const AssignRoomModal = dynamic(
+  () => import("@/components/bookings").then((m) => ({ default: m.AssignRoomModal })),
+  { ssr: false }
+);
+
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "@/components/ui/states";
 import {

@@ -236,10 +236,11 @@ function HousekeepingPageContent() {
       )
       .subscribe();
 
+    // Safety fallback only: realtime subscription handles instant changes.
     const poll = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadHousekeepingData();
-    }, 10000);
+    }, 45000);
 
     return () => {
       clearInterval(poll);

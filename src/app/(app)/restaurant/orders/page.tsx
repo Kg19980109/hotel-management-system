@@ -136,10 +136,13 @@ export default function RestaurantOrdersPage() {
       )
       .subscribe();
 
+    // CRITICAL FIX: Was polling every 2s — unnecessarily expensive.
+    // Realtime subscription above fires instantly on any order/ticket change.
+    // 60s is only a safety fallback for missed websocket events.
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadData();
-    }, 2000);
+    }, 60000);
 
     return () => {
       clearInterval(interval);

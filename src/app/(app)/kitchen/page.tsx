@@ -116,10 +116,20 @@ function KitchenKdsContent() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Clock ticker
+  // Clock ticker — uses requestAnimationFrame to avoid blocking the JS thread.
+  // Only updates when the tab is visible, saving CPU during background use.
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    let rafId: number;
+    let lastTick = 0;
+    const tick = (now: number) => {
+      if (document.visibilityState === "visible" && now - lastTick >= 1000) {
+        lastTick = now;
+        setCurrentTime(new Date());
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
   // Sound chime helper

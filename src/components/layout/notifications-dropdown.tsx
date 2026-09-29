@@ -115,11 +115,13 @@ export function NotificationsDropdown() {
       .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `property_id=eq.${propertyId}` }, handleRealtimeChange)
       .subscribe();
 
+    // Heartbeat backup: 45s is sufficient since realtime subscription delivers
+    // instant updates for all critical tables above. Polling is only a safety net.
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
         void loadNotifications(false);
       }
-    }, 12000);
+    }, 45000);
 
     return () => {
       clearInterval(interval);

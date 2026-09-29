@@ -65,12 +65,13 @@ export default function OwnerBusinessIntelligencePage() {
     void loadData();
   }, [loadData]);
 
-  // 2s visible-only refresh
+  // Reports are loaded on-demand when filters change (see loadData dependency above).
+  // A 60s fallback refresh ensures data stays fresh without hammering the server.
   React.useEffect(() => {
     const timer = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadData();
-    }, 2000);
+    }, 60000);
     return () => clearInterval(timer);
   }, [loadData]);
 

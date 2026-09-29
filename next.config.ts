@@ -35,10 +35,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   compress: true,
+
   images: {
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
     formats: ["image/avif", "image/webp"],
+    // Aggressively cache remote images to avoid re-fetching
+    minimumCacheTTL: 3600,
   },
+
   experimental: {
     optimizePackageImports: [
       "lucide-react",
@@ -48,7 +52,13 @@ const nextConfig: NextConfig = {
       "tailwind-merge",
       "@supabase/supabase-js",
     ],
+    // Cache client-router segments for snappy back/forward navigation
+    staleTimes: {
+      dynamic: 30,    // dynamic pages cached 30s client-side (avoids refetch on back nav)
+      static: 180,    // static pages cached 3min client-side
+    },
   },
+
   async headers() {
     return [
       {
@@ -56,13 +66,12 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        // Long-cache immutable Next static assets (JS/CSS/fonts) for laptop/mobile
-        source: "/_next/static/:path*",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+        // Cache static public images (1 day browser, revalidate)
+        source: "/images/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=3600" }],
       },
     ];
   },
 };
 
 export default nextConfig;
-

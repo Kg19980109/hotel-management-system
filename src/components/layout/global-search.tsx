@@ -1,8 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { SearchInput } from "@/components/ui/input";
-import { Users, CalendarDays, BedDouble, Receipt, CornerDownLeft, Sparkles, Search, X } from "lucide-react";
+import {
+  Users,
+  CalendarDays,
+  BedDouble,
+  Receipt,
+  CornerDownLeft,
+  Sparkles,
+  Search,
+  X,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface QuickResult {
   category: "Bookings" | "Guests" | "Rooms" | "Invoices";
@@ -106,13 +115,13 @@ export function GlobalSearch() {
   const getCategoryIcon = (cat: QuickResult["category"]) => {
     switch (cat) {
       case "Bookings":
-        return <CalendarDays className="h-3.5 w-3.5 text-indigo-500" />;
+        return <CalendarDays className="h-3.5 w-3.5 text-indigo-400" />;
       case "Guests":
-        return <Users className="h-3.5 w-3.5 text-emerald-500" />;
+        return <Users className="h-3.5 w-3.5 text-emerald-400" />;
       case "Rooms":
-        return <BedDouble className="h-3.5 w-3.5 text-purple-500" />;
+        return <BedDouble className="h-3.5 w-3.5 text-purple-400" />;
       case "Invoices":
-        return <Receipt className="h-3.5 w-3.5 text-amber-500" />;
+        return <Receipt className="h-3.5 w-3.5 text-amber-400" />;
     }
   };
 
@@ -124,7 +133,7 @@ export function GlobalSearch() {
           type="button"
           onClick={() => setMobileModalOpen(true)}
           className="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.10] text-slate-300 hover:text-white transition-all h-9 w-9 flex items-center justify-center shrink-0 shadow-inner"
-          aria-label="Open search"
+          aria-label="Open global search"
         >
           <Search className="h-4 w-4 text-slate-300" />
         </button>
@@ -132,9 +141,14 @@ export function GlobalSearch() {
 
       {/* ── DESKTOP & TABLET SEARCH BAR (Visible on >= sm screens) ── */}
       <div className="relative w-full max-w-sm sm:max-w-md hidden sm:block" ref={containerRef}>
-        <div className="relative flex items-center">
-          <SearchInput
+        <div className="relative flex items-center group">
+          {/* Left Magnifying Glass Icon */}
+          <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors group-focus-within:text-indigo-400" />
+
+          {/* Clean Glassmorphic Input */}
+          <input
             ref={inputRef}
+            type="text"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -142,18 +156,35 @@ export function GlobalSearch() {
             }}
             onFocus={() => setIsOpen(true)}
             placeholder="Search guests, rooms, bookings..."
-            className="pr-11 text-xs sm:text-[13px] bg-white/[0.07] border-white/[0.12] hover:border-white/[0.22] focus:border-indigo-400/80 focus:bg-white/[0.12] focus:ring-2 focus:ring-indigo-500/20 text-white placeholder:text-slate-400 rounded-xl h-9.5 transition-all shadow-inner"
+            className="w-full pl-10 pr-12 text-xs sm:text-[13px] font-medium bg-white/[0.07] hover:bg-white/[0.11] focus:bg-[#0A1224] border border-white/[0.12] hover:border-white/[0.22] focus:border-indigo-400/80 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 placeholder:text-slate-400 rounded-xl h-9.5 transition-all shadow-inner outline-none"
             aria-expanded={isOpen}
             aria-autocomplete="list"
             aria-label="Global search"
           />
-          <div className="absolute right-2.5 pointer-events-none hidden sm:flex items-center gap-0.5">
-            <kbd className="text-[10px] font-bold text-slate-300 bg-white/[0.10] border border-white/[0.15] px-1.5 py-0.5 rounded-md shadow-2xs">
-              ⌘K
-            </kbd>
+
+          {/* Right Action: Clear Button or ⌘K Shortcut Badge */}
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            {query.trim().length > 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  inputRef.current?.focus();
+                }}
+                className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/[0.10] transition-colors"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <kbd className="hidden sm:inline-flex text-[10px] font-bold text-slate-300 bg-white/[0.10] border border-white/[0.15] px-1.5 py-0.5 rounded-md shadow-2xs pointer-events-none">
+                ⌘K
+              </kbd>
+            )}
           </div>
         </div>
 
+        {/* Desktop Suggestions Popup */}
         {isOpen && (
           <div
             role="listbox"
@@ -219,15 +250,17 @@ export function GlobalSearch() {
 
       {/* ── FULLSCREEN MOBILE SEARCH OVERLAY DIALOG ── */}
       {mobileModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#08111F]/90 backdrop-blur-xl flex flex-col p-4 animate-in fade-in duration-150 sm:hidden">
+        <div className="fixed inset-0 z-50 bg-[#08111F]/95 backdrop-blur-xl flex flex-col p-4 animate-in fade-in duration-150 sm:hidden">
           <div className="flex items-center gap-2 mb-3">
-            <div className="relative flex-1">
-              <SearchInput
+            <div className="relative flex-1 group">
+              <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
                 ref={mobileInputRef}
+                type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search guests, rooms, bookings..."
-                className="pr-4 text-sm bg-white/[0.08] border-white/[0.15] text-white placeholder:text-slate-400 rounded-xl h-11"
+                className="w-full pl-10 pr-4 text-sm font-medium bg-white/[0.08] border border-white/[0.15] focus:border-indigo-400 text-white placeholder:text-slate-400 rounded-xl h-11 outline-none shadow-inner"
                 aria-label="Mobile global search"
               />
             </div>
@@ -237,7 +270,7 @@ export function GlobalSearch() {
                 setMobileModalOpen(false);
                 setQuery("");
               }}
-              className="p-2.5 rounded-xl bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.10]"
+              className="p-2.5 rounded-xl bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.10] shrink-0"
               aria-label="Close search"
             >
               <X className="h-5 w-5" />

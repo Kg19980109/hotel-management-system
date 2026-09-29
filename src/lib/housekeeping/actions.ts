@@ -143,6 +143,23 @@ export async function assignHousekeepingTaskAction(
   const supabase = await createClient();
 
   try {
+    if (input.assignedTo) {
+      const { data: targetMem } = await supabase
+        .from("property_memberships")
+        .select("id")
+        .eq("property_id", input.propertyId)
+        .eq("user_id", input.assignedTo)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (!targetMem) {
+        return {
+          success: false,
+          error: "Cannot assign task: Target staff member does not have active membership for this property.",
+        };
+      }
+    }
+
     const { error } = await supabase.rpc("assign_housekeeping_task", {
       p_task_id: input.taskId,
       p_property_id: input.propertyId,
@@ -179,6 +196,25 @@ export async function startHousekeepingTaskAction(
   const supabase = await createClient();
 
   try {
+    // Validate task ownership and property isolation
+    const { data: task, error: taskErr } = await supabase
+      .from("housekeeping_tasks")
+      .select("id, property_id, assigned_to, status")
+      .eq("id", input.taskId)
+      .eq("property_id", input.propertyId)
+      .maybeSingle();
+
+    if (taskErr || !task) {
+      return { success: false, error: "Task not found for this property." };
+    }
+
+    const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
+      authRes.auth?.roleCode || ""
+    );
+    if (!isManager && task.assigned_to && task.assigned_to !== authRes.auth?.userId) {
+      return { success: false, error: "Access denied: This cleaning task is assigned to another housekeeper." };
+    }
+
     const { error } = await supabase.rpc("start_housekeeping_task", {
       p_task_id: input.taskId,
       p_property_id: input.propertyId,
@@ -215,6 +251,25 @@ export async function completeHousekeepingTaskAction(
   const supabase = await createClient();
 
   try {
+    // Validate task ownership and property isolation
+    const { data: task, error: taskErr } = await supabase
+      .from("housekeeping_tasks")
+      .select("id, property_id, assigned_to, status")
+      .eq("id", input.taskId)
+      .eq("property_id", input.propertyId)
+      .maybeSingle();
+
+    if (taskErr || !task) {
+      return { success: false, error: "Task not found for this property." };
+    }
+
+    const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
+      authRes.auth?.roleCode || ""
+    );
+    if (!isManager && task.assigned_to && task.assigned_to !== authRes.auth?.userId) {
+      return { success: false, error: "Access denied: You can only complete tasks assigned to you." };
+    }
+
     const { error } = await supabase.rpc("complete_housekeeping_task", {
       p_task_id: input.taskId,
       p_property_id: input.propertyId,

@@ -21,8 +21,17 @@ const STATUS_TABS: { label: string; value: GuestStatus | "ALL"; color: string; a
 ];
 
 const guestPageCache = new Map<string, { kpi: GuestKPIStats; guests: GuestCRM[]; total: number; time: number }>();
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function GuestsPage() {
+  return (
+    <RoutePermissionGuard permission="guests.view" moduleName="Guests & CRM">
+      <GuestsContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function GuestsContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);
   const activePropertyId = currentProperty?.property_id;

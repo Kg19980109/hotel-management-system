@@ -67,7 +67,11 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
           isOpen && "bg-white/[0.14] ring-2 ring-indigo-400/30 border-indigo-400"
         )}
       >
-        <Avatar name={userName} size="sm" />
+        <Avatar
+          name={userName}
+          src={profile?.avatar_url || undefined}
+          size="sm"
+        />
         <div className="text-left hidden sm:block">
           <p className="text-xs font-bold text-slate-100 leading-tight">
             {userName}
@@ -107,7 +111,7 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
           {/* Links */}
           <div className="py-1">
             <Link
-              href="/settings"
+              href="/staff/profile"
               onClick={() => setIsOpen(false)}
               role="menuitem"
               className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"

@@ -20,8 +20,17 @@ import {
   FolioPayment,
 } from "@/lib/billing/types";
 import { UnifiedBillsView } from "@/components/billing/unified-bills-view";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function BillingPage() {
+  return (
+    <RoutePermissionGuard permission="billing.view" moduleName="Billing & Invoicing">
+      <BillingPageContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function BillingPageContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const activePropertyId = currentProperty?.property_id;
 

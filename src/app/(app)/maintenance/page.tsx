@@ -21,8 +21,17 @@ import { StaffGuestServiceRequest } from "@/lib/guest-services/types";
 import { GuestRequestsBoard } from "@/components/guest-requests/guest-requests-board";
 import { Plus, RotateCcw, Wrench, BellRing, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function MaintenancePage() {
+  return (
+    <RoutePermissionGuard permission="maintenance.view" moduleName="Engineering & Maintenance">
+      <MaintenancePageContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function MaintenancePageContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);
   const activePropertyId = currentProperty?.property_id;

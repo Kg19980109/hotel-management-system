@@ -40,8 +40,17 @@ import {
   ChevronRight,
   Home,
 } from "lucide-react";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function RoomsPage() {
+  return (
+    <RoutePermissionGuard permission="rooms.view" moduleName="Room Inventory">
+      <RoomsContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function RoomsContent() {
   const router = useRouter();
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);

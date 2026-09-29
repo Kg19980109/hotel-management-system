@@ -4,11 +4,12 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Hotel, X } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { navigationConfig, isNavItemActive } from "@/config/navigation";
+import { navigationConfig, isNavItemActive, getFilteredNavigation } from "@/config/navigation";
 import { PropertySelector } from "./property-selector";
 import { Avatar } from "@/components/ui/avatar";
+import { useAuth } from "@/lib/auth/context";
 
 interface MobileNavProps {
   open: boolean;
@@ -17,6 +18,15 @@ interface MobileNavProps {
 
 export function MobileNav({ open, onClose }: MobileNavProps) {
   const pathname = usePathname();
+  const { hasPermission, currentRole, profile, user, currentProperty } = useAuth();
+
+  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Staff Member";
+  const userRole = currentProperty?.role_name || (currentRole ? currentRole.replace("_", " ") : "Staff");
+
+  // Dynamically filter navigation based on resolved effective permissions & role
+  const filteredNavigation = React.useMemo(() => {
+    return getFilteredNavigation(navigationConfig, hasPermission, currentRole);
+  }, [hasPermission, currentRole]);
 
   // Close when pathname changes
   React.useEffect(() => {
@@ -96,9 +106,9 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           </button>
         </div>
 
-        {/* Navigation list */}
+        {/* Dynamic Navigation list */}
         <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-4 sidebar-nav scrollbar-thin">
-          {navigationConfig.map((group) => (
+          {filteredNavigation.map((group) => (
             <div key={group.label} className="space-y-0.5">
               <p className="text-[10px] font-bold uppercase tracking-[0.09em] text-[var(--sidebar-text)] px-3 mb-1.5 opacity-50">
                 {group.label}
@@ -153,13 +163,13 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
 
         {/* User Card */}
         <div className="px-3 py-3 border-t border-[var(--sidebar-border)] bg-black/10 shrink-0 flex items-center gap-3">
-          <Avatar name="Koushik Dey" size="sm" />
+          <Avatar name={userName} size="sm" />
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-semibold text-white truncate leading-tight">
-              Koushik Dey
+              {userName}
             </p>
             <p className="text-[11px] text-[var(--sidebar-text)] truncate leading-tight mt-0.5">
-              Hotel Owner · Super Admin
+              {userRole}
             </p>
           </div>
         </div>

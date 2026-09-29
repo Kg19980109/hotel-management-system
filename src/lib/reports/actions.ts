@@ -23,6 +23,7 @@ import {
   getInventoryConsumptionReport,
   getSupplierReport,
   getStaffReport,
+  getIndividualStaffAnalytics,
   getExpenseReport,
   getGuestServiceReport,
 } from "./queries";
@@ -216,6 +217,19 @@ export async function fetchStaffReportAction(propertyId: string, params: Partial
 
   const supabase = await createClient();
   const data = await getStaffReport(supabase, propertyId, params);
+  return { error: null, data };
+}
+
+export async function fetchIndividualStaffAnalyticsAction(
+  propertyId: string,
+  staffMemberId: string,
+  params: Partial<ReportFilterParams>
+) {
+  const auth = await checkReportAuth(propertyId, "REPORT_STAFF");
+  if (auth.error) return { error: auth.error, data: null };
+
+  const supabase = await createClient();
+  const data = await getIndividualStaffAnalytics(supabase, propertyId, staffMemberId, params);
   return { error: null, data };
 }
 

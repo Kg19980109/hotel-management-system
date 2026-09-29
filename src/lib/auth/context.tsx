@@ -4,6 +4,7 @@ import * as React from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { signOutAction, switchActivePropertyAction } from "./actions";
+import type { PermissionKey } from "./permissions";
 
 export interface UserProfile {
   id: string;
@@ -35,6 +36,8 @@ interface AuthContextType {
   currentProperty: UserPropertyMembership | null;
   properties: UserPropertyMembership[];
   currentRole: string | null;
+  permissions: Set<PermissionKey>;
+  hasPermission: (key: PermissionKey) => boolean;
   loading: boolean;
   switchProperty: (propertyId: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -47,6 +50,8 @@ const AuthContext = React.createContext<AuthContextType>({
   currentProperty: null,
   properties: [],
   currentRole: null,
+  permissions: new Set<PermissionKey>(),
+  hasPermission: () => false,
   loading: true,
   switchProperty: async () => {},
   signOut: async () => {},
@@ -59,6 +64,7 @@ let cachedAuthData: {
   profile: UserProfile | null;
   properties: UserPropertyMembership[];
   currentProperty: UserPropertyMembership | null;
+  permissions: Set<PermissionKey>;
 } | null = null;
 
 let activeFetchPromise: Promise<void> | null = null;
@@ -69,6 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [properties, setProperties] = React.useState<UserPropertyMembership[]>(() => cachedAuthData?.properties || []);
   const [currentProperty, setCurrentProperty] = React.useState<UserPropertyMembership | null>(
     () => cachedAuthData?.currentProperty || null
+  );
+  const [permissions, setPermissions] = React.useState<Set<PermissionKey>>(
+    () => cachedAuthData?.permissions || new Set<PermissionKey>()
   );
   const [loading, setLoading] = React.useState(() => !cachedAuthData);
 
@@ -91,7 +100,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
           setProperties([]);
           setCurrentProperty(null);
-          cachedAuthData = { user: null, profile: null, properties: [], currentProperty: null };
+          setPermissions(new Set<PermissionKey>());
+          cachedAuthData = {
+            user: null,
+            profile: null,
+            properties: [],
+            currentProperty: null,
+            permissions: new Set<PermissionKey>(),
+          };
           setLoading(false);
           return;
         }
@@ -213,11 +229,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setCurrentProperty(resolvedProperty);
 
+        // Resolve effective permissions for this property context
+        let resolvedPermissions = new Set<PermissionKey>();
+        if (resolvedProperty) {
+          if (resolvedProperty.role_code === "SUPER_ADMIN" || resolvedProperty.role_code === "HOTEL_OWNER") {
+            // All permissions granted for super admin & hotel owner
+            const { data: allPerms } = await supabase.from("permissions").select("key");
+            if (allPerms) {
+              resolvedPermissions = new Set(allPerms.map((p) => p.key as PermissionKey));
+            }
+          } else {
+            const { data: permData, error: permError } = await supabase.rpc(
+              "get_user_effective_permissions",
+              { p_property_id: resolvedProperty.property_id }
+            );
+            if (!permError && permData) {
+              const rows = permData as { permission_key: PermissionKey }[];
+              resolvedPermissions = new Set(rows.map((r) => r.permission_key));
+            }
+          }
+        }
+
+        setPermissions(resolvedPermissions);
+
         cachedAuthData = {
           user: authUser,
           profile: resolvedProfile,
           properties: mapped,
           currentProperty: resolvedProperty,
+          permissions: resolvedPermissions,
         };
       } catch (err) {
         console.error("Error loading authenticated session:", err);
@@ -258,17 +298,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const found = properties.find((p) => p.property_id === propertyId);
     if (found) {
       setCurrentProperty(found);
+      cachedAuthData = null; // Invalidate cache so permissions reload for new property
       await switchActivePropertyAction(propertyId);
-      // Optional: reload or refresh route context
       window.location.reload();
     }
   };
 
   const signOut = async () => {
+    cachedAuthData = null;
     await signOutAction();
   };
 
   const currentRole = currentProperty ? currentProperty.role_code : null;
+
+  const hasPermission = React.useCallback(
+    (key: PermissionKey): boolean => {
+      if (currentRole === "SUPER_ADMIN" || currentRole === "HOTEL_OWNER") {
+        return true;
+      }
+      return permissions.has(key);
+    },
+    [currentRole, permissions]
+  );
 
   return (
     <AuthContext.Provider
@@ -278,6 +329,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         currentProperty,
         properties,
         currentRole,
+        permissions,
+        hasPermission,
         loading,
         switchProperty,
         signOut,

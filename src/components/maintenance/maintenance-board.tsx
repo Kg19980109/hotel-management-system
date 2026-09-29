@@ -27,7 +27,10 @@ import {
   List,
   ClockAlert,
   ArrowRight,
+  Wrench,
 } from "lucide-react";
+
+import { useAuth } from "@/lib/auth/context";
 
 interface RoomOption {
   id: string;
@@ -50,6 +53,10 @@ export function MaintenanceBoard({
   staff,
   onRefresh,
 }: MaintenanceBoardProps) {
+  const { user, profile } = useAuth();
+  const currentUserId = user?.id;
+  const currentProfileId = profile?.id;
+
   const [viewMode, setViewMode] = React.useState<"kanban" | "table">("kanban");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
   const [priorityFilter, setPriorityFilter] = React.useState<string>("ALL");
@@ -76,7 +83,11 @@ export function MaintenanceBoard({
       if (roomFilter === "FACILITY" && wo.room_id !== null) return false;
       if (roomFilter !== "FACILITY" && wo.room_id !== roomFilter) return false;
     }
-    if (staffFilter !== "ALL" && wo.assigned_to !== staffFilter) return false;
+    if (staffFilter === "MY_WORK") {
+      if (wo.assigned_to !== currentUserId && wo.assigned_to !== currentProfileId) return false;
+    } else if (staffFilter !== "ALL" && wo.assigned_to !== staffFilter) {
+      return false;
+    }
 
     const isUnresolved = !["RESOLVED", "CLOSED", "CANCELLED"].includes(wo.status);
     const isOverdue = isUnresolved && wo.scheduled_for && new Date(wo.scheduled_for) < new Date();
@@ -121,6 +132,17 @@ export function MaintenanceBoard({
 
           {/* Quick Action & View Toggle */}
           <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              type="button"
+              variant={staffFilter === "MY_WORK" ? "primary" : "outline"}
+              size="sm"
+              onClick={() => setStaffFilter((prev) => (prev === "MY_WORK" ? "ALL" : "MY_WORK"))}
+              className="h-9 text-xs font-semibold"
+            >
+              <Wrench className="h-3.5 w-3.5 mr-1" />
+              My Orders
+            </Button>
+
             <Button
               variant="primary"
               size="sm"
@@ -258,6 +280,7 @@ export function MaintenanceBoard({
               className="w-full h-8 px-2 text-xs rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] text-[var(--foreground)] focus:outline-none focus:ring-1 focus:ring-[var(--primary)]"
             >
               <option value="ALL">All Staff</option>
+              <option value="MY_WORK">My Work Orders</option>
               {staff.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.fullName}

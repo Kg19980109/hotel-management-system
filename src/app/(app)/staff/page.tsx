@@ -8,8 +8,17 @@ import { LoadingState, ErrorState } from "@/components/ui/states";
 import { getStaffMembers, getStaffDepartments } from "@/lib/staff/queries";
 import { StaffMember, StaffDepartment } from "@/lib/staff/types";
 import { StaffDirectoryView } from "@/components/staff/staff-directory-view";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function StaffPage() {
+  return (
+    <RoutePermissionGuard permission="staff.view" moduleName="Staff & Roles Management">
+      <StaffPageContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function StaffPageContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const activePropertyId = currentProperty?.property_id;
   const propertyName = currentProperty?.property_name || "StayHub Hotel";

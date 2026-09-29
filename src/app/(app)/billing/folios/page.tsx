@@ -23,8 +23,17 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function FoliosPage() {
+  return (
+    <RoutePermissionGuard permission="billing.view" moduleName="Guest Folios">
+      <FoliosPageContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function FoliosPageContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const activePropertyId = currentProperty?.property_id;
 

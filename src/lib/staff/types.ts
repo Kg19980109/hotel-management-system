@@ -99,3 +99,92 @@ export interface RoleCapability {
   canDo: string[];
   cannotDo: string[];
 }
+
+export interface PermissionItem {
+  id: string;
+  key: string;
+  module: string;
+  name: string;
+  description: string | null;
+  permission_type: "MODULE" | "ACTION";
+  display_order: number;
+}
+
+export interface PropertyRolePermissionRecord {
+  id: string;
+  property_id: string;
+  role_id: string;
+  permission_id: string;
+  granted: boolean;
+}
+
+export interface UpdateMyProfileInput {
+  full_name?: string;
+  display_name?: string;
+  phone?: string | null;
+  avatar_url?: string | null;
+  address?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
+}
+
+export interface StaffProfileDetails {
+  profile: {
+    id: string;
+    auth_user_id: string;
+    full_name: string;
+    email: string;
+    phone: string | null;
+    avatar_url: string | null;
+    status: string;
+    created_at?: string;
+  };
+  staff: {
+    id: string;
+    employee_code: string;
+    first_name: string;
+    last_name: string;
+    display_name: string | null;
+    phone: string | null;
+    email: string | null;
+    address: string | null;
+    emergency_contact_name: string | null;
+    emergency_contact_phone: string | null;
+    department: {
+      id: string;
+      name: string;
+      department_code: string;
+    } | null;
+    designation: string | null;
+    employment_type: EmploymentType;
+    employment_status: EmploymentStatus;
+    joining_date: string | null;
+    is_active: boolean;
+  } | null;
+  membership: {
+    id: string;
+    property_id: string;
+    property_name: string;
+    role_id: string;
+    role_code: string;
+    role_name: string;
+    role_description: string | null;
+    status: string;
+  } | null;
+  allProperties: Array<{
+    property_id: string;
+    property_name: string;
+    role_code: string;
+    role_name: string;
+    status: string;
+  }>;
+  permissions: Array<{
+    key: string;
+    module: string;
+    name: string;
+    description: string | null;
+    granted: boolean;
+  }>;
+}
+
+

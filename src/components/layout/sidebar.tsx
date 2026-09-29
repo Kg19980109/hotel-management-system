@@ -5,9 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Hotel } from "lucide-react";
-import { navigationConfig, isNavItemActive } from "@/config/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { navigationConfig, isNavItemActive, getFilteredNavigation } from "@/config/navigation";
 import { PropertySelector } from "./property-selector";
+import { useAuth } from "@/lib/auth/context";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -17,6 +18,12 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
   const pathname = usePathname();
+  const { hasPermission, currentRole } = useAuth();
+
+  // Dynamically filter navigation based on resolved effective permissions & role
+  const filteredNavigation = React.useMemo(() => {
+    return getFilteredNavigation(navigationConfig, hasPermission, currentRole);
+  }, [hasPermission, currentRole]);
 
   return (
     <aside
@@ -74,13 +81,13 @@ export function Sidebar({ collapsed, onToggle, className }: SidebarProps) {
         </Link>
       </div>
 
-      {/* ── Navigation ── */}
+      {/* ── Dynamic Filtered Navigation ── */}
       <nav
         className="flex-1 overflow-y-auto py-3 space-y-4"
         style={{ scrollbarWidth: "none" }}
         aria-label="Sidebar navigation"
       >
-        {navigationConfig.map((group) => (
+        {filteredNavigation.map((group) => (
           <div key={group.label} className="space-y-0.5 px-2.5">
             {!collapsed && (
               <p

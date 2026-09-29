@@ -328,6 +328,42 @@ export async function staffAssignGuestRequestAction(
   if (auth.error) return { success: false, error: auth.error };
 
   const supabase = await createClient();
+
+  if (assignedTo) {
+    const { data: targetMem } = await supabase
+      .from("property_memberships")
+      .select("id")
+      .eq("property_id", propertyId)
+      .eq("user_id", assignedTo)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (!targetMem) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("auth_user_id")
+        .eq("id", assignedTo)
+        .maybeSingle();
+
+      if (profile) {
+        const { data: mem } = await supabase
+          .from("property_memberships")
+          .select("id")
+          .eq("property_id", propertyId)
+          .eq("user_id", profile.auth_user_id)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (!mem) {
+          return {
+            success: false,
+            error: "Cannot assign request: Target staff member does not have active membership for this property.",
+          };
+        }
+      }
+    }
+  }
+
   const { data, error } = await supabase.rpc("staff_assign_guest_request", {
     p_property_id: propertyId,
     p_request_id: requestId,
@@ -357,6 +393,25 @@ export async function staffStartGuestRequestAction(
   if (auth.error) return { success: false, error: auth.error };
 
   const supabase = await createClient();
+
+  const { data: req, error: reqErr } = await supabase
+    .from("guest_service_requests")
+    .select("id, property_id, assigned_to, status")
+    .eq("id", requestId)
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  if (reqErr || !req) {
+    return { success: false, error: "Guest service request not found for this property." };
+  }
+
+  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
+    auth.roleCode || ""
+  );
+  if (!isManager && req.assigned_to && req.assigned_to !== auth.userId) {
+    return { success: false, error: "Access denied: This request is assigned to another staff member." };
+  }
+
   const { data, error } = await supabase.rpc("staff_start_guest_request", {
     p_property_id: propertyId,
     p_request_id: requestId,
@@ -385,6 +440,25 @@ export async function staffCompleteGuestRequestAction(
   if (auth.error) return { success: false, error: auth.error };
 
   const supabase = await createClient();
+
+  const { data: req, error: reqErr } = await supabase
+    .from("guest_service_requests")
+    .select("id, property_id, assigned_to, status")
+    .eq("id", requestId)
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  if (reqErr || !req) {
+    return { success: false, error: "Guest service request not found for this property." };
+  }
+
+  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK", "RECEPTIONIST"].includes(
+    auth.roleCode || ""
+  );
+  if (!isManager && req.assigned_to && req.assigned_to !== auth.userId) {
+    return { success: false, error: "Access denied: You can only complete requests assigned to you." };
+  }
+
   const { data, error } = await supabase.rpc("staff_complete_guest_request", {
     p_property_id: propertyId,
     p_request_id: requestId,

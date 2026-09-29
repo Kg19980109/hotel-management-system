@@ -38,6 +38,8 @@ import { AssignRequestModal } from "./assign-request-modal";
 import { StatusActionModal, StatusActionType } from "./status-action-modal";
 import { cn } from "@/lib/utils";
 
+import { useAuth } from "@/lib/auth/context";
+
 interface GuestRequestsBoardProps {
   propertyId: string;
   requests: StaffGuestServiceRequest[];
@@ -53,10 +55,15 @@ export function GuestRequestsBoard({
   onRefresh,
   hideTopKpiGrid = false,
 }: GuestRequestsBoardProps) {
+  const { user, profile } = useAuth();
+  const currentUserId = user?.id;
+  const currentProfileId = profile?.id;
+
   const [search, setSearch] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("ALL");
   const [selectedStatus, setSelectedStatus] = React.useState("ALL");
   const [selectedPriority, setSelectedPriority] = React.useState("ALL");
+  const [selectedAssignee, setSelectedAssignee] = React.useState("ALL");
   const [viewMode, setViewMode] = React.useState<"table" | "grid">("table");
 
   // Modal States
@@ -75,6 +82,11 @@ export function GuestRequestsBoard({
       if (selectedStatus !== "ALL" && r.status !== selectedStatus) return false;
       if (selectedPriority !== "ALL" && r.priority !== selectedPriority)
         return false;
+      if (selectedAssignee === "MY_WORK") {
+        if (r.assigned_to !== currentUserId && r.assigned_to !== currentProfileId) return false;
+      } else if (selectedAssignee !== "ALL") {
+        if (r.assigned_to !== selectedAssignee) return false;
+      }
 
       if (search.trim().length > 0) {
         const s = search.toLowerCase().trim();
@@ -95,7 +107,7 @@ export function GuestRequestsBoard({
 
       return true;
     });
-  }, [requests, selectedCategory, selectedStatus, selectedPriority, search]);
+  }, [requests, selectedCategory, selectedStatus, selectedPriority, selectedAssignee, search, currentUserId, currentProfileId]);
 
   // KPI calculations
   const total = requests.length;
@@ -371,6 +383,31 @@ export function GuestRequestsBoard({
               <option value="MEDIUM">Medium</option>
               <option value="LOW">Low</option>
             </select>
+
+            <select
+              value={selectedAssignee}
+              onChange={(e) => setSelectedAssignee(e.target.value)}
+              className="h-9.5 px-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:border-indigo-500 shadow-2xs cursor-pointer"
+            >
+              <option value="ALL">All Assignees</option>
+              <option value="MY_WORK">My Assigned Requests</option>
+              {staffMembers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.full_name}
+                </option>
+              ))}
+            </select>
+
+            <Button
+              type="button"
+              variant={selectedAssignee === "MY_WORK" ? "primary" : "outline"}
+              size="sm"
+              onClick={() => setSelectedAssignee((prev) => (prev === "MY_WORK" ? "ALL" : "MY_WORK"))}
+              className="h-9.5 text-xs font-semibold"
+            >
+              <BellRing className="h-3.5 w-3.5 mr-1" />
+              My Requests
+            </Button>
 
             {/* View Mode Switcher */}
             <div className="flex items-center border border-slate-200 rounded-xl p-0.5 bg-slate-100 shadow-2xs">

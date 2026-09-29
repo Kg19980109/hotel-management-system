@@ -33,6 +33,7 @@ import {
   BellRing,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 interface FloorOption {
   id: string;
@@ -49,6 +50,14 @@ interface RoomOption {
 }
 
 export default function HousekeepingPage() {
+  return (
+    <RoutePermissionGuard permission="housekeeping.view" moduleName="Housekeeping Hub">
+      <HousekeepingPageContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function HousekeepingPageContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
 

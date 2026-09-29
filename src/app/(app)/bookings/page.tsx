@@ -38,8 +38,17 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function BookingsPage() {
+  return (
+    <RoutePermissionGuard permission="bookings.view" moduleName="Reservations & Bookings">
+      <BookingsContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function BookingsContent() {
   const router = useRouter();
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);

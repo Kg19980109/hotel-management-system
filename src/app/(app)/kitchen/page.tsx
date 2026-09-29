@@ -67,8 +67,17 @@ import {
 import { KdsTicketCard } from "@/components/kds/kds-ticket-card";
 import { KdsKpiGrid } from "@/components/kds/kds-kpi-grid";
 import { RemakeModal } from "@/components/kds/remake-modal";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function KitchenKdsPage() {
+  return (
+    <RoutePermissionGuard permission="kitchen.view" moduleName="Kitchen Display System">
+      <KitchenKdsContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function KitchenKdsContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
   const { success, error: toastError } = useToast();

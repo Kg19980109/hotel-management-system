@@ -22,8 +22,17 @@ import { KitchenStation } from "@/lib/kds/types";
 import { getRestaurants } from "@/lib/restaurant/queries";
 import { getKitchenStations } from "@/lib/kds/queries";
 import { KdsTerminal } from "@/components/kds";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function KitchenDisplayPage() {
+  return (
+    <RoutePermissionGuard permission="kitchen.view" moduleName="Kitchen Display System">
+      <KitchenDisplayContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function KitchenDisplayContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
 

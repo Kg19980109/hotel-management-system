@@ -3,10 +3,10 @@
 // ============================================================
 
 import { createClient } from "@/lib/supabase/client";
-import { StaffMember, StaffDepartment, StaffRole } from "./types";
+import { StaffMember, StaffDepartment, StaffRole, PermissionItem, PropertyRolePermissionRecord } from "./types";
 
 /**
- * Fetch all staff members for a specific property
+ * Fetch all staff members for a specific property, including their linked role
  */
 export async function getStaffMembers(
   propertyId: string,
@@ -59,14 +59,41 @@ export async function getStaffMembers(
     query = query.eq("is_active", filters.isActive);
   }
 
-  const { data, error } = await query;
+  const [staffRes, membershipsRes] = await Promise.all([
+    query,
+    supabase
+      .from("property_memberships")
+      .select("user_id, role_id, roles(id, code, name, description)")
+      .eq("property_id", propertyId)
+      .eq("status", "active"),
+  ]);
 
-  if (error || !data) {
-    console.error("Error loading staff members:", error);
+  if (staffRes.error || !staffRes.data) {
+    console.error("Error loading staff members:", staffRes.error);
     return [];
   }
 
-  return (data || []) as unknown as StaffMember[];
+  // Build a lookup map of user/email -> assigned role
+  const roleByUserId = new Map<string, StaffRole>();
+  (membershipsRes.data || []).forEach((m: unknown) => {
+    const mem = m as { user_id?: string; roles?: StaffRole | null };
+    if (mem.user_id && mem.roles) {
+      roleByUserId.set(mem.user_id, mem.roles);
+    }
+  });
+
+  // If staff have profile_id, we can link them, or match by email
+  const staffList = (staffRes.data || []) as unknown as StaffMember[];
+  return staffList.map((s) => {
+    let matchedRole: StaffRole | null = null;
+    if (s.profile_id && roleByUserId.has(s.profile_id)) {
+      matchedRole = roleByUserId.get(s.profile_id) || null;
+    }
+    return {
+      ...s,
+      assigned_role: matchedRole || s.assigned_role || null,
+    };
+  });
 }
 
 /**
@@ -97,7 +124,7 @@ export async function getRoles(): Promise<StaffRole[]> {
 
   const { data, error } = await supabase
     .from("roles")
-    .select("id, code, name, description, is_system")
+    .select("id, code, name, description")
     .order("name", { ascending: true });
 
   if (error || !data) {
@@ -107,3 +134,70 @@ export async function getRoles(): Promise<StaffRole[]> {
 
   return (data || []) as StaffRole[];
 }
+
+/**
+ * Fetch all master permissions
+ */
+export async function getMasterPermissions(): Promise<PermissionItem[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("permissions")
+    .select("id, key, module, name, description, permission_type, display_order")
+    .order("display_order", { ascending: true });
+
+  if (error || !data) {
+    console.error("Error loading permissions:", error);
+    return [];
+  }
+
+  return (data || []) as PermissionItem[];
+}
+
+/**
+ * Fetch default permissions for all roles (or specific role)
+ */
+export async function getRoleDefaultPermissions(roleId?: string): Promise<{ role_id: string; permission_id: string }[]> {
+  const supabase = createClient();
+
+  let query = supabase.from("role_default_permissions").select("role_id, permission_id");
+  if (roleId) {
+    query = query.eq("role_id", roleId);
+  }
+
+  const { data, error } = await query;
+  if (error || !data) {
+    console.error("Error loading role default permissions:", error);
+    return [];
+  }
+
+  return (data || []) as { role_id: string; permission_id: string }[];
+}
+
+/**
+ * Fetch property role permission overrides
+ */
+export async function getPropertyRolePermissions(
+  propertyId: string,
+  roleId?: string
+): Promise<PropertyRolePermissionRecord[]> {
+  const supabase = createClient();
+
+  let query = supabase
+    .from("property_role_permissions")
+    .select("id, property_id, role_id, permission_id, granted")
+    .eq("property_id", propertyId);
+
+  if (roleId) {
+    query = query.eq("role_id", roleId);
+  }
+
+  const { data, error } = await query;
+  if (error || !data) {
+    console.error("Error loading property role permissions:", error);
+    return [];
+  }
+
+  return (data || []) as PropertyRolePermissionRecord[];
+}
+

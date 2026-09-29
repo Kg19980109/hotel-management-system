@@ -58,8 +58,17 @@ import {
   deactivateMenuItemAction,
   createMenuCategoryAction,
 } from "@/lib/restaurant/actions";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function PosConfigurationPage() {
+  return (
+    <RoutePermissionGuard permission="pos.config" moduleName="POS Catalog Configuration">
+      <PosConfigurationContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function PosConfigurationContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
   const { success, error: toastError } = useToast();

@@ -28,8 +28,17 @@ import {
   UtensilsCrossed,
   Receipt,
 } from "lucide-react";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function ReportsDashboardPage() {
+  return (
+    <RoutePermissionGuard permission="reports.view" moduleName="Reports & Intelligence">
+      <ReportsDashboardContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function ReportsDashboardContent() {
   const { currentProperty } = useAuth();
   const propertyId = currentProperty?.property_id || "demo-property";
   const propertyName = currentProperty?.property_name || "StayHub Grand";

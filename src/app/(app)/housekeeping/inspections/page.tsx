@@ -25,8 +25,17 @@ import {
   ArrowLeft,
   RotateCcw,
 } from "lucide-react";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function HousekeepingInspectionsPage() {
+  return (
+    <RoutePermissionGuard permission="housekeeping.view" moduleName="Housekeeping Inspections">
+      <HousekeepingInspectionsContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function HousekeepingInspectionsContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
 

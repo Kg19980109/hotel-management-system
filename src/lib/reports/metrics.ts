@@ -286,3 +286,26 @@ export function getDateRangeBoundaries(
     previousEndDate: formatDate(prevEnd),
   };
 }
+
+/**
+ * Calculate Average Duration in minutes from start and completion timestamps.
+ * Factual calculation strictly using recorded timestamps (no fabricated data).
+ */
+export function calculateAverageDurationMinutes(
+  items: Array<{ started_at?: string | null; completed_at?: string | null; resolved_at?: string | null }>
+): number | null {
+  const durations: number[] = [];
+  for (const item of items) {
+    const end = item.completed_at || item.resolved_at;
+    if (item.started_at && end) {
+      const diffMs = new Date(end).getTime() - new Date(item.started_at).getTime();
+      if (diffMs > 0) {
+        durations.push(diffMs / (1000 * 60));
+      }
+    }
+  }
+  if (durations.length === 0) return null;
+  const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+  return Math.round(avg);
+}
+

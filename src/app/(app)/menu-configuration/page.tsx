@@ -27,8 +27,17 @@ import {
   getMenuItems,
 } from "@/lib/restaurant/queries";
 import { MenuEditor } from "@/components/restaurant";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function RestaurantMenuPage() {
+  return (
+    <RoutePermissionGuard permission="menu.config" moduleName="Dining Menu Configuration">
+      <RestaurantMenuContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function RestaurantMenuContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
 

@@ -13,8 +13,17 @@ import {
 } from "@/lib/maintenance/queries";
 import { NewWorkOrderForm } from "./new-work-order-form";
 import { ArrowLeft } from "lucide-react";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function NewMaintenanceWorkOrderPage() {
+  return (
+    <RoutePermissionGuard permission="maintenance.view" moduleName="Create Work Order">
+      <NewWorkOrderContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function NewWorkOrderContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);
   const activePropertyId = currentProperty?.property_id;

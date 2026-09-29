@@ -156,6 +156,23 @@ export async function assignWorkOrderAction(
   }
 
   try {
+    if (input.assignedTo) {
+      const { data: targetMem } = await supabase
+        .from("property_memberships")
+        .select("id")
+        .eq("property_id", wo.property_id)
+        .eq("user_id", input.assignedTo)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (!targetMem) {
+        return {
+          success: false,
+          error: "Cannot assign work order: Target technician does not have active membership for this property.",
+        };
+      }
+    }
+
     const { data, error } = await supabase.rpc("assign_maintenance_work_order", {
       p_work_order_id: input.workOrderId,
       p_assigned_to: input.assignedTo,
@@ -200,7 +217,7 @@ export async function startWorkOrderAction(
 
   const { data: wo, error: woError } = await supabase
     .from("maintenance_work_orders")
-    .select("property_id, room_id")
+    .select("property_id, room_id, assigned_to")
     .eq("id", workOrderId)
     .single();
 
@@ -211,6 +228,14 @@ export async function startWorkOrderAction(
   const authRes = await authenticateMaintenanceSession(wo.property_id, "MAINTENANCE_START");
   if (authRes.error) {
     return { success: false, error: authRes.error };
+  }
+
+  // Validate technician ownership if not manager
+  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK"].includes(
+    authRes.auth?.roleCode || ""
+  );
+  if (!isManager && wo.assigned_to && wo.assigned_to !== authRes.auth?.userId) {
+    return { success: false, error: "Access denied: This work order is assigned to another technician." };
   }
 
   try {
@@ -361,7 +386,7 @@ export async function resolveWorkOrderAction(
 
   const { data: wo, error: woError } = await supabase
     .from("maintenance_work_orders")
-    .select("property_id, room_id")
+    .select("property_id, room_id, assigned_to")
     .eq("id", input.workOrderId)
     .single();
 
@@ -372,6 +397,14 @@ export async function resolveWorkOrderAction(
   const authRes = await authenticateMaintenanceSession(wo.property_id, "MAINTENANCE_RESOLVE");
   if (authRes.error) {
     return { success: false, error: authRes.error };
+  }
+
+  // Validate technician ownership if not manager
+  const isManager = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER", "FRONT_DESK"].includes(
+    authRes.auth?.roleCode || ""
+  );
+  if (!isManager && wo.assigned_to && wo.assigned_to !== authRes.auth?.userId) {
+    return { success: false, error: "Access denied: You can only resolve work orders assigned to you." };
   }
 
   try {

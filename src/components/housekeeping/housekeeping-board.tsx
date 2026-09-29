@@ -33,7 +33,10 @@ import {
   List,
   Loader2,
   Layers,
+  Sparkles,
 } from "lucide-react";
+
+import { useAuth } from "@/lib/auth/context";
 
 interface FloorOption {
   id: string;
@@ -67,6 +70,9 @@ export function HousekeepingBoard({
 }: HousekeepingBoardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, profile } = useAuth();
+  const currentUserId = user?.id;
+  const currentProfileId = profile?.id;
 
   // Filters State from URL or local
   const [viewMode, setViewMode] = React.useState<"board" | "table">("board");
@@ -117,7 +123,9 @@ export function HousekeepingBoard({
       if (priorityFilter !== "ALL" && t.priority !== priorityFilter) return false;
       if (typeFilter !== "ALL" && t.task_type !== typeFilter) return false;
       if (floorFilter !== "ALL" && t.room?.floor_id !== floorFilter) return false;
-      if (assignedFilter !== "ALL") {
+      if (assignedFilter === "MY_WORK") {
+        if (t.assigned_to !== currentUserId && t.assigned_to !== currentProfileId) return false;
+      } else if (assignedFilter !== "ALL") {
         if (assignedFilter === "UNASSIGNED" && t.assigned_to) return false;
         if (assignedFilter !== "UNASSIGNED" && t.assigned_to !== assignedFilter) return false;
       }
@@ -129,7 +137,7 @@ export function HousekeepingBoard({
       }
       return true;
     });
-  }, [tasks, statusFilter, priorityFilter, typeFilter, floorFilter, assignedFilter, searchQuery]);
+  }, [tasks, statusFilter, priorityFilter, typeFilter, floorFilter, assignedFilter, searchQuery, currentUserId, currentProfileId]);
 
   return (
     <div className="space-y-4">
@@ -206,6 +214,7 @@ export function HousekeepingBoard({
             className="w-full sm:w-36 text-xs h-9"
           >
             <option value="ALL">All Staff</option>
+            <option value="MY_WORK">My Tasks</option>
             <option value="UNASSIGNED">Unassigned</option>
             {staffList.map((s) => (
               <option key={s.userId} value={s.userId}>
@@ -213,6 +222,17 @@ export function HousekeepingBoard({
               </option>
             ))}
           </Select>
+
+          <Button
+            type="button"
+            variant={assignedFilter === "MY_WORK" ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setAssignedFilter((prev) => (prev === "MY_WORK" ? "ALL" : "MY_WORK"))}
+            className="h-9 text-xs font-semibold shrink-0"
+          >
+            <Sparkles className="h-3.5 w-3.5 mr-1" />
+            My Tasks
+          </Button>
         </div>
 
         {/* View Toggle & New Task Button */}

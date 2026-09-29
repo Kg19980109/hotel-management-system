@@ -9,8 +9,17 @@ import { getStaffGuestServiceRequests } from "@/lib/guest-services/queries";
 import { StaffGuestServiceRequest } from "@/lib/guest-services/types";
 import { GuestRequestsBoard } from "@/components/guest-requests/guest-requests-board";
 import { getPropertyStaff } from "@/lib/maintenance/queries";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function GuestRequestsPage() {
+  return (
+    <RoutePermissionGuard permission="guest_requests.view" moduleName="Guest Service Requests">
+      <GuestRequestsContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function GuestRequestsContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const activePropertyId = currentProperty?.property_id;
 

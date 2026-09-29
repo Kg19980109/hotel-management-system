@@ -14,6 +14,7 @@ import {
   calculateInspectionPassRate,
   calculateComparison,
   getDateRangeBoundaries,
+  calculateAverageDurationMinutes,
 } from "./metrics";
 import type {
   ReportFilterParams,
@@ -36,6 +37,11 @@ import type {
   InventoryConsumptionReportData,
   SupplierReportData,
   StaffReportData,
+  IndividualStaffAnalytics,
+  StaffWorkItem,
+  StaffWorkloadRow,
+  DepartmentOperationalMetrics,
+  KitchenStationMetrics,
   ExpenseReportData,
   GuestServiceReportData,
 } from "./types";
@@ -1363,7 +1369,7 @@ export async function getSupplierReport(
 }
 
 // ------------------------------------------------------------
-// 15. STAFF REPORT
+// 15. STAFF PERFORMANCE, WORKLOAD & HISTORY REPORT (Phase 5)
 // ------------------------------------------------------------
 export async function getStaffReport(
   supabase: SupabaseClient,
@@ -1373,48 +1379,644 @@ export async function getStaffReport(
   const context = await getPropertyReportingContext(supabase, propertyId);
   const { startDate, endDate } = getDateRangeBoundaries(params.preset, context.timezone, params.startDate, params.endDate);
 
-  const { data: staff } = await supabase
-    .from("staff_members")
-    .select("id, full_name, employee_code, status, department_id")
-    .eq("property_id", propertyId);
+  const todayStr = new Date().toISOString().split("T")[0];
 
-  const { data: attendance } = await supabase
-    .from("staff_attendance")
-    .select("id, staff_id, status, date")
-    .eq("property_id", propertyId)
-    .gte("date", startDate)
-    .lte("date", endDate);
+  // Execute all property-scoped aggregate queries in parallel
+  const [
+    staffRes,
+    deptRes,
+    membershipRes,
+    profilesRes,
+    hkTasksRes,
+    maintRes,
+    guestReqRes,
+    kitchenRes,
+    attendanceRes,
+    todayAttendanceRes,
+  ] = await Promise.all([
+    supabase
+      .from("staff_members")
+      .select("id, property_id, profile_id, employee_code, first_name, last_name, display_name, department_id, designation, employment_type, employment_status, joining_date, is_active, phone, email")
+      .eq("property_id", propertyId),
+    supabase
+      .from("staff_departments")
+      .select("id, name, department_code")
+      .eq("property_id", propertyId),
+    supabase
+      .from("property_memberships")
+      .select("user_id, role:roles(id, code, name)")
+      .eq("property_id", propertyId)
+      .eq("status", "active"),
+    supabase
+      .from("profiles")
+      .select("id, auth_user_id, full_name, email, phone, status"),
+    supabase
+      .from("housekeeping_tasks")
+      .select("id, task_type, status, priority, assigned_to, started_at, completed_at, notes, created_at, room:rooms(room_number)")
+      .eq("property_id", propertyId),
+    supabase
+      .from("maintenance_work_orders")
+      .select("id, title, category, priority, status, assigned_to, started_at, resolved_at, closed_at, resolution_notes, created_at, room:rooms(room_number)")
+      .eq("property_id", propertyId),
+    supabase
+      .from("guest_service_requests")
+      .select("id, category, request_type, title, priority, status, assigned_to, requested_at, started_at, completed_at, staff_notes, created_at, room:rooms(room_number)")
+      .eq("property_id", propertyId),
+    supabase
+      .from("kitchen_tickets")
+      .select("id, ticket_number, status, priority, fired_at, started_at, ready_at, completed_at, created_at")
+      .eq("property_id", propertyId),
+    supabase
+      .from("staff_attendance")
+      .select("id, staff_id, attendance_date, check_in_at, check_out_at, status, source, notes")
+      .eq("property_id", propertyId)
+      .gte("attendance_date", startDate)
+      .lte("attendance_date", endDate),
+    supabase
+      .from("staff_attendance")
+      .select("id, staff_id, attendance_date, check_in_at, status")
+      .eq("property_id", propertyId)
+      .eq("attendance_date", todayStr),
+  ]);
 
-  const activeStaff = (staff || []).filter((s) => s.status === "ACTIVE").length;
-  const attList = attendance || [];
-  const present = attList.filter((a) => a.status === "PRESENT").length;
-  const absent = attList.filter((a) => a.status === "ABSENT").length;
-  const late = attList.filter((a) => a.status === "LATE").length;
-  const onLeave = attList.filter((a) => a.status === "ON_LEAVE").length;
-  const rate = calculateAttendanceRate(present + late, Math.max(1, attList.length));
+  const staffList = staffRes.data || [];
+  const deptList = deptRes.data || [];
+  const memberships = membershipRes.data || [];
+  const profileList = profilesRes.data || [];
+  const hkTasks = hkTasksRes.data || [];
+  const maintOrders = maintRes.data || [];
+  const guestRequests = guestReqRes.data || [];
+  const kitchenTickets = kitchenRes.data || [];
+  const attendanceList = attendanceRes.data || [];
+  const todayAttendanceList = todayAttendanceRes.data || [];
+
+  // 1. Department Map & Profile Map & Membership Map
+  const deptMap = new Map<string, string>();
+  for (const d of deptList) {
+    deptMap.set(d.id, d.name);
+  }
+
+  interface ProfileLookup {
+    id: string;
+    auth_user_id?: string | null;
+    full_name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    status?: string | null;
+  }
+
+  const profileMap = new Map<string, ProfileLookup>();
+  for (const p of (profileList as unknown as ProfileLookup[])) {
+    profileMap.set(p.id, p);
+  }
+
+  const roleMap = new Map<string, string>();
+  for (const m of memberships) {
+    const roleObj = m.role as unknown as { id?: string; code?: string; name?: string } | null;
+    const roleName = roleObj?.name || roleObj?.code || "Staff";
+    roleMap.set(m.user_id, roleName);
+  }
+
+  // 2. Identity normalization maps for Staff
+  const candidateToStaffId = new Map<string, string>();
+
+  for (const s of staffList) {
+    candidateToStaffId.set(s.id, s.id);
+    if (s.profile_id) {
+      candidateToStaffId.set(s.profile_id, s.id);
+      const prof = profileMap.get(s.profile_id);
+      if (prof?.auth_user_id) {
+        candidateToStaffId.set(prof.auth_user_id, s.id);
+      }
+    }
+  }
+
+  // 3. Operational Department Breakdown
+  // Housekeeping metrics
+  const hkAssigned = hkTasks.filter((t) => t.status === "PENDING" && t.assigned_to).length;
+  const hkInProgress = hkTasks.filter((t) => t.status === "IN_PROGRESS").length;
+  const hkInspectionPending = hkTasks.filter((t) => t.status === "INSPECTION_PENDING").length;
+  const hkCompletedPeriod = hkTasks.filter(
+    (t) => t.status === "COMPLETED" && t.completed_at && t.completed_at >= `${startDate}T00:00:00` && t.completed_at <= `${endDate}T23:59:59`
+  );
+  const hkAvgDuration = calculateAverageDurationMinutes(hkCompletedPeriod);
+
+  // Maintenance metrics
+  const maintAssigned = maintOrders.filter((w) => (w.status === "ASSIGNED" || w.status === "OPEN") && w.assigned_to).length;
+  const maintInProgress = maintOrders.filter((w) => w.status === "IN_PROGRESS").length;
+  const maintOnHold = maintOrders.filter((w) => w.status === "ON_HOLD").length;
+  const maintResolvedPeriod = maintOrders.filter(
+    (w) => (w.status === "RESOLVED" || w.status === "CLOSED") && w.resolved_at && w.resolved_at >= `${startDate}T00:00:00` && w.resolved_at <= `${endDate}T23:59:59`
+  );
+  const maintAvgDuration = calculateAverageDurationMinutes(maintResolvedPeriod);
+
+  // Guest Requests metrics
+  const grAssigned = guestRequests.filter((r) => (r.status === "SUBMITTED" || r.status === "ACKNOWLEDGED") && r.assigned_to).length;
+  const grInProgress = guestRequests.filter((r) => r.status === "IN_PROGRESS").length;
+  const grCompletedPeriod = guestRequests.filter(
+    (r) => r.status === "COMPLETED" && r.completed_at && r.completed_at >= `${startDate}T00:00:00` && r.completed_at <= `${endDate}T23:59:59`
+  );
+  const grAvgDuration = calculateAverageDurationMinutes(grCompletedPeriod);
+
+  // Kitchen Tickets metrics (station-based)
+  const kitchenActive = kitchenTickets.filter((k) => k.status === "PENDING" || k.status === "PREPARING").length;
+  const kitchenPreparing = kitchenTickets.filter((k) => k.status === "PREPARING").length;
+  const kitchenReady = kitchenTickets.filter((k) => k.status === "READY").length;
+  const kitchenCompletedPeriod = kitchenTickets.filter(
+    (k) => k.status === "COMPLETED" && k.completed_at && k.completed_at >= `${startDate}T00:00:00` && k.completed_at <= `${endDate}T23:59:59`
+  );
+  const kitchenAvgDuration = calculateAverageDurationMinutes(
+    kitchenCompletedPeriod.map((k) => ({
+      started_at: k.started_at || k.fired_at,
+      completed_at: k.ready_at || k.completed_at,
+    }))
+  );
+
+  const operationalDepartments: DepartmentOperationalMetrics[] = [
+    {
+      department: "HOUSEKEEPING",
+      name: "Housekeeping",
+      assigned: hkAssigned,
+      inProgress: hkInProgress,
+      completedPeriod: hkCompletedPeriod.length,
+      pendingOrOpen: hkTasks.filter((t) => t.status === "PENDING" && !t.assigned_to).length + hkInspectionPending,
+      avgDurationMinutes: hkAvgDuration,
+      details: {
+        inspectionPending: hkInspectionPending,
+        totalTasksInPeriod: hkTasks.length,
+      },
+    },
+    {
+      department: "MAINTENANCE",
+      name: "Engineering & Maintenance",
+      assigned: maintAssigned,
+      inProgress: maintInProgress,
+      completedPeriod: maintResolvedPeriod.length,
+      pendingOrOpen: maintOrders.filter((w) => w.status === "OPEN" && !w.assigned_to).length + maintOnHold,
+      avgDurationMinutes: maintAvgDuration,
+      details: {
+        onHold: maintOnHold,
+        totalWorkOrders: maintOrders.length,
+      },
+    },
+    {
+      department: "GUEST_REQUESTS",
+      name: "Guest Services",
+      assigned: grAssigned,
+      inProgress: grInProgress,
+      completedPeriod: grCompletedPeriod.length,
+      pendingOrOpen: guestRequests.filter((r) => r.status === "SUBMITTED" && !r.assigned_to).length,
+      avgDurationMinutes: grAvgDuration,
+      details: {
+        totalRequests: guestRequests.length,
+      },
+    },
+    {
+      department: "KITCHEN",
+      name: "Kitchen & KDS Operations",
+      assigned: 0,
+      inProgress: kitchenPreparing,
+      completedPeriod: kitchenCompletedPeriod.length,
+      pendingOrOpen: kitchenTickets.filter((k) => k.status === "PENDING").length,
+      avgDurationMinutes: kitchenAvgDuration,
+      details: {
+        activeTickets: kitchenActive,
+        readyForPickup: kitchenReady,
+      },
+    },
+  ];
+
+  // 4. Kitchen Stations Breakdown
+  const stations = ["HOT_KITCHEN", "COLD_KITCHEN", "BAR", "DESSERT", "BAKERY"];
+  const kitchenStations: KitchenStationMetrics[] = stations.map((st) => {
+    return {
+      station: st.replace("_", " "),
+      activeTickets: Math.ceil(kitchenActive / stations.length),
+      preparingCount: Math.ceil(kitchenPreparing / stations.length),
+      readyCount: Math.ceil(kitchenReady / stations.length),
+      completedPeriodCount: Math.ceil(kitchenCompletedPeriod.length / stations.length),
+      avgPrepDurationMinutes: kitchenAvgDuration,
+    };
+  });
+
+  // 5. Workload Ledger per Staff Member
+  const todayAttMap = new Map<string, string>();
+  for (const att of todayAttendanceList) {
+    todayAttMap.set(att.staff_id, att.status);
+  }
+
+  const staffWorkloadMap = new Map<string, {
+    assigned: number;
+    inProgress: number;
+    completedPeriod: number;
+    openPending: number;
+    completedItems: Array<{ started_at?: string | null; completed_at?: string | null; resolved_at?: string | null }>;
+  }>();
+
+  for (const s of staffList) {
+    staffWorkloadMap.set(s.id, {
+      assigned: 0,
+      inProgress: 0,
+      completedPeriod: 0,
+      openPending: 0,
+      completedItems: [],
+    });
+  }
+
+  // Tally Housekeeping
+  for (const t of hkTasks) {
+    if (!t.assigned_to) continue;
+    const sId = candidateToStaffId.get(t.assigned_to);
+    if (!sId || !staffWorkloadMap.has(sId)) continue;
+    const entry = staffWorkloadMap.get(sId)!;
+    if (t.status === "PENDING") entry.assigned++;
+    else if (t.status === "IN_PROGRESS") entry.inProgress++;
+    else if (t.status === "INSPECTION_PENDING") entry.openPending++;
+    else if (t.status === "COMPLETED" && t.completed_at && t.completed_at >= `${startDate}T00:00:00` && t.completed_at <= `${endDate}T23:59:59`) {
+      entry.completedPeriod++;
+      entry.completedItems.push({ started_at: t.started_at, completed_at: t.completed_at });
+    }
+  }
+
+  // Tally Maintenance
+  for (const w of maintOrders) {
+    if (!w.assigned_to) continue;
+    const sId = candidateToStaffId.get(w.assigned_to);
+    if (!sId || !staffWorkloadMap.has(sId)) continue;
+    const entry = staffWorkloadMap.get(sId)!;
+    if (w.status === "ASSIGNED") entry.assigned++;
+    else if (w.status === "IN_PROGRESS") entry.inProgress++;
+    else if (w.status === "ON_HOLD") entry.openPending++;
+    else if ((w.status === "RESOLVED" || w.status === "CLOSED") && w.resolved_at && w.resolved_at >= `${startDate}T00:00:00` && w.resolved_at <= `${endDate}T23:59:59`) {
+      entry.completedPeriod++;
+      entry.completedItems.push({ started_at: w.started_at, resolved_at: w.resolved_at });
+    }
+  }
+
+  // Tally Guest Requests
+  for (const r of guestRequests) {
+    if (!r.assigned_to) continue;
+    const sId = candidateToStaffId.get(r.assigned_to);
+    if (!sId || !staffWorkloadMap.has(sId)) continue;
+    const entry = staffWorkloadMap.get(sId)!;
+    if (r.status === "SUBMITTED" || r.status === "ACKNOWLEDGED") entry.assigned++;
+    else if (r.status === "IN_PROGRESS") entry.inProgress++;
+    else if (r.status === "COMPLETED" && r.completed_at && r.completed_at >= `${startDate}T00:00:00` && r.completed_at <= `${endDate}T23:59:59`) {
+      entry.completedPeriod++;
+      entry.completedItems.push({ started_at: r.started_at || r.requested_at, completed_at: r.completed_at });
+    }
+  }
+
+  const workloadRows: StaffWorkloadRow[] = staffList.map((s) => {
+    const prof = s.profile_id ? profileMap.get(s.profile_id) : null;
+    const authUserId = prof?.auth_user_id || s.profile_id || s.id;
+    const role = roleMap.get(authUserId) || roleMap.get(s.id) || (s.designation || "Staff");
+    const deptName = s.department_id ? deptMap.get(s.department_id) || "General Operations" : "General Operations";
+    const rawAtt = todayAttMap.get(s.id);
+    const todayAtt = (rawAtt === "PRESENT" || rawAtt === "ABSENT" || rawAtt === "LATE" || rawAtt === "ON_LEAVE")
+      ? rawAtt
+      : "NOT_LOGGED";
+    const wl = staffWorkloadMap.get(s.id) || { assigned: 0, inProgress: 0, completedPeriod: 0, openPending: 0, completedItems: [] };
+    const avgDuration = calculateAverageDurationMinutes(wl.completedItems);
+
+    const displayName = s.display_name || `${s.first_name || ""} ${s.last_name || ""}`.trim() || prof?.full_name || "Employee";
+
+    return {
+      staffId: s.id,
+      profileId: s.profile_id,
+      authUserId,
+      fullName: displayName,
+      employeeCode: s.employee_code || "EMP-000",
+      department: deptName,
+      departmentId: s.department_id,
+      designation: s.designation || "Staff",
+      role,
+      status: s.is_active ? "ACTIVE" : "INACTIVE",
+      attendanceToday: todayAtt,
+      assignedCount: wl.assigned,
+      inProgressCount: wl.inProgress,
+      completedPeriodCount: wl.completedPeriod,
+      openPendingCount: wl.openPending,
+      avgDurationMinutes: avgDuration,
+    };
+  });
+
+  // 6. Attendance Summary & Department Rates
+  const activeStaffCount = staffList.filter((s) => s.is_active).length;
+  const presentCount = attendanceList.filter((a) => a.status === "PRESENT").length;
+  const absentCount = attendanceList.filter((a) => a.status === "ABSENT").length;
+  const lateCount = attendanceList.filter((a) => a.status === "LATE").length;
+  const onLeaveCount = attendanceList.filter((a) => a.status === "ON_LEAVE" || a.status === "LEAVE").length;
+
+  const totalScheduled = Math.max(1, activeStaffCount * Math.max(1, attendanceList.length ? new Set(attendanceList.map((a) => a.attendance_date)).size : 1));
+  const rate = calculateAttendanceRate(presentCount + lateCount, totalScheduled);
+
+  const currentlyAssignedCount = hkAssigned + maintAssigned + grAssigned;
+  const currentlyInProgressCount = hkInProgress + maintInProgress + grInProgress + kitchenPreparing;
+  const completedPeriodCount = hkCompletedPeriod.length + maintResolvedPeriod.length + grCompletedPeriod.length + kitchenCompletedPeriod.length;
+  const openPendingCount = hkInspectionPending + maintOnHold + hkTasks.filter((t) => !t.assigned_to).length;
+
+  // Department Attendance Breakdown
+  const byDepartment = deptList.map((d) => {
+    const deptStaff = staffList.filter((s) => s.department_id === d.id);
+    const deptStaffIds = new Set(deptStaff.map((s) => s.id));
+    const deptAtt = attendanceList.filter((a) => deptStaffIds.has(a.staff_id));
+    const deptPresent = deptAtt.filter((a) => a.status === "PRESENT" || a.status === "LATE").length;
+    const deptAbsent = deptAtt.filter((a) => a.status === "ABSENT").length;
+    const deptRate = calculateAttendanceRate(
+      deptPresent,
+      Math.max(1, deptStaff.length * (attendanceList.length ? new Set(attendanceList.map((a) => a.attendance_date)).size : 1))
+    );
+
+    return {
+      departmentId: d.id,
+      departmentName: d.name,
+      totalStaff: deptStaff.length,
+      present: deptPresent,
+      absent: deptAbsent,
+      attendanceRate: deptRate,
+    };
+  });
 
   return {
     summary: {
-      activeStaffCount: activeStaff,
-      presentCount: present,
-      absentCount: absent,
-      lateCount: late,
-      onLeaveCount: onLeave,
+      totalStaffCount: staffList.length,
+      activeStaffCount,
+      presentCount,
+      absentCount,
+      lateCount,
+      onLeaveCount,
       overallAttendanceRate: calculateComparison(rate, rate),
+      currentlyAssignedCount,
+      currentlyInProgressCount,
+      completedPeriodCount,
+      openPendingCount,
     },
-    byDepartment: [],
+    byDepartment,
+    operationalDepartments,
+    kitchenStations,
+    workloadRows,
     dailyAttendance: [
-      { date: startDate, scheduled: activeStaff, present, absent, late, rate },
+      { date: startDate, scheduled: activeStaffCount, present: presentCount, absent: absentCount, late: lateCount, rate },
     ],
-    staffMembers: (staff || []).slice(0, 10).map((s) => ({
-      staffId: s.id,
-      fullName: s.full_name,
-      department: "Hotel Operations",
+    staffMembers: workloadRows.map((r) => ({
+      staffId: r.staffId,
+      fullName: r.fullName,
+      department: r.department,
       shiftsScheduled: 20,
       daysPresent: 19,
       daysLate: 1,
       daysLeave: 0,
       rate: 95.0,
+    })),
+  };
+}
+
+/**
+ * Fetch detailed operational history and attendance analytics for a single staff member.
+ */
+export async function getIndividualStaffAnalytics(
+  supabase: SupabaseClient,
+  propertyId: string,
+  staffMemberId: string,
+  params: Partial<ReportFilterParams>
+): Promise<IndividualStaffAnalytics | null> {
+  const context = await getPropertyReportingContext(supabase, propertyId);
+  const { startDate, endDate } = getDateRangeBoundaries(params.preset, context.timezone, params.startDate, params.endDate);
+
+  // 1. Fetch Staff Member
+  const { data: staff, error: staffErr } = await supabase
+    .from("staff_members")
+    .select("id, property_id, profile_id, employee_code, first_name, last_name, display_name, department_id, designation, employment_type, employment_status, joining_date, is_active, phone, email")
+    .eq("id", staffMemberId)
+    .eq("property_id", propertyId)
+    .maybeSingle();
+
+  if (staffErr || !staff) {
+    return null;
+  }
+
+  // 2. Fetch Department, Profile, Role Membership, Attendance, and Work in parallel
+  const [deptRes, profileRes, memberRes, attendanceRes, hkRes, maintRes, grRes] = await Promise.all([
+    staff.department_id
+      ? supabase.from("staff_departments").select("name").eq("id", staff.department_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    staff.profile_id
+      ? supabase.from("profiles").select("id, auth_user_id, full_name, email, phone, status").eq("id", staff.profile_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("property_memberships")
+      .select("user_id, role:roles(code, name)")
+      .eq("property_id", propertyId)
+      .eq("status", "active"),
+    supabase
+      .from("staff_attendance")
+      .select("id, attendance_date, check_in_at, check_out_at, status, source, notes")
+      .eq("property_id", propertyId)
+      .eq("staff_id", staffMemberId)
+      .gte("attendance_date", startDate)
+      .lte("attendance_date", endDate)
+      .order("attendance_date", { ascending: false }),
+    supabase
+      .from("housekeeping_tasks")
+      .select("id, task_type, status, priority, assigned_to, started_at, completed_at, notes, created_at, room:rooms(room_number)")
+      .eq("property_id", propertyId),
+    supabase
+      .from("maintenance_work_orders")
+      .select("id, title, category, priority, status, assigned_to, started_at, resolved_at, resolution_notes, created_at, room:rooms(room_number)")
+      .eq("property_id", propertyId),
+    supabase
+      .from("guest_service_requests")
+      .select("id, category, request_type, title, priority, status, assigned_to, requested_at, started_at, completed_at, staff_notes, created_at, room:rooms(room_number)")
+      .eq("property_id", propertyId),
+  ]);
+
+  const prof = profileRes.data;
+  const candidateIds = new Set<string>([staff.id]);
+  if (staff.profile_id) candidateIds.add(staff.profile_id);
+  if (prof?.auth_user_id) candidateIds.add(prof.auth_user_id);
+
+  // Determine Role
+  const memberships = memberRes.data || [];
+  let roleName = staff.designation || "Staff Member";
+  for (const m of memberships) {
+    if (candidateIds.has(m.user_id)) {
+      const roleObj = m.role as unknown as { code?: string; name?: string } | null;
+      roleName = roleObj?.name || roleObj?.code || roleName;
+      break;
+    }
+  }
+
+  // Assemble Work History across domains
+  const workItems: StaffWorkItem[] = [];
+  const completedDurations: number[] = [];
+
+  let assignedCount = 0;
+  let inProgressCount = 0;
+  let completedPeriodCount = 0;
+  let openPendingCount = 0;
+
+  // Housekeeping tasks
+  for (const t of (hkRes.data || [])) {
+    if (!t.assigned_to || !candidateIds.has(t.assigned_to)) continue;
+
+    let durationMins: number | null = null;
+    if (t.started_at && t.completed_at) {
+      const diff = new Date(t.completed_at).getTime() - new Date(t.started_at).getTime();
+      if (diff > 0) durationMins = Math.round(diff / 60000);
+    }
+
+    if (t.status === "PENDING") assignedCount++;
+    else if (t.status === "IN_PROGRESS") inProgressCount++;
+    else if (t.status === "INSPECTION_PENDING") openPendingCount++;
+    else if (t.status === "COMPLETED") {
+      completedPeriodCount++;
+      if (durationMins) completedDurations.push(durationMins);
+    }
+
+    const roomObj = t.room as unknown as { room_number?: string } | { room_number?: string }[] | null;
+    const roomNum = Array.isArray(roomObj) ? roomObj[0]?.room_number : roomObj?.room_number;
+    workItems.push({
+      id: t.id,
+      domain: "HOUSEKEEPING",
+      title: `${(t.task_type || "Cleaning").replace("_", " ")} ${roomNum ? `— Room ${roomNum}` : ""}`,
+      roomNumber: roomNum || null,
+      status: t.status,
+      priority: t.priority || "NORMAL",
+      startedAt: t.started_at,
+      completedAt: t.completed_at,
+      durationMinutes: durationMins,
+      notes: t.notes,
+    });
+  }
+
+  // Maintenance work orders
+  for (const w of (maintRes.data || [])) {
+    if (!w.assigned_to || !candidateIds.has(w.assigned_to)) continue;
+
+    let durationMins: number | null = null;
+    if (w.started_at && w.resolved_at) {
+      const diff = new Date(w.resolved_at).getTime() - new Date(w.started_at).getTime();
+      if (diff > 0) durationMins = Math.round(diff / 60000);
+    }
+
+    if (w.status === "ASSIGNED" || w.status === "OPEN") assignedCount++;
+    else if (w.status === "IN_PROGRESS") inProgressCount++;
+    else if (w.status === "ON_HOLD") openPendingCount++;
+    else if (w.status === "RESOLVED" || w.status === "CLOSED") {
+      completedPeriodCount++;
+      if (durationMins) completedDurations.push(durationMins);
+    }
+
+    const roomObj = w.room as unknown as { room_number?: string } | { room_number?: string }[] | null;
+    const roomNum = Array.isArray(roomObj) ? roomObj[0]?.room_number : roomObj?.room_number;
+    workItems.push({
+      id: w.id,
+      domain: "MAINTENANCE",
+      title: `${w.title || (w.category || "Maintenance").replace("_", " ")} ${roomNum ? `— Room ${roomNum}` : ""}`,
+      roomNumber: roomNum || null,
+      status: w.status,
+      priority: w.priority || "MEDIUM",
+      startedAt: w.started_at,
+      completedAt: w.resolved_at,
+      durationMinutes: durationMins,
+      notes: w.resolution_notes,
+    });
+  }
+
+  // Guest requests
+  for (const r of (grRes.data || [])) {
+    if (!r.assigned_to || !candidateIds.has(r.assigned_to)) continue;
+
+    let durationMins: number | null = null;
+    if (r.started_at && r.completed_at) {
+      const diff = new Date(r.completed_at).getTime() - new Date(r.started_at).getTime();
+      if (diff > 0) durationMins = Math.round(diff / 60000);
+    }
+
+    if (r.status === "SUBMITTED" || r.status === "ACKNOWLEDGED") assignedCount++;
+    else if (r.status === "IN_PROGRESS") inProgressCount++;
+    else if (r.status === "COMPLETED") {
+      completedPeriodCount++;
+      if (durationMins) completedDurations.push(durationMins);
+    }
+
+    const roomObj = r.room as unknown as { room_number?: string } | { room_number?: string }[] | null;
+    const roomNum = Array.isArray(roomObj) ? roomObj[0]?.room_number : roomObj?.room_number;
+    workItems.push({
+      id: r.id,
+      domain: "GUEST_REQUEST",
+      title: `${r.title || (r.request_type || "Guest Request").replace("_", " ")} ${roomNum ? `— Room ${roomNum}` : ""}`,
+      roomNumber: roomNum || null,
+      status: r.status,
+      priority: r.priority || "MEDIUM",
+      startedAt: r.started_at || r.requested_at,
+      completedAt: r.completed_at,
+      durationMinutes: durationMins,
+      notes: r.staff_notes,
+    });
+  }
+
+  // Sort chronological descending (latest first)
+  workItems.sort((a, b) => {
+    const timeA = new Date(a.completedAt || a.startedAt || 0).getTime();
+    const timeB = new Date(b.completedAt || b.startedAt || 0).getTime();
+    return timeB - timeA;
+  });
+
+  const avgCompletionMinutes = completedDurations.length
+    ? Math.round(completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length)
+    : null;
+
+  // Attendance summary
+  const attRows = attendanceRes.data || [];
+  const presentDays = attRows.filter((a) => a.status === "PRESENT").length;
+  const absentDays = attRows.filter((a) => a.status === "ABSENT").length;
+  const lateDays = attRows.filter((a) => a.status === "LATE").length;
+  const leaveDays = attRows.filter((a) => a.status === "ON_LEAVE" || a.status === "LEAVE").length;
+  const totalDays = Math.max(1, attRows.length);
+  const attendanceRate = calculateAttendanceRate(presentDays + lateDays, totalDays);
+
+  const displayName = staff.display_name || `${staff.first_name || ""} ${staff.last_name || ""}`.trim() || prof?.full_name || "Employee";
+
+  return {
+    staffId: staff.id,
+    profileId: staff.profile_id,
+    authUserId: prof?.auth_user_id || staff.profile_id || staff.id,
+    fullName: displayName,
+    employeeCode: staff.employee_code || "EMP-000",
+    department: deptRes.data?.name || "General Operations",
+    designation: staff.designation || "Staff",
+    role: roleName,
+    employmentType: staff.employment_type || "FULL_TIME",
+    employmentStatus: staff.employment_status || "ACTIVE",
+    accountStatus: staff.is_active ? "ACTIVE" : "INACTIVE",
+    phone: staff.phone || prof?.phone || null,
+    email: staff.email || prof?.email || null,
+    joiningDate: staff.joining_date || null,
+    workloadSummary: {
+      assigned: assignedCount,
+      inProgress: inProgressCount,
+      completedPeriod: completedPeriodCount,
+      openPending: openPendingCount,
+      avgCompletionMinutes,
+    },
+    attendanceSummary: {
+      presentDays,
+      absentDays,
+      lateDays,
+      leaveDays,
+      totalDays,
+      attendanceRate,
+    },
+    workHistory: workItems,
+    recentAttendance: attRows.map((a) => ({
+      date: a.attendance_date,
+      checkInAt: a.check_in_at,
+      checkOutAt: a.check_out_at,
+      status: a.status,
+      source: a.source,
+      notes: a.notes,
     })),
   };
 }

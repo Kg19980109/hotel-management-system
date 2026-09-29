@@ -9,25 +9,21 @@ import {
   UtensilsCrossed,
   ChefHat,
   QrCode,
-  Package,
   UsersRound,
   Receipt,
   Wallet,
   TrendingUp,
-  Megaphone,
-  BrainCircuit,
   Settings,
-  Globe,
-  Blocks,
   Bell,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { PermissionKey } from "@/lib/auth/permissions";
 
 // ============================================================
 // NAVIGATION CONFIG — StayHub
 //
 // Central source of truth for all navigation items.
-// Future RBAC will filter by `permission` field.
+// RBAC filters items dynamically via `permission` field.
 // Active state matching uses `matchPaths` in addition to `href`.
 // ============================================================
 
@@ -39,8 +35,8 @@ export interface NavItem {
   badge?: number;
   /** Additional paths that should trigger "active" state for this item */
   matchPaths?: string[];
-  /** Future RBAC permission key */
-  permission?: string;
+  /** RBAC permission key */
+  permission?: PermissionKey;
 }
 
 export interface NavGroup {
@@ -109,7 +105,7 @@ export const navigationConfig: NavGroup[] = [
         href: "/guest-requests",
         icon: Bell,
         matchPaths: ["/guest-requests"],
-        permission: "guest_services.view",
+        permission: "guest_requests.view",
       },
     ],
   },
@@ -127,7 +123,7 @@ export const navigationConfig: NavGroup[] = [
         href: "/kitchen",
         icon: ChefHat,
         matchPaths: ["/kitchen", "/restaurant/kds"],
-        permission: "kds.view",
+        permission: "kitchen.view",
       },
       {
         label: "POS Configuration",
@@ -153,17 +149,16 @@ export const navigationConfig: NavGroup[] = [
         matchPaths: ["/qr-services/rooms", "/qr-services/tables", "/qr-services/requests", "/qr-services/dining"],
         permission: "qr_services.view",
       },
-
     ],
   },
   {
     label: "Business",
     items: [
-
       {
         label: "Staff",
         href: "/staff",
         icon: UsersRound,
+        matchPaths: ["/staff/my-work", "/staff/profile"],
         permission: "staff.view",
       },
       {
@@ -214,4 +209,38 @@ export function isNavItemActive(item: NavItem, pathname: string): boolean {
     return true;
   }
   return false;
+}
+
+/**
+ * Filters the navigation tree based on the user's role and resolved permission set.
+ * If the role is SUPER_ADMIN or HOTEL_OWNER, all navigation items are displayed.
+ * Otherwise, items requiring a permission key are checked against `hasPermissionFn`.
+ * If all items in a group are hidden, the entire group is filtered out.
+ */
+export function getFilteredNavigation(
+  groups: NavGroup[],
+  hasPermissionFn: (key: PermissionKey) => boolean,
+  roleCode?: string | null
+): NavGroup[] {
+  if (roleCode === "SUPER_ADMIN" || roleCode === "HOTEL_OWNER") {
+    return groups;
+  }
+
+  const filtered: NavGroup[] = [];
+
+  for (const group of groups) {
+    const visibleItems = group.items.filter((item) => {
+      if (!item.permission) return true;
+      return hasPermissionFn(item.permission);
+    });
+
+    if (visibleItems.length > 0) {
+      filtered.push({
+        ...group,
+        items: visibleItems,
+      });
+    }
+  }
+
+  return filtered;
 }

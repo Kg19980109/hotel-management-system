@@ -48,6 +48,7 @@ import {
   ArrowRight,
   Info,
 } from "lucide-react";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 const frontDeskCache = new Map<string, {
   stats: FrontDeskKPIStats;
@@ -59,6 +60,14 @@ const frontDeskCache = new Map<string, {
 }>();
 
 export default function FrontDeskPage() {
+  return (
+    <RoutePermissionGuard permission="front_desk.view" moduleName="Front Desk & Reception">
+      <FrontDeskContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function FrontDeskContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const supabase = React.useMemo(() => createClient(), []);
   const activePropertyId = currentProperty?.property_id;

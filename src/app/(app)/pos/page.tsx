@@ -27,8 +27,17 @@ import {
   getRestaurantTables,
 } from "@/lib/restaurant/queries";
 import { PosTerminal } from "@/components/restaurant";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function RestaurantPosPage() {
+  return (
+    <RoutePermissionGuard permission="pos.view" moduleName="Point of Sale">
+      <RestaurantPosContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function RestaurantPosContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
 

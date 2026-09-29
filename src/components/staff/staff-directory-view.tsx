@@ -7,6 +7,7 @@
 
 import * as React from "react";
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import {
   Users,
   UserCheck,
@@ -32,9 +33,11 @@ import {
   X,
   Clock,
   ShieldCheck,
+  TrendingUp,
 } from "lucide-react";
-import { StaffMember, StaffDepartment } from "@/lib/staff/types";
+import { StaffMember, StaffDepartment, StaffRole } from "@/lib/staff/types";
 import { toggleStaffActiveAction } from "@/lib/staff/actions";
+import { getRoles } from "@/lib/staff/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +46,8 @@ import { AddStaffModal } from "./add-staff-modal";
 import { EditStaffModal } from "./edit-staff-modal";
 import { RolePermissionMatrix } from "./role-permission-matrix";
 import { StaffCredentialsView } from "./staff-credentials-view";
+import { ManageAccessModal } from "./manage-access-modal";
+import { MyWorkWorkspace } from "./my-work-workspace";
 import { cn } from "@/lib/utils";
 
 interface StaffDirectoryViewProps {
@@ -62,12 +67,21 @@ export function StaffDirectoryView({
 }: StaffDirectoryViewProps) {
   const { success, error: toastError } = useToast();
 
-  const [activeTab, setActiveTab] = useState<"directory" | "credentials" | "roles" | "departments">("directory");
+  const [activeTab, setActiveTab] = useState<"directory" | "credentials" | "roles" | "departments" | "my_work">("directory");
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [search, setSearch] = useState("");
   const [selectedDept, setSelectedDept] = useState("ALL");
   const [selectedStatus, setSelectedStatus] = useState("ALL");
   const [selectedType, setSelectedType] = useState("ALL");
+
+  // Roles for access control
+  const [roles, setRoles] = useState<StaffRole[]>([]);
+  const [managingAccessStaff, setManagingAccessStaff] = useState<StaffMember | null>(null);
+  const [targetRoleCodeForMatrix, setTargetRoleCodeForMatrix] = useState<string>("FRONT_DESK");
+
+  React.useEffect(() => {
+    void getRoles().then(setRoles);
+  }, []);
 
   // Modals & Actions
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -282,6 +296,20 @@ export function StaffDirectoryView({
             <Building2 className="w-3.5 h-3.5 text-sky-500" />
             <span>Departments ({departments.length})</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("my_work")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5",
+              activeTab === "my_work"
+                ? "bg-card text-foreground shadow-xs font-black border"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Briefcase className="w-3.5 h-3.5 text-indigo-500" />
+            <span>My Operational Work</span>
+          </button>
         </div>
 
         {/* Action Button & View Switcher */}
@@ -312,6 +340,14 @@ export function StaffDirectoryView({
               </button>
             </div>
           )}
+
+          <Link
+            href="/reports/staff"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-border bg-card hover:bg-muted/60 text-foreground transition-colors shadow-xs"
+          >
+            <TrendingUp className="w-3.5 h-3.5 text-primary" />
+            <span>Operations & Workload</span>
+          </Link>
 
           <Button
             onClick={() => setIsAddOpen(true)}
@@ -524,6 +560,18 @@ export function StaffDirectoryView({
 
                     {/* Department & Role Badge */}
                     <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      {staff.assigned_role ? (
+                        <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                          <Shield className="w-2.5 h-2.5" />
+                          {staff.assigned_role.name}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                          <Shield className="w-2.5 h-2.5" />
+                          Staff Role
+                        </span>
+                      )}
+
                       {staff.department ? (
                         <span className="px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-muted text-foreground border">
                           {staff.department.name}
@@ -577,19 +625,25 @@ export function StaffDirectoryView({
                     </div>
 
                     {/* Bottom Action Row */}
-                    <div className="pt-2 border-t flex items-center justify-between">
-                      <span className="text-[10px] text-muted-foreground font-mono">
-                        Joined: {new Date(staff.created_at).toLocaleDateString(undefined, { month: "short", year: "numeric" })}
-                      </span>
+                    <div className="pt-2 border-t flex items-center justify-between gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-500/10 border-amber-500/30 flex items-center gap-1"
+                        onClick={() => setManagingAccessStaff(staff)}
+                      >
+                        <KeyRound className="w-3 h-3" />
+                        Access
+                      </Button>
 
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 text-xs font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                        className="h-7 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40"
                         onClick={() => setEditingStaff(staff)}
                       >
                         <Edit2 className="w-3 h-3 mr-1" />
-                        Edit Profile
+                        Edit
                       </Button>
                     </div>
                   </div>
@@ -605,6 +659,7 @@ export function StaffDirectoryView({
                     <tr className="border-b bg-muted/50 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                       <th className="py-3 px-4">Employee</th>
                       <th className="py-3 px-4">Code</th>
+                      <th className="py-3 px-4">Role</th>
                       <th className="py-3 px-4">Department</th>
                       <th className="py-3 px-4">Designation</th>
                       <th className="py-3 px-4">Contact</th>
@@ -643,6 +698,16 @@ export function StaffDirectoryView({
                           <code className="text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-mono">
                             {staff.employee_code}
                           </code>
+                        </td>
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {staff.assigned_role ? (
+                            <Badge variant="warning" className="text-[10px] font-mono flex items-center gap-1 w-fit">
+                              <Shield className="w-2.5 h-2.5" />
+                              {staff.assigned_role.name}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-xs italic">Staff</span>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {staff.department ? (
@@ -690,11 +755,20 @@ export function StaffDirectoryView({
                             {staff.is_active ? "Active" : "Off Duty"}
                           </button>
                         </td>
-                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <td className="py-3.5 px-4 text-right whitespace-nowrap space-x-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-500/10 border-amber-500/30"
+                            onClick={() => setManagingAccessStaff(staff)}
+                          >
+                            <KeyRound className="w-3 h-3 mr-1" />
+                            Access
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 text-xs font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                            className="h-7 text-xs font-bold text-muted-foreground hover:text-foreground"
                             onClick={() => setEditingStaff(staff)}
                           >
                             <Edit2 className="w-3.5 h-3.5 mr-1" />
@@ -721,7 +795,13 @@ export function StaffDirectoryView({
       )}
 
       {/* ── 5. TAB 3: ROLES & PERMISSIONS MATRIX ── */}
-      {activeTab === "roles" && <RolePermissionMatrix />}
+      {activeTab === "roles" && (
+        <RolePermissionMatrix
+          propertyId={propertyId}
+          initialSelectedRoleCode={targetRoleCodeForMatrix}
+          onPermissionsUpdated={onRefresh}
+        />
+      )}
 
       {/* ── 6. TAB 4: DEPARTMENTS & UNITS ── */}
       {activeTab === "departments" && (
@@ -757,6 +837,12 @@ export function StaffDirectoryView({
         </div>
       )}
 
+      {activeTab === "my_work" && (
+        <div className="pt-2">
+          <MyWorkWorkspace />
+        </div>
+      )}
+
       {/* ── Modals ── */}
       <AddStaffModal
         isOpen={isAddOpen}
@@ -774,6 +860,21 @@ export function StaffDirectoryView({
           propertyId={propertyId}
           departments={departments}
           onSuccess={onRefresh}
+        />
+      )}
+
+      {managingAccessStaff && (
+        <ManageAccessModal
+          isOpen={!!managingAccessStaff}
+          onClose={() => setManagingAccessStaff(null)}
+          staff={managingAccessStaff}
+          propertyId={propertyId}
+          roles={roles}
+          onRoleUpdated={onRefresh}
+          onOpenPermissionMatrix={(roleCode) => {
+            setTargetRoleCodeForMatrix(roleCode);
+            setActiveTab("roles");
+          }}
         />
       )}
     </div>

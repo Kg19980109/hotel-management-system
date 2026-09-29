@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { GuestQrCode, GuestSession } from "@/lib/guest-portal/types";
 import { getGuestQrCodes, getGuestSessions } from "@/lib/guest-portal/queries";
 import { QrManagerView } from "@/components/qr/qr-manager-view";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 interface RoomRow {
   id: string;
@@ -19,6 +20,14 @@ interface RoomRow {
 }
 
 export default function QrServicesPage() {
+  return (
+    <RoutePermissionGuard permission="qr_services.view" moduleName="QR Guest Services Hub">
+      <QrServicesContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function QrServicesContent() {
   const { currentProperty, loading: authLoading } = useAuth();
   const propertyId = currentProperty?.property_id;
   const propertyName = currentProperty?.property_name || "StayHub Hotel";

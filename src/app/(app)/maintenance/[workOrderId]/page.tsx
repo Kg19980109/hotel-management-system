@@ -15,8 +15,17 @@ import {
 import { MaintenanceWorkOrder } from "@/lib/maintenance/types";
 import { WorkOrderDetailClient } from "./work-order-detail-client";
 import { ArrowLeft } from "lucide-react";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function WorkOrderDetailPage() {
+  return (
+    <RoutePermissionGuard permission="maintenance.view" moduleName="Work Order Details">
+      <WorkOrderDetailContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function WorkOrderDetailContent() {
   const params = useParams();
   const workOrderId = params?.workOrderId as string;
   const { currentProperty, loading: authLoading } = useAuth();

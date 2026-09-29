@@ -16,8 +16,17 @@ import {
 } from "@/lib/guest-services/types";
 import { StaffGuestRequestDetailView } from "@/components/guest-requests/guest-request-detail-view";
 import { getPropertyStaff } from "@/lib/maintenance/queries";
+import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
 export default function GuestRequestDetailPage() {
+  return (
+    <RoutePermissionGuard permission="guest_requests.view" moduleName="Guest Request Details">
+      <GuestRequestDetailContent />
+    </RoutePermissionGuard>
+  );
+}
+
+function GuestRequestDetailContent() {
   const params = useParams();
   const requestId = params?.requestId as string;
   const { currentProperty, loading: authLoading } = useAuth();

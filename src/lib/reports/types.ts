@@ -633,16 +633,115 @@ export interface SupplierReportData {
 }
 
 // ------------------------------------------------------------
-// Staff & Attendance Report
+// Staff Performance, Workload & History Analytics Report (Phase 5)
 // ------------------------------------------------------------
+export interface StaffWorkItem {
+  id: string;
+  domain: "HOUSEKEEPING" | "MAINTENANCE" | "GUEST_REQUEST";
+  title: string;
+  roomNumber?: string | null;
+  status: string;
+  priority: string;
+  assignedAt?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  durationMinutes?: number | null;
+  notes?: string | null;
+}
+
+export interface StaffWorkloadRow {
+  staffId: string;
+  profileId?: string | null;
+  authUserId?: string | null;
+  fullName: string;
+  employeeCode: string;
+  department: string;
+  departmentId?: string | null;
+  designation: string;
+  role: string;
+  status: string;
+  attendanceToday: "PRESENT" | "ABSENT" | "LATE" | "ON_LEAVE" | "NOT_LOGGED";
+  assignedCount: number;
+  inProgressCount: number;
+  completedPeriodCount: number;
+  openPendingCount: number;
+  avgDurationMinutes?: number | null;
+}
+
+export interface DepartmentOperationalMetrics {
+  department: "HOUSEKEEPING" | "MAINTENANCE" | "GUEST_REQUESTS" | "KITCHEN";
+  name: string;
+  assigned: number;
+  inProgress: number;
+  completedPeriod: number;
+  pendingOrOpen: number;
+  avgDurationMinutes?: number | null;
+  details?: Record<string, number | string>;
+}
+
+export interface KitchenStationMetrics {
+  station: string;
+  activeTickets: number;
+  preparingCount: number;
+  readyCount: number;
+  completedPeriodCount: number;
+  avgPrepDurationMinutes?: number | null;
+}
+
+export interface IndividualStaffAnalytics {
+  staffId: string;
+  profileId?: string | null;
+  authUserId?: string | null;
+  fullName: string;
+  employeeCode: string;
+  department: string;
+  designation: string;
+  role: string;
+  employmentType: string;
+  employmentStatus: string;
+  accountStatus: string;
+  phone?: string | null;
+  email?: string | null;
+  joiningDate?: string | null;
+  workloadSummary: {
+    assigned: number;
+    inProgress: number;
+    completedPeriod: number;
+    openPending: number;
+    avgCompletionMinutes?: number | null;
+  };
+  attendanceSummary: {
+    presentDays: number;
+    absentDays: number;
+    lateDays: number;
+    leaveDays: number;
+    totalDays: number;
+    attendanceRate: number;
+  };
+  workHistory: StaffWorkItem[];
+  recentAttendance: Array<{
+    date: string;
+    checkInAt?: string | null;
+    checkOutAt?: string | null;
+    status: string;
+    source?: string | null;
+    notes?: string | null;
+  }>;
+}
+
 export interface StaffReportData {
   summary: {
+    totalStaffCount: number;
     activeStaffCount: number;
     presentCount: number;
     absentCount: number;
     lateCount: number;
     onLeaveCount: number;
     overallAttendanceRate: ComparisonMetric<number>;
+    currentlyAssignedCount: number;
+    currentlyInProgressCount: number;
+    completedPeriodCount: number;
+    openPendingCount: number;
   };
   byDepartment: Array<{
     departmentId: string;
@@ -652,6 +751,9 @@ export interface StaffReportData {
     absent: number;
     attendanceRate: number;
   }>;
+  operationalDepartments: DepartmentOperationalMetrics[];
+  kitchenStations: KitchenStationMetrics[];
+  workloadRows: StaffWorkloadRow[];
   dailyAttendance: Array<{
     date: string;
     scheduled: number;

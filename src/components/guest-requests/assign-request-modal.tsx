@@ -5,14 +5,23 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { StaffGuestServiceRequest } from "@/lib/guest-services/types";
 import { staffAssignGuestRequestAction } from "@/lib/guest-services/actions";
-import { UserCheck, Loader2 } from "lucide-react";
+import { UserCheck, Loader2, Filter } from "lucide-react";
+
+export interface AssignableStaffMember {
+  id: string;
+  full_name: string;
+  email?: string;
+  department_code?: string;
+  department_name?: string;
+  designation?: string;
+}
 
 interface AssignRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   request: StaffGuestServiceRequest;
   propertyId: string;
-  staffMembers: { id: string; full_name: string; email: string }[];
+  staffMembers: AssignableStaffMember[];
   onAssigned: () => void;
 }
 
@@ -24,7 +33,7 @@ const DEPARTMENTS = [
   { value: "LAUNDRY", label: "Laundry" },
   { value: "SPA", label: "Spa" },
   { value: "TRANSPORT", label: "Transport" },
-  { value: "RESTAURANT", label: "Restaurant" },
+  { value: "RESTAURANT", label: "Restaurant / F&B" },
   { value: "MANAGEMENT", label: "Management" },
   { value: "OTHER", label: "Other" },
 ];
@@ -42,8 +51,48 @@ export function AssignRequestModal({
     request.assigned_department || request.category || ""
   );
   const [notes, setNotes] = React.useState<string>("");
+  const [showAllStaff, setShowAllStaff] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  // Filter out any synthetic/mock test users
+  const cleanStaff = React.useMemo(() => {
+    return staffMembers.filter((s) => {
+      const name = (s.full_name || "").toLowerCase();
+      const email = (s.email || "").toLowerCase();
+      if (name.startsWith("billing-") || name.startsWith("test-") || email.startsWith("billing-") || email.startsWith("test-")) {
+        return false;
+      }
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(name) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(email)) {
+        return false;
+      }
+      return true;
+    });
+  }, [staffMembers]);
+
+  // Filter by selected department if active and not showing all
+  const displayedStaff = React.useMemo(() => {
+    if (!department || showAllStaff) return cleanStaff;
+
+    const deptUpper = department.toUpperCase();
+    const filtered = cleanStaff.filter((s) => {
+      const sDeptCode = (s.department_code || "").toUpperCase();
+      const sDeptName = (s.department_name || "").toUpperCase();
+      return (
+        sDeptCode === deptUpper ||
+        sDeptName === deptUpper ||
+        (deptUpper === "HOUSEKEEPING" && (sDeptCode.includes("HK") || sDeptName.includes("HOUSEKEEP"))) ||
+        (deptUpper === "MAINTENANCE" && (sDeptCode.includes("MAINT") || sDeptCode.includes("ENG") || sDeptName.includes("ENG"))) ||
+        (deptUpper === "FRONT_DESK" && (sDeptCode.includes("FD") || sDeptName.includes("FRONT")))
+      );
+    });
+
+    // If no staff match the department, fallback to showing all so the user is not stuck
+    if (filtered.length === 0) {
+      return cleanStaff;
+    }
+    return filtered;
+  }, [cleanStaff, department, showAllStaff]);
 
   const handleAssign = async () => {
     setLoading(true);
@@ -103,21 +152,41 @@ export function AssignRequestModal({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider mb-1.5">
-            Assign Staff Member
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-semibold text-[var(--foreground)] uppercase tracking-wider">
+              Assign Staff Member
+            </label>
+            {department && cleanStaff.length > displayedStaff.length && (
+              <button
+                type="button"
+                onClick={() => setShowAllStaff(!showAllStaff)}
+                className="text-[11px] text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+              >
+                <Filter className="w-3 h-3" />
+                {showAllStaff ? "Filter by Department" : `Show all staff (${cleanStaff.length})`}
+              </button>
+            )}
+          </div>
           <select
             value={assignedTo}
             onChange={(e) => setAssignedTo(e.target.value)}
             className="stayhub-input-base h-10 text-sm"
           >
             <option value="UNASSIGNED">-- Unassigned (Department Only) --</option>
-            {staffMembers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.full_name} ({s.email})
-              </option>
-            ))}
+            {displayedStaff.map((s) => {
+              const designationStr = s.designation ? ` (${s.designation})` : s.department_name ? ` (${s.department_name})` : "";
+              return (
+                <option key={s.id} value={s.id}>
+                  {s.full_name}{designationStr}
+                </option>
+              );
+            })}
           </select>
+          {department && !showAllStaff && displayedStaff.length > 0 && displayedStaff.length < cleanStaff.length && (
+            <p className="text-[11px] text-slate-500 mt-1">
+              Showing {displayedStaff.length} staff members in {department.replace("_", " ")}.
+            </p>
+          )}
         </div>
 
         <div>

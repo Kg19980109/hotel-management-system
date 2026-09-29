@@ -43,7 +43,14 @@ import { useAuth } from "@/lib/auth/context";
 interface GuestRequestsBoardProps {
   propertyId: string;
   requests: StaffGuestServiceRequest[];
-  staffMembers: { id: string; full_name: string; email: string }[];
+  staffMembers: {
+    id: string;
+    full_name: string;
+    email: string;
+    department_code?: string;
+    department_name?: string;
+    designation?: string;
+  }[];
   onRefresh: () => void;
   hideTopKpiGrid?: boolean;
 }

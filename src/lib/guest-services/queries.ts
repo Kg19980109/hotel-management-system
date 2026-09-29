@@ -106,7 +106,7 @@ export async function getStaffGuestServiceRequests(
       guest:guests(id, first_name, last_name, email, phone),
       room:rooms(id, room_number),
       stay:stays(id, status, actual_check_in_at, expected_check_out_date),
-      assignee:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
+      assigned_staff:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
     `
     )
     .eq("property_id", propertyId)
@@ -173,7 +173,7 @@ export async function getStaffGuestServiceRequestDetail(
       guest:guests(id, first_name, last_name, email, phone),
       room:rooms(id, room_number),
       stay:stays(id, status, actual_check_in_at, expected_check_out_date),
-      assignee:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
+      assigned_staff:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
     `
     )
     .eq("property_id", propertyId)

@@ -58,6 +58,8 @@ export interface GuestServiceRequestDetail {
   description?: string | null;
   priority: ServiceRequestPriority;
   status: ServiceRequestStatus;
+  assigned_staff_name?: string | null;
+  assigned_department?: string | null;
   guest_visible_notes?: string | null;
   requested_at: string;
   acknowledged_at?: string | null;

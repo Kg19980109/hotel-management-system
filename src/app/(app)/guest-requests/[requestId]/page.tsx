@@ -36,7 +36,14 @@ function GuestRequestDetailContent() {
   const [error, setError] = React.useState<string | null>(null);
   const [request, setRequest] = React.useState<StaffGuestServiceRequest | null>(null);
   const [events, setEvents] = React.useState<StaffGuestServiceRequestEvent[]>([]);
-  const [staff, setStaff] = React.useState<{ id: string; full_name: string; email: string }[]>([]);
+  const [staff, setStaff] = React.useState<{
+    id: string;
+    full_name: string;
+    email: string;
+    department_code?: string;
+    department_name?: string;
+    designation?: string;
+  }[]>([]);
 
   const loadData = React.useCallback(async () => {
     if (!activePropertyId || !requestId) return;
@@ -61,8 +68,11 @@ function GuestRequestDetailContent() {
       setStaff(
         staffData.map((s) => ({
           id: s.id,
-          full_name: s.fullName || s.email,
+          full_name: s.fullName,
           email: s.email,
+          department_code: s.departmentCode,
+          department_name: s.departmentName,
+          designation: s.designation,
         }))
       );
     } catch (err: unknown) {

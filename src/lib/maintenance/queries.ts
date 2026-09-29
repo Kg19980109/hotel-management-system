@@ -17,6 +17,9 @@ export interface StaffOption {
   fullName: string;
   email: string;
   role: string;
+  departmentCode?: string;
+  departmentName?: string;
+  designation?: string;
 }
 
 export interface RoomOption {
@@ -393,51 +396,108 @@ export async function getPropertyStaff(
     }
   }
 
-  const options: StaffOption[] = [];
-  const seen = new Set<string>();
-
-  for (const p of profileRows) {
-    if (seen.has(p.id)) continue;
-    seen.add(p.id);
-    options.push({
-      id: p.id,
-      fullName: p.full_name || p.email || "Staff Member",
-      email: p.email || "",
-      role: roleByUserId.get(p.auth_user_id) || "STAFF",
-    });
-  }
-
-  // Memberships without a profiles row (e.g. seed/test accounts) — still assignable by auth uid
-  for (const uid of userIds) {
-    if (profileRows.some((p) => p.auth_user_id === uid)) continue;
-    const key = `uid:${uid}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    options.push({
-      id: uid,
-      fullName: `Staff (${uid.slice(0, 8)})`,
-      email: "",
-      role: roleByUserId.get(uid) || "STAFF",
-    });
-  }
-
-  // HR directory staff (may not have logins yet) — RPC validates staff_members too
+  // HR directory staff (with departments and designations)
   const { data: directory } = await supabase
     .from("staff_members")
-    .select("id, first_name, last_name, display_name, email")
+    .select("id, profile_id, first_name, last_name, display_name, email, designation, department:staff_departments(name, department_code)")
     .eq("property_id", propertyId)
     .eq("is_active", true)
     .limit(100);
 
-  for (const s of (directory || []) as { id: string; first_name?: string | null; last_name?: string | null; display_name?: string | null; email?: string | null }[]) {
-    if (seen.has(s.id)) continue;
-    seen.add(s.id);
+  const dirList = (directory || []) as {
+    id: string;
+    profile_id?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+    display_name?: string | null;
+    email?: string | null;
+    designation?: string | null;
+    department?: { name?: string; department_code?: string } | null;
+  }[];
+
+  const dirByProfileId = new Map<string, (typeof dirList)[0]>();
+  const dirByEmail = new Map<string, (typeof dirList)[0]>();
+  for (const s of dirList) {
+    if (s.profile_id) dirByProfileId.set(s.profile_id, s);
+    if (s.email) dirByEmail.set(s.email.toLowerCase(), s);
+  }
+
+  const isTestAccount = (name: string, email: string): boolean => {
+    const n = (name || "").toLowerCase();
+    const e = (email || "").toLowerCase();
+    if (n.startsWith("billing-") || n.startsWith("test-") || e.startsWith("billing-") || e.startsWith("test-")) {
+      return true;
+    }
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(n) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/i.test(e)) {
+      return true;
+    }
+    return false;
+  };
+
+  const options: StaffOption[] = [];
+  const seen = new Set<string>();
+
+  for (const p of profileRows) {
+    if (isTestAccount(p.full_name || "", p.email || "")) continue;
+    if (seen.has(p.id)) continue;
+    seen.add(p.id);
+
+    const dir = dirByProfileId.get(p.id) || (p.email ? dirByEmail.get(p.email.toLowerCase()) : undefined);
+    const name =
+      dir?.display_name ||
+      `${dir?.first_name || ""} ${dir?.last_name || ""}`.trim() ||
+      p.full_name ||
+      p.email ||
+      "Staff Member";
+
+    options.push({
+      id: p.id,
+      fullName: name,
+      email: p.email || dir?.email || "",
+      role: roleByUserId.get(p.auth_user_id) || "STAFF",
+      departmentCode: dir?.department?.department_code,
+      departmentName: dir?.department?.name,
+      designation: dir?.designation || undefined,
+    });
+  }
+
+  // HR directory staff without profiles linked yet
+  for (const s of dirList) {
+    const staffId = s.profile_id || s.id;
+    if (seen.has(staffId)) continue;
+    seen.add(staffId);
+
     const name =
       s.display_name ||
       `${s.first_name || ""} ${s.last_name || ""}`.trim() ||
       s.email ||
       "Staff Member";
-    options.push({ id: s.id, fullName: name, email: s.email || "", role: "STAFF" });
+
+    if (isTestAccount(name, s.email || "")) continue;
+
+    options.push({
+      id: staffId,
+      fullName: name,
+      email: s.email || "",
+      role: "STAFF",
+      departmentCode: s.department?.department_code,
+      departmentName: s.department?.name,
+      designation: s.designation || undefined,
+    });
+  }
+
+  // If after filtering everything is empty (e.g. test environment with only test users), fallback
+  if (options.length === 0 && profileRows.length > 0) {
+    for (const p of profileRows) {
+      if (seen.has(p.id)) continue;
+      seen.add(p.id);
+      options.push({
+        id: p.id,
+        fullName: p.full_name || p.email || "Staff Member",
+        email: p.email || "",
+        role: roleByUserId.get(p.auth_user_id) || "STAFF",
+      });
+    }
   }
 
   return options.sort((a, b) => a.fullName.localeCompare(b.fullName));

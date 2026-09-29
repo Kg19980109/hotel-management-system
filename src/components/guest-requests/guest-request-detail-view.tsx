@@ -37,7 +37,14 @@ interface GuestRequestDetailViewProps {
   propertyId: string;
   request: StaffGuestServiceRequest;
   events: StaffGuestServiceRequestEvent[];
-  staffMembers: { id: string; full_name: string; email: string }[];
+  staffMembers: {
+    id: string;
+    full_name: string;
+    email: string;
+    department_code?: string;
+    department_name?: string;
+    designation?: string;
+  }[];
 }
 
 export function StaffGuestRequestDetailView({

@@ -182,12 +182,16 @@ export async function getGuestRequestLiveStatusAction(requestId: string) {
   const r = data.request as {
     status: string;
     guest_visible_notes?: string | null;
+    assigned_staff_name?: string | null;
+    assigned_department?: string | null;
     events?: { id?: string; to_status?: string; created_at?: string }[];
   };
   return {
     success: true as const,
     status: r.status,
     guest_visible_notes: r.guest_visible_notes ?? null,
+    assigned_staff_name: r.assigned_staff_name ?? null,
+    assigned_department: r.assigned_department ?? null,
     eventCount: r.events?.length ?? 0,
     lastEvent: r.events?.[r.events.length - 1]?.to_status ?? null,
   };

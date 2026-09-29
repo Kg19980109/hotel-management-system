@@ -79,6 +79,8 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
   const router = useRouter();
   const [currentStatus, setCurrentStatus] = React.useState<ServiceRequestStatus>(request.status);
   const [guestNotes, setGuestNotes] = React.useState<string | null | undefined>(request.guest_visible_notes);
+  const [assignedStaffName, setAssignedStaffName] = React.useState<string | null | undefined>(request.assigned_staff_name);
+  const [assignedDepartment, setAssignedDepartment] = React.useState<string | null | undefined>(request.assigned_department);
   const [isCancelling, setIsCancelling] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
@@ -149,6 +151,8 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
             router.refresh(); // pull fresh timeline events only when status changes
           }
           if (res.guest_visible_notes !== undefined) setGuestNotes(res.guest_visible_notes);
+          if (res.assigned_staff_name !== undefined) setAssignedStaffName(res.assigned_staff_name);
+          if (res.assigned_department !== undefined) setAssignedDepartment(res.assigned_department);
         }
       } catch {
         // offline — next tick retries
@@ -381,6 +385,43 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
           )}
         </div>
 
+        {/* ── 2B. ASSIGNED SERVICE SPECIALIST / BUTLER CARD ── */}
+        {assignedStaffName && ["ASSIGNED", "IN_PROGRESS", "COMPLETED"].includes(currentStatus) && (
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-[#0B1526] via-[#101E35] to-[#0A1424] border border-[#D4AF37]/35 shadow-md flex items-center justify-between gap-3 text-white">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#AA7C11] text-[#0B1526] flex items-center justify-center font-bold shadow-md shadow-[#D4AF37]/20 shrink-0">
+                  <UserCheck className="w-5 h-5 text-[#0B1526] stroke-[2.2]" />
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0B1526]" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] uppercase font-bold text-[#E4C980] tracking-wider">
+                    Assigned Specialist
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-semibold">
+                    Attendant Assigned
+                  </span>
+                </div>
+                <p className="text-sm font-serif font-bold text-white leading-tight">
+                  {assignedStaffName}
+                </p>
+                <p className="text-[10px] text-slate-300">
+                  {assignedDepartment ? `${assignedDepartment.replace("_", " ")} Department` : CATEGORY_NAME_MAP[request.category]}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right shrink-0">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/30 text-[#E4C980] text-[10px] font-bold">
+                <Zap className="w-3 h-3 text-[#D4AF37]" />
+                <span>Active Duty</span>
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* ── 3. 5-STAR CONCIERGE LIVE CHAT & DIALOGUE ROOM ── */}
         <div className="rounded-3xl bg-gradient-to-b from-[#0B1526] via-[#0F1D33] to-[#0B1526] border border-[#D4AF37]/30 shadow-xl overflow-hidden">
           {/* Chat Room Header */}
@@ -526,7 +567,9 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
               } else if (evt.to_status === "ASSIGNED") {
                 statusEmoji = "👤";
                 statusHeadline = "Specialist Assigned";
-                statusDesc = "A dedicated staff member is assigned to Suite " + request.room_number + ".";
+                statusDesc = assignedStaffName
+                  ? `${assignedStaffName} has been assigned to assist Suite ${request.room_number}.`
+                  : "A dedicated staff member is assigned to Suite " + request.room_number + ".";
               } else if (evt.to_status === "IN_PROGRESS") {
                 statusEmoji = "⚡";
                 statusHeadline = "Service in Progress";

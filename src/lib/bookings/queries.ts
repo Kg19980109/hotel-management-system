@@ -123,22 +123,36 @@ export async function fetchBookings(
   }
 
   // Date Range Presets
-  const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
+  let todayStr: string;
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    todayStr = formatter.format(new Date());
+  } catch {
+    const d = new Date();
+    todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
 
   if (options.datePreset === "TODAY") {
     query = query.or(`check_in_date.eq.${todayStr},check_out_date.eq.${todayStr}`);
   } else if (options.datePreset === "TOMORROW") {
-    const tomorrow = new Date(now.getTime() + 86400000);
-    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+    const [y, m, d] = todayStr.split("-").map(Number);
+    const tomorrow = new Date(y, m - 1, d + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
     query = query.or(`check_in_date.eq.${tomorrowStr},check_out_date.eq.${tomorrowStr}`);
   } else if (options.datePreset === "NEXT_7_DAYS") {
-    const nextWeek = new Date(now.getTime() + 7 * 86400000);
-    const nextWeekStr = nextWeek.toISOString().split("T")[0];
+    const [y, m, d] = todayStr.split("-").map(Number);
+    const nextWeek = new Date(y, m - 1, d + 7);
+    const nextWeekStr = `${nextWeek.getFullYear()}-${String(nextWeek.getMonth() + 1).padStart(2, "0")}-${String(nextWeek.getDate()).padStart(2, "0")}`;
     query = query.gte("check_in_date", todayStr).lte("check_in_date", nextWeekStr);
   } else if (options.datePreset === "NEXT_30_DAYS") {
-    const nextMonth = new Date(now.getTime() + 30 * 86400000);
-    const nextMonthStr = nextMonth.toISOString().split("T")[0];
+    const [y, m, d] = todayStr.split("-").map(Number);
+    const nextMonth = new Date(y, m - 1, d + 30);
+    const nextMonthStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, "0")}-${String(nextMonth.getDate()).padStart(2, "0")}`;
     query = query.gte("check_in_date", todayStr).lte("check_in_date", nextMonthStr);
   } else if (options.datePreset === "CUSTOM" && options.startDate && options.endDate) {
     query = query.gte("check_in_date", options.startDate).lte("check_out_date", options.endDate);

@@ -13,13 +13,35 @@ import type {
 } from "./types";
 
 /**
+ * Returns today's date in YYYY-MM-DD for a specific timezone (defaults to Asia/Kolkata)
+ */
+export function getLocalTodayDateString(timezone: string = "Asia/Kolkata"): string {
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    return formatter.format(new Date());
+  } catch {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+}
+
+/**
  * Fetch real-time Front Desk operational KPIs
  */
 export async function fetchFrontDeskKPIs(
   supabase: SupabaseClient,
-  propertyId: string
+  propertyId: string,
+  timezone: string = "Asia/Kolkata"
 ): Promise<FrontDeskKPIStats> {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalTodayDateString(timezone);
 
   // 1. Fetch Rooms operational breakdown
   const { data: rooms, error: roomErr } = await supabase
@@ -60,7 +82,7 @@ export async function fetchFrontDeskKPIs(
   const inHouseGuests = activeStays.reduce((acc, s) => acc + (s.adults || 1) + (s.children || 0), 0);
   const todayDepartures = activeStays.filter((s) => s.expected_check_out_date <= todayStr).length;
 
-  // 3. Fetch Expected Arrivals for today (excluding already checked in)
+  // 3. Fetch Expected Arrivals for today (including any pending check-ins on or before today)
   const { data: arrivals, error: arrErr } = await supabase
     .from("reservations")
     .select(`
@@ -71,7 +93,7 @@ export async function fetchFrontDeskKPIs(
     `)
     .eq("property_id", propertyId)
     .eq("status", "CONFIRMED")
-    .eq("check_in_date", todayStr);
+    .lte("check_in_date", todayStr);
 
   if (arrErr) {
     console.error("fetchFrontDeskKPIs arrivals error:", arrErr);
@@ -106,9 +128,10 @@ export async function fetchFrontDeskKPIs(
  */
 export async function fetchTodayArrivals(
   supabase: SupabaseClient,
-  propertyId: string
+  propertyId: string,
+  timezone: string = "Asia/Kolkata"
 ): Promise<ArrivalRecord[]> {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalTodayDateString(timezone);
 
   const { data, error } = await supabase
     .from("reservation_rooms")
@@ -218,9 +241,10 @@ export async function fetchTodayArrivals(
  */
 export async function fetchTodayDepartures(
   supabase: SupabaseClient,
-  propertyId: string
+  propertyId: string,
+  timezone: string = "Asia/Kolkata"
 ): Promise<DepartureRecord[]> {
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalTodayDateString(timezone);
 
   const { data, error } = await supabase
     .from("stays")

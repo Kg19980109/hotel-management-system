@@ -109,10 +109,21 @@ export async function queryRoomInventorySummary(
 export async function queryTodayArrivals(
   supabase: SupabaseClient,
   propertyId: string,
-  timezone: string
+  timezone: string = "Asia/Kolkata"
 ): Promise<ArrivalItem[]> {
-  void timezone;
-  const todayStr = new Date().toISOString().split("T")[0];
+  let todayStr: string;
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone || "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    todayStr = formatter.format(new Date());
+  } catch {
+    const d = new Date();
+    todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
 
   try {
     const { data, error } = await supabase
@@ -133,7 +144,7 @@ export async function queryTodayArrivals(
         )
       `)
       .eq("property_id", propertyId)
-      .eq("check_in_date", todayStr)
+      .lte("check_in_date", todayStr)
       .in("status", ["CONFIRMED", "PENDING"])
       .order("created_at", { ascending: true })
       .limit(20);
@@ -161,7 +172,7 @@ export async function queryTodayArrivals(
 
     // Exclude any reservation that already has an active checked-in stay
     const unCheckedInArrivals = rows.filter((r) => {
-      const isAlreadyCheckedIn = r.stays?.some((s) => s.status === "CHECKED_IN");
+      const isAlreadyCheckedIn = r.stays?.some((s) => s.status === "CHECKED_IN" || s.status === "CHECKED_OUT" || s.status === "NO_SHOW");
       return !isAlreadyCheckedIn;
     });
 
@@ -193,10 +204,21 @@ export async function queryTodayArrivals(
 export async function queryTodayDepartures(
   supabase: SupabaseClient,
   propertyId: string,
-  timezone: string
+  timezone: string = "Asia/Kolkata"
 ): Promise<DepartureItem[]> {
-  void timezone;
-  const todayStr = new Date().toISOString().split("T")[0];
+  let todayStr: string;
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone || "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    todayStr = formatter.format(new Date());
+  } catch {
+    const d = new Date();
+    todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
 
   try {
     const { data, error } = await supabase
@@ -213,7 +235,7 @@ export async function queryTodayDepartures(
         )
       `)
       .eq("property_id", propertyId)
-      .eq("check_out_date", todayStr)
+      .lte("check_out_date", todayStr)
       .in("status", ["CONFIRMED", "PENDING"])
       .order("created_at", { ascending: true })
       .limit(10);

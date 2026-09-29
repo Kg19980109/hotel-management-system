@@ -533,8 +533,8 @@ export function BookingMonthlyCalendar({
               <span className="text-amber-600 dark:text-amber-400">Sat</span>
             </div>
 
-            {/* 7-Column Day Grid */}
-            <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-800">
+            {/* 7-Column Day Card Matrix */}
+            <div className="grid grid-cols-7 gap-1.5 p-2 bg-slate-50/80 dark:bg-slate-950/50">
               {calendarDays.map((cell) => {
                 const dayData = bookingsByDate[cell.dateStr] || {
                   arrivals: [],
@@ -560,11 +560,13 @@ export function BookingMonthlyCalendar({
                       }
                     }}
                     className={cn(
-                      "min-h-[86px] p-1.5 sm:p-2 transition-all duration-150 cursor-pointer flex flex-col justify-between group relative select-none",
-                      !cell.isCurrentMonth && "bg-slate-50/40 dark:bg-slate-950/40 opacity-40 hover:opacity-80",
-                      cell.isCurrentMonth && "bg-white dark:bg-slate-900 hover:bg-amber-50/30 dark:hover:bg-slate-800/50",
-                      cell.isSelected && "ring-2 ring-amber-500 bg-amber-50/40 dark:bg-amber-950/30 z-10 shadow-md",
-                      cell.isToday && "bg-gradient-to-br from-amber-100/50 via-amber-50/20 to-transparent dark:from-amber-950/40"
+                      "min-h-[88px] p-2 rounded-xl transition-all duration-150 cursor-pointer flex flex-col justify-between group relative select-none border",
+                      !cell.isCurrentMonth
+                        ? "bg-slate-100/40 dark:bg-slate-900/30 border-transparent opacity-40 hover:opacity-80"
+                        : "bg-white dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700/60 hover:border-amber-300 hover:shadow-xs",
+                      cell.isSelected &&
+                        "border-2 border-amber-500 bg-gradient-to-b from-amber-50/90 via-white to-amber-50/40 dark:from-amber-950/70 dark:via-slate-800 dark:to-amber-950/50 shadow-md shadow-amber-500/15 scale-[1.01] z-10",
+                      cell.isToday && !cell.isSelected && "border-amber-400 bg-amber-50/25 dark:bg-amber-950/20"
                     )}
                   >
                     {/* Cell Top: Date Number & Count Badges */}
@@ -573,9 +575,9 @@ export function BookingMonthlyCalendar({
                         className={cn(
                           "h-5 w-5 rounded-full flex items-center justify-center text-[11px] font-black transition-all",
                           cell.isToday
-                            ? "bg-amber-500 text-slate-950 font-black shadow-md ring-2 ring-amber-400/50 scale-105"
+                            ? "bg-amber-500 text-slate-950 font-black shadow-xs ring-2 ring-amber-400/40"
                             : cell.isSelected
-                            ? "bg-indigo-600 text-white font-black shadow-xs scale-105"
+                            ? "bg-slate-950 dark:bg-white text-white dark:text-slate-950 font-black shadow-xs"
                             : "text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400"
                         )}
                       >
@@ -590,7 +592,7 @@ export function BookingMonthlyCalendar({
                           {dayData.departures.length > 0 && (
                             <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-xs" title={`${dayData.departures.length} departures`} />
                           )}
-                          <span className="text-[9px] font-black px-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
+                          <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
                             {totalBookingsCount}
                           </span>
                         </div>
@@ -652,7 +654,7 @@ export function BookingMonthlyCalendar({
                     </div>
 
                     {/* Bottom Day Indicator Pills */}
-                    <div className="flex items-center justify-between text-[8px] font-extrabold text-slate-400 pt-0.5 border-t border-slate-100 dark:border-slate-800/80">
+                    <div className="flex items-center justify-between text-[8px] font-extrabold text-slate-400 pt-0.5 border-t border-slate-100 dark:border-slate-700/60">
                       <span className="text-emerald-600 dark:text-emerald-400">
                         {dayData.arrivals.length > 0 ? `↓ ${dayData.arrivals.length} In` : ""}
                       </span>

@@ -74,19 +74,16 @@ export function AppShell({ children, contentWidth = "default" }: AppShellProps) 
           onOpenMobileNav={() => setMobileNavOpen(true)}
         />
 
-        {/* Main Content Area — GPU-composited layer for butter-smooth scroll */}
+        {/* Main Content Area */}
         <main
           className={cn(
-            "flex-1 pt-[var(--topbar-height)] will-change-[margin-left]",
-            /* Use faster ease-out for snappier sidebar toggle feel */
-            "transition-[margin-left] duration-200 ease-out",
+            "flex-1 pt-[var(--topbar-height)] transition-[margin-left] duration-300 ease-in-out",
             isLargeScreen
               ? collapsed
                 ? "ml-[var(--sidebar-collapsed-width)]"
                 : "ml-[var(--sidebar-width)]"
               : "ml-0"
           )}
-          style={{ WebkitOverflowScrolling: "touch" }}
         >
           <div className="p-4 sm:p-6 lg:p-8">
             <ContentContainer width={contentWidth}>

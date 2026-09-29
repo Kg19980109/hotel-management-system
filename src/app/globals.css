@@ -212,10 +212,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  /* Smooth scroll only when user hasn't asked to reduce motion */
   scroll-behavior: smooth;
-  /* Prevent content from shifting on scrollbar show/hide */
-  scrollbar-gutter: stable;
 }
 
 body {
@@ -226,75 +223,16 @@ body {
   line-height: 1.5;
   margin: 0;
   padding: 0;
-  /* iOS momentum scrolling */
-  -webkit-overflow-scrolling: touch;
-  /* Prevent scroll chain to document on nested scrollable areas */
-  overscroll-behavior: contain;
 }
 
 /* ============================================================
-   GPU LAYER PROMOTION — Composited layers for fixed elements
-   (eliminates paint storms during scroll)
+   CUSTOM SCROLLBAR
    ============================================================ */
 
-/* Topbar: promote to own compositor layer */
-header[class*="fixed"] {
-  transform: translateZ(0);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-/* Sidebar: always visible, composited to avoid repaint on content scroll */
-aside[class*="fixed"] {
-  transform: translateZ(0);
-  will-change: contents;
-  backface-visibility: hidden;
-}
-
-/* Main content scroll container: hardware-accelerated momentum scroll */
-main {
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-}
-
-/* ============================================================
-   REDUCED MOTION — Respect user accessibility preference
-   ============================================================ */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* ============================================================
-   SCROLL PERFORMANCE — Contain layout during scroll
-   ============================================================ */
-
-/* Prevent layout thrash from heavy off-screen cards */
-.stayhub-card,
-.kpi-card,
-.stayhub-card-hover,
-.stayhub-card-flat {
-  contain: layout style;
-}
-
-/* Calendar grid cells: isolation layer prevents repaint spread */
-[data-calendar-cell] {
-  contain: strict;
-  will-change: background-color, border-color;
-}
-
-/* ============================================================
-   CUSTOM SCROLLBAR — thin & snappy
-   ============================================================ */
-
-::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; transition: background 120ms; }
-::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+::-webkit-scrollbar-thumb { background: #D1D5E0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
 
 /* ============================================================
    FOCUS RING
@@ -372,7 +310,7 @@ main {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--card-shadow);
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  transition: box-shadow var(--transition), border-color var(--transition);
   position: relative;
 }
 
@@ -382,7 +320,7 @@ main {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--card-shadow);
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform 120ms cubic-bezier(0.16,1,0.3,1);
+  transition: all var(--transition);
   position: relative;
   cursor: pointer;
 }
@@ -390,13 +328,7 @@ main {
 .stayhub-card-hover:hover {
   box-shadow: var(--card-shadow-hover);
   border-color: rgba(81,70,229,0.20);
-  transform: translateY(-1px);
-}
-
-/* Active state for instant tactile feel on tap */
-.stayhub-card-hover:active {
-  transform: scale(0.99);
-  transition-duration: 60ms;
+  transform: translateY(-2px);
 }
 
 /* Flat card — no shadow, for list rows */
@@ -463,18 +395,13 @@ main {
   background: var(--card);
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
-  transition: box-shadow var(--transition-fast), border-color var(--transition-fast), transform 120ms cubic-bezier(0.16,1,0.3,1);
+  transition: all var(--transition);
 }
 
 .kpi-card:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: var(--card-shadow-hover);
   border-color: rgba(81,70,229,0.18);
-}
-
-.kpi-card:active {
-  transform: scale(0.99);
-  transition-duration: 60ms;
 }
 
 /* ============================================================
@@ -741,29 +668,3 @@ button, a, input, select, textarea, [role="button"], label {
   opacity: 0.9;
 }
 
-/* ============================================================
-   PASSIVE SCROLL ANCHOR — prevent auto-scroll jumping
-   ============================================================ */
-:root {
-  overflow-anchor: auto;
-}
-
-/* ============================================================
-   CONTENT-VISIBILITY — defer off-screen paint cost
-   ============================================================ */
-.cv-auto {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 200px;
-}
-
-/* ============================================================
-   TRANSITION ACCELERATION — use compositor-only properties
-   (never animate width/height/top/left — use transform instead)
-   ============================================================ */
-.transition-gpu {
-  transition-property: transform, opacity, box-shadow;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  transition-duration: var(--transition-fast);
-  transform: translateZ(0);
-  will-change: transform, opacity;
-}

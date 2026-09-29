@@ -301,7 +301,33 @@ export async function updateRoomAction(
       updates.floor_id = payload.floor_id;
     }
 
-    if (payload.status) updates.status = payload.status;
+    if (payload.status) {
+      if (payload.status !== "OCCUPIED") {
+        const { data: activeStay } = await supabase
+          .from("stays")
+          .select(`
+            id,
+            status,
+            guest:guests(first_name, last_name)
+          `)
+          .eq("property_id", propertyId)
+          .eq("room_id", roomId)
+          .eq("status", "CHECKED_IN")
+          .maybeSingle();
+
+        if (activeStay) {
+          const guestObj = activeStay.guest as unknown as { first_name?: string; last_name?: string } | null;
+          const guestName = guestObj
+            ? `${guestObj.first_name || ""} ${guestObj.last_name || ""}`.trim()
+            : "In-House Guest";
+          return {
+            success: false,
+            error: `Cannot change room status to ${payload.status}: Room currently has an active in-house guest (${guestName}). Please process guest check-out from the Front Desk first.`,
+          };
+        }
+      }
+      updates.status = payload.status;
+    }
     if (payload.housekeeping_status) updates.housekeeping_status = payload.housekeeping_status;
     if (payload.availability_status) updates.availability_status = payload.availability_status;
     if (payload.max_occupancy !== undefined) updates.max_occupancy = payload.max_occupancy;
@@ -323,6 +349,7 @@ export async function updateRoomAction(
     revalidatePath("/rooms");
     revalidatePath(`/rooms/${roomId}`);
     revalidatePath("/dashboard");
+    revalidatePath("/front-desk");
 
     return {
       success: true,
@@ -349,6 +376,23 @@ export async function deactivateRoomAction(
 
     const supabase = await createClient();
 
+    if (deactivate) {
+      const { data: activeStay } = await supabase
+        .from("stays")
+        .select("id")
+        .eq("property_id", propertyId)
+        .eq("room_id", roomId)
+        .eq("status", "CHECKED_IN")
+        .maybeSingle();
+
+      if (activeStay) {
+        return {
+          success: false,
+          error: "Cannot deactivate room: An active in-house guest is currently checked in. Please check out the guest first.",
+        };
+      }
+    }
+
     const { error } = await supabase
       .from("rooms")
       .update({
@@ -364,7 +408,9 @@ export async function deactivateRoomAction(
     }
 
     revalidatePath("/rooms");
+    revalidatePath(`/rooms/${roomId}`);
     revalidatePath("/dashboard");
+    revalidatePath("/front-desk");
 
     return {
       success: true,
@@ -391,6 +437,32 @@ export async function updateRoomStatusAction(
 
     const supabase = await createClient();
 
+    // Check if room currently has an active in-house stay
+    if (status !== "OCCUPIED") {
+      const { data: activeStay } = await supabase
+        .from("stays")
+        .select(`
+          id,
+          status,
+          guest:guests(first_name, last_name)
+        `)
+        .eq("property_id", propertyId)
+        .eq("room_id", roomId)
+        .eq("status", "CHECKED_IN")
+        .maybeSingle();
+
+      if (activeStay) {
+        const guestObj = activeStay.guest as unknown as { first_name?: string; last_name?: string } | null;
+        const guestName = guestObj
+          ? `${guestObj.first_name || ""} ${guestObj.last_name || ""}`.trim()
+          : "In-House Guest";
+        return {
+          success: false,
+          error: `Cannot change status to ${status}: Room currently has an active in-house guest (${guestName}). Please process guest check-out from Front Desk before changing room status.`,
+        };
+      }
+    }
+
     const updates: Record<string, unknown> = {
       status,
       updated_at: new Date().toISOString(),
@@ -414,6 +486,7 @@ export async function updateRoomStatusAction(
     revalidatePath("/rooms");
     revalidatePath(`/rooms/${roomId}`);
     revalidatePath("/dashboard");
+    revalidatePath("/front-desk");
 
     return {
       success: true,

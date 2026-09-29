@@ -161,6 +161,14 @@ export function RoomLiveDetailsModal({
   const rate = room.room_type?.base_rate || 0;
 
   const handleQuickStatusChange = async (newStatus: RoomOperationalStatus) => {
+    if (liveStay && newStatus !== "OCCUPIED") {
+      const guestName = liveStay.guestName || "In-House Guest";
+      alert(
+        `Cannot change status to ${newStatus}: Room currently has an active in-house guest (${guestName}). Please check out the guest from the Front Desk first.`
+      );
+      return;
+    }
+
     setUpdatingStatus(true);
     try {
       const res = await updateRoomStatusAction(propertyId, room.id, newStatus);
@@ -286,22 +294,34 @@ export function RoomLiveDetailsModal({
             <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
               <div className="flex flex-col items-end">
                 <span className="text-[9.5px] font-black uppercase tracking-wider text-white/40 mb-1">
-                  Change Status
+                  {liveStay ? "Status (In-House Guest)" : "Change Status"}
                 </span>
-                <select
-                  disabled={updatingStatus}
-                  value={room.status}
-                  onChange={(e) => handleQuickStatusChange(e.target.value as RoomOperationalStatus)}
-                  className="h-8 text-[11.5px] font-bold rounded-lg px-2.5 bg-slate-900/90 border border-white/20 text-white focus:outline-none focus:border-amber-400 cursor-pointer shadow-sm"
-                >
-                  <option value="AVAILABLE">🟢 Available / Vacant Clean</option>
-                  <option value="OCCUPIED">🟣 Occupied / In-House</option>
-                  <option value="DIRTY">🟠 Dirty / Needs Cleaning</option>
-                  <option value="CLEANING">🔵 Cleaning In Progress</option>
-                  <option value="INSPECTED">✅ Inspected & Approved</option>
-                  <option value="OUT_OF_ORDER">🔴 Out of Order</option>
-                  <option value="OUT_OF_SERVICE">⚪ Out of Service</option>
-                </select>
+                {liveStay ? (
+                  <div
+                    title="Room status is locked while a guest is in-house. Check out the guest to mark room available."
+                    className="h-8 text-[11px] font-bold rounded-lg px-2.5 bg-purple-950/80 border border-purple-500/40 text-purple-200 flex items-center gap-1.5 shadow-sm cursor-not-allowed"
+                  >
+                    <span>🟣 Occupied (In-House)</span>
+                    <span className="text-[10px] bg-purple-500/20 px-1.5 py-0.5 rounded text-purple-300">
+                      Locked
+                    </span>
+                  </div>
+                ) : (
+                  <select
+                    disabled={updatingStatus}
+                    value={room.status}
+                    onChange={(e) => handleQuickStatusChange(e.target.value as RoomOperationalStatus)}
+                    className="h-8 text-[11.5px] font-bold rounded-lg px-2.5 bg-slate-900/90 border border-white/20 text-white focus:outline-none focus:border-amber-400 cursor-pointer shadow-sm"
+                  >
+                    <option value="AVAILABLE">🟢 Available / Vacant Clean</option>
+                    <option value="OCCUPIED">🟣 Occupied / In-House</option>
+                    <option value="DIRTY">🟠 Dirty / Needs Cleaning</option>
+                    <option value="CLEANING">🔵 Cleaning In Progress</option>
+                    <option value="INSPECTED">✅ Inspected & Approved</option>
+                    <option value="OUT_OF_ORDER">🔴 Out of Order</option>
+                    <option value="OUT_OF_SERVICE">⚪ Out of Service</option>
+                  </select>
+                )}
               </div>
 
               <button

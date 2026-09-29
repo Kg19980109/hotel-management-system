@@ -86,6 +86,15 @@ export function RoomStatusModal({
           </div>
         )}
 
+        {room.liveStay && (
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2">
+            <span className="font-bold shrink-0">⚠️ In-House Guest Active:</span>
+            <span>
+              Guest {room.liveStay.guestName} is currently checked in. To mark this room Available, please complete the check-out process from Front Desk first.
+            </span>
+          </div>
+        )}
+
         {/* Operational Status */}
         <div>
           <label className="block text-xs font-semibold text-[var(--foreground)] mb-1.5">
@@ -93,6 +102,7 @@ export function RoomStatusModal({
           </label>
           <Select
             value={operationalStatus}
+            disabled={!!room.liveStay}
             onChange={(e) => setOperationalStatus(e.target.value as RoomOperationalStatus)}
           >
             <option value="AVAILABLE">Available — Ready for Guest Check-in</option>
@@ -103,6 +113,11 @@ export function RoomStatusModal({
             <option value="OUT_OF_ORDER">Out of Order — Maintenance Issue</option>
             <option value="OUT_OF_SERVICE">Out of Service — Offline</option>
           </Select>
+          {room.liveStay && (
+            <p className="text-[11px] text-[var(--foreground-muted)] mt-1">
+              Operational status is locked to OCCUPIED while a guest is in-house.
+            </p>
+          )}
         </div>
 
         {/* Housekeeping Status */}

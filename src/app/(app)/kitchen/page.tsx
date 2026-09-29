@@ -32,7 +32,9 @@ import {
   ShoppingBag,
   Utensils,
   AlertTriangle,
+  Hourglass,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/context";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
@@ -696,70 +698,227 @@ function KitchenKdsContent() {
         </div>
       </div>
 
-      {/* ── KPI METRICS BAR ── */}
-      <KdsKpiGrid kpis={kpis} />
+      {/* ── BIG, COLORFUL INTERACTIVE KDS STAGE CARDS ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {/* 1. All Active Card */}
+        <button
+          type="button"
+          onClick={() => setStatusTab("ALL")}
+          className={cn(
+            "relative p-4 rounded-2xl border text-left transition-all duration-200 select-none cursor-pointer flex flex-col justify-between group shadow-xs",
+            statusTab === "ALL"
+              ? "bg-blue-500/15 border-blue-500 ring-2 ring-blue-500/50 shadow-md shadow-blue-500/10 dark:bg-blue-950/40"
+              : "bg-card border-border/80 hover:border-border hover:bg-muted/50"
+          )}
+        >
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-700 dark:text-blue-300">
+              All Active
+            </span>
+            <div
+              className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-110",
+                statusTab === "ALL"
+                  ? "bg-blue-600 text-white border-blue-400"
+                  : "bg-blue-500/10 text-blue-600 border-blue-500/20"
+              )}
+            >
+              <Utensils className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-3xl font-black text-foreground tabular-nums">
+              {tickets.length}
+            </span>
+            <span className="text-[11px] font-bold text-muted-foreground">
+              Total Active
+            </span>
+          </div>
+        </button>
 
-      {/* ── STATUS TABS & STATION FILTERS ── */}
-      <div className="bg-card p-3 rounded-xl border border-border shadow-xs flex flex-wrap items-center justify-between gap-3">
-        {/* Status Stage Tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
-          <button
-            type="button"
-            onClick={() => setStatusTab("ALL")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-              statusTab === "ALL"
-                ? "bg-primary text-primary-foreground shadow-xs"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All Active ({tickets.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusTab("QUEUED")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-              statusTab === "QUEUED"
-                ? "bg-amber-600 text-white shadow-xs"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Queued ({kpis.queuedTickets})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusTab("IN_PROGRESS")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-              statusTab === "IN_PROGRESS"
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Cooking ({kpis.inProgressTickets})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusTab("READY")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-              statusTab === "READY"
-                ? "bg-emerald-600 text-white shadow-xs"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Ready / Plated ({kpis.readyTickets})
-          </button>
-          <button
-            type="button"
-            onClick={() => setStatusTab("HISTORY")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
-              statusTab === "HISTORY"
-                ? "bg-slate-800 text-white shadow-xs"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <History className="h-3.5 w-3.5" />
-            <span>Order History ({kpis.completedTodayTickets})</span>
-          </button>
+        {/* 2. Queued Card */}
+        <button
+          type="button"
+          onClick={() => setStatusTab("QUEUED")}
+          className={cn(
+            "relative p-4 rounded-2xl border text-left transition-all duration-200 select-none cursor-pointer flex flex-col justify-between group shadow-xs",
+            statusTab === "QUEUED"
+              ? "bg-amber-500/15 border-amber-500 ring-2 ring-amber-500/50 shadow-md shadow-amber-500/10 dark:bg-amber-950/40"
+              : "bg-card border-border/80 hover:border-border hover:bg-muted/50"
+          )}
+        >
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-300">
+              Queued
+            </span>
+            <div
+              className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-110",
+                statusTab === "QUEUED"
+                  ? "bg-amber-600 text-white border-amber-400"
+                  : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+              )}
+            >
+              <Hourglass className={cn("w-4 h-4", kpis.queuedTickets > 0 && "animate-spin")} />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-3xl font-black text-foreground tabular-nums">
+              {kpis.queuedTickets}
+            </span>
+            <span className="text-[11px] font-bold text-muted-foreground">
+              Waiting to Fire
+            </span>
+          </div>
+        </button>
+
+        {/* 3. Cooking / In Progress Card */}
+        <button
+          type="button"
+          onClick={() => setStatusTab("IN_PROGRESS")}
+          className={cn(
+            "relative p-4 rounded-2xl border text-left transition-all duration-200 select-none cursor-pointer flex flex-col justify-between group shadow-xs",
+            statusTab === "IN_PROGRESS"
+              ? "bg-indigo-500/15 border-indigo-500 ring-2 ring-indigo-500/50 shadow-md shadow-indigo-500/10 dark:bg-indigo-950/40"
+              : "bg-card border-border/80 hover:border-border hover:bg-muted/50"
+          )}
+        >
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[11px] font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+              Cooking
+            </span>
+            <div
+              className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-110",
+                statusTab === "IN_PROGRESS"
+                  ? "bg-indigo-600 text-white border-indigo-400"
+                  : "bg-indigo-500/10 text-indigo-600 border-indigo-500/20"
+              )}
+            >
+              <ChefHat className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-3xl font-black text-foreground tabular-nums">
+              {kpis.inProgressTickets}
+            </span>
+            <span className="text-[11px] font-bold text-muted-foreground">
+              On the Line
+            </span>
+          </div>
+        </button>
+
+        {/* 4. Ready / Plated Card */}
+        <button
+          type="button"
+          onClick={() => setStatusTab("READY")}
+          className={cn(
+            "relative p-4 rounded-2xl border text-left transition-all duration-200 select-none cursor-pointer flex flex-col justify-between group shadow-xs",
+            statusTab === "READY"
+              ? "bg-emerald-500/15 border-emerald-500 ring-2 ring-emerald-500/50 shadow-md shadow-emerald-500/10 dark:bg-emerald-950/40"
+              : "bg-card border-border/80 hover:border-border hover:bg-muted/50"
+          )}
+        >
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+              Ready / Plated
+            </span>
+            <div
+              className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-110",
+                statusTab === "READY"
+                  ? "bg-emerald-600 text-white border-emerald-400"
+                  : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+              )}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+              {kpis.readyTickets}
+            </span>
+            <span className="text-[11px] font-bold text-muted-foreground">
+              Ready to Serve
+            </span>
+          </div>
+        </button>
+
+        {/* 5. Order History Card */}
+        <button
+          type="button"
+          onClick={() => setStatusTab("HISTORY")}
+          className={cn(
+            "relative p-4 rounded-2xl border text-left transition-all duration-200 select-none cursor-pointer flex flex-col justify-between group shadow-xs",
+            statusTab === "HISTORY"
+              ? "bg-slate-800 text-white border-slate-700 ring-2 ring-slate-600 shadow-md dark:bg-slate-800"
+              : "bg-card border-border/80 hover:border-border hover:bg-muted/50"
+          )}
+        >
+          <div className="flex items-center justify-between w-full">
+            <span className={cn(
+              "text-[11px] font-black uppercase tracking-wider",
+              statusTab === "HISTORY" ? "text-slate-200" : "text-slate-700 dark:text-slate-300"
+            )}>
+              Order History
+            </span>
+            <div
+              className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border transition-transform duration-200 group-hover:scale-110",
+                statusTab === "HISTORY"
+                  ? "bg-white/20 text-white border-white/30"
+                  : "bg-slate-500/10 text-slate-600 border-slate-500/20"
+              )}
+            >
+              <History className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className={cn(
+              "text-3xl font-black tabular-nums",
+              statusTab === "HISTORY" ? "text-white" : "text-foreground"
+            )}>
+              {kpis.completedTodayTickets}
+            </span>
+            <span className={cn(
+              "text-[11px] font-bold",
+              statusTab === "HISTORY" ? "text-slate-300" : "text-muted-foreground"
+            )}>
+              Served Today
+            </span>
+          </div>
+        </button>
+
+        {/* 6. Delayed / Remakes Alert Card */}
+        <div
+          className={cn(
+            "relative p-4 rounded-2xl border text-left flex flex-col justify-between shadow-xs",
+            kpis.delayedTickets > 0
+              ? "bg-rose-500/10 border-rose-500/40 shadow-rose-500/10"
+              : "bg-card border-border/80"
+          )}
+        >
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[11px] font-black uppercase tracking-wider text-rose-700 dark:text-rose-400">
+              Delayed &gt;15m
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-600 border border-rose-500/20 flex items-center justify-center shrink-0">
+              <AlertTriangle className={cn("w-4 h-4", kpis.delayedTickets > 0 && "animate-bounce")} />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span className={cn("text-3xl font-black tabular-nums", kpis.delayedTickets > 0 ? "text-rose-600" : "text-foreground")}>
+              {kpis.delayedTickets}
+            </span>
+            <span className="text-[11px] font-bold text-muted-foreground">
+              {kpis.remakeCount > 0 ? `${kpis.remakeCount} Remakes` : "Urgent SLA"}
+            </span>
+          </div>
         </div>
+      </div>
+
+      {/* ── STATION FILTERS & TICKET SEARCH ── */}
+      <div className="bg-card p-3 rounded-2xl border border-border/80 shadow-2xs flex flex-wrap items-center justify-between gap-3">
 
         {/* Station Filters & Search */}
         <div className="flex items-center gap-2 flex-wrap">

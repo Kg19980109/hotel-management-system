@@ -173,119 +173,76 @@ function BookingsContent() {
 
   return (
     <div className="space-y-4">
-      {/* ── LUXURY BOOKINGS HERO ── */}
-      <div
-        className="relative overflow-hidden rounded-2xl px-6 py-4 border border-white/10 shadow-xl"
-        style={{
-          background: "linear-gradient(155deg, #08111F 0%, #0D1830 55%, #111A3C 100%)",
-        }}
-      >
-        {/* Ambient radial glows */}
-        <div
-          className="absolute -top-16 -right-16 h-48 w-48 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(81,70,229,0.18) 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute bottom-0 left-0 h-32 w-64 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(214,168,90,0.10) 0%, transparent 70%)" }}
-        />
+      {/* ── TOP VIEW SWITCHER & QUICK STATS ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 rounded-2xl bg-slate-900 border border-white/10 shadow-lg text-white">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* View Mode Toggle Switch */}
+          <div className="flex items-center bg-black/40 p-1 rounded-xl border border-white/10 shadow-inner">
+            <button
+              type="button"
+              onClick={() => setViewMode("calendar")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition",
+                viewMode === "calendar"
+                  ? "bg-amber-500 text-slate-950 shadow-md scale-[1.02]"
+                  : "text-slate-300 hover:text-white"
+              )}
+            >
+              <CalendarIcon className="h-3.5 w-3.5" />
+              <span>Calendar View</span>
+            </button>
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div
-                className="inline-flex items-center gap-1.5 text-[9.5px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full border"
-                style={{
-                  color: "var(--brand-gold)",
-                  borderColor: "rgba(214,168,90,0.30)",
-                  background: "rgba(214,168,90,0.10)",
-                }}
-              >
-                <CalendarDays className="h-3 w-3" />
-                Reservations &amp; Stays
-              </div>
-            </div>
-
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-              Booking Schedule &amp; Calendar
-            </h1>
-
-            <div className="flex items-center gap-3 mt-1.5 flex-wrap text-xs text-white/80">
-              <div>
-                <span className="font-bold text-white">{totalCount}</span> total stays
-              </div>
-              <span className="text-white/20">·</span>
-              <div className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                <span><span className="font-bold text-white">{stats.confirmed}</span> confirmed</span>
-              </div>
-              <span className="text-white/20">·</span>
-              <div className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-amber-400" />
-                <span><span className="font-bold text-white">{stats.pending}</span> pending</span>
-              </div>
-              <span className="text-white/20">·</span>
-              <div className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-indigo-400" />
-                <span><span className="font-bold text-white">{stats.activeStays}</span> in-house</span>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition",
+                viewMode === "table"
+                  ? "bg-amber-500 text-slate-950 shadow-md scale-[1.02]"
+                  : "text-slate-300 hover:text-white"
+              )}
+            >
+              <List className="h-3.5 w-3.5" />
+              <span>Table List</span>
+            </button>
           </div>
 
-          {/* Action buttons & View mode switcher */}
-          <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
-            {/* View Mode Toggle Switch */}
-            <div className="flex items-center bg-black/40 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-inner">
-              <button
-                type="button"
-                onClick={() => setViewMode("calendar")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition",
-                  viewMode === "calendar"
-                    ? "bg-amber-500 text-slate-950 shadow-md font-extrabold"
-                    : "text-slate-300 hover:text-white"
-                )}
-              >
-                <CalendarIcon className="h-3.5 w-3.5" />
-                <span>Calendar View</span>
-              </button>
+          <Link href="/bookings/calendar">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white/90 hover:text-white hover:bg-white/10 border border-white/15 h-8 gap-1.5 rounded-xl font-bold text-xs"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span>Tape Chart</span>
+            </Button>
+          </Link>
 
-              <button
-                type="button"
-                onClick={() => setViewMode("table")}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition",
-                  viewMode === "table"
-                    ? "bg-amber-500 text-slate-950 shadow-md font-extrabold"
-                    : "text-slate-300 hover:text-white"
-                )}
-              >
-                <List className="h-3.5 w-3.5" />
-                <span>Table List</span>
-              </button>
-            </div>
+          <Link href="/bookings/new">
+            <Button
+              variant="primary"
+              size="sm"
+              className="h-8 gap-1.5 shadow-md bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>New Booking</span>
+            </Button>
+          </Link>
+        </div>
 
-            <Link href="/bookings/calendar">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-white/90 hover:text-white hover:bg-white/10 border border-white/15 h-8 gap-1.5 rounded-xl font-bold text-xs"
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-                <span>Tape Chart</span>
-              </Button>
-            </Link>
-
-            <Link href="/bookings/new">
-              <Button
-                variant="primary"
-                size="sm"
-                className="h-8 gap-1.5 shadow-md bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                <span>New Booking</span>
-              </Button>
-            </Link>
+        <div className="flex items-center gap-3 text-xs text-slate-300 pr-2 flex-wrap">
+          <div>
+            <span className="font-bold text-white">{totalCount}</span> Total Stays
+          </div>
+          <span className="text-white/20">·</span>
+          <div className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            <span className="font-bold text-white">{stats.confirmed}</span> confirmed
+          </div>
+          <span className="text-white/20">·</span>
+          <div className="flex items-center gap-1">
+            <span className="h-2 w-2 rounded-full bg-indigo-400" />
+            <span className="font-bold text-white">{stats.activeStays}</span> in-house
           </div>
         </div>
       </div>

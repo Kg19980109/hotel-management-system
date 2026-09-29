@@ -40,6 +40,8 @@ import {
   LogOut,
   MapPin,
   TrendingUp,
+  Flame,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +64,7 @@ function formatLocalDate(d: Date): string {
 }
 
 type CalendarSubView = "month" | "week" | "day";
+type DayFilterTab = "ALL" | "ARRIVALS" | "IN_HOUSE" | "DEPARTURES";
 
 export function BookingMonthlyCalendar({
   reservations,
@@ -77,6 +80,7 @@ export function BookingMonthlyCalendar({
   const [subView, setSubView] = React.useState<CalendarSubView>("month");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("ALL");
+  const [dayTabFilter, setDayTabFilter] = React.useState<DayFilterTab>("ALL");
   const [selectedReservation, setSelectedReservation] = React.useState<Reservation | null>(null);
 
   // Month navigation
@@ -255,10 +259,18 @@ export function BookingMonthlyCalendar({
   const selectedDayAllBookings = React.useMemo(() => {
     const list: { res: Reservation; role: "ARRIVAL" | "DEPARTURE" | "IN_HOUSE" }[] = [];
     selectedDayData.arrivals.forEach((r) => list.push({ res: r, role: "ARRIVAL" }));
-    selectedDayData.departures.forEach((r) => list.push({ res: r, role: "DEPARTURE" }));
     selectedDayData.inHouse.forEach((r) => list.push({ res: r, role: "IN_HOUSE" }));
+    selectedDayData.departures.forEach((r) => list.push({ res: r, role: "DEPARTURE" }));
     return list;
   }, [selectedDayData]);
+
+  // Filtered Day Bookings for Tab View
+  const filteredDayBookings = React.useMemo(() => {
+    if (dayTabFilter === "ARRIVALS") return selectedDayAllBookings.filter((b) => b.role === "ARRIVAL");
+    if (dayTabFilter === "IN_HOUSE") return selectedDayAllBookings.filter((b) => b.role === "IN_HOUSE");
+    if (dayTabFilter === "DEPARTURES") return selectedDayAllBookings.filter((b) => b.role === "DEPARTURE");
+    return selectedDayAllBookings;
+  }, [selectedDayAllBookings, dayTabFilter]);
 
   // Week days for Week View
   const weekDays = React.useMemo(() => {
@@ -304,174 +316,207 @@ export function BookingMonthlyCalendar({
 
   return (
     <div className="space-y-4 w-full max-w-full overflow-hidden">
-      {/* ── COMMAND TOOLBAR (RESPONSIVE, FULL-WIDTH, NO OVERFLOW) ── */}
-      <div className="w-full rounded-2xl bg-slate-900 border border-white/10 p-4 shadow-xl text-white">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Left: Navigation & Current Period Title */}
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20 shrink-0">
-              <CalendarDays className="h-5 w-5" />
-            </div>
+      {/* ── 1. UNIFIED LUXURY COMMAND CENTER HERO ── */}
+      <div
+        className="w-full rounded-2xl p-5 shadow-2xl text-white relative overflow-hidden border border-white/15"
+        style={{
+          background: "linear-gradient(135deg, #091224 0%, #0F1D38 45%, #14244A 100%)",
+        }}
+      >
+        {/* Ambient background glows */}
+        <div
+          className="absolute -top-16 -right-16 h-56 w-56 rounded-full pointer-events-none opacity-25"
+          style={{ background: "radial-gradient(circle, #D4AF37 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full pointer-events-none opacity-20"
+          style={{ background: "radial-gradient(circle, #6366F1 0%, transparent 70%)" }}
+        />
 
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                  {monthName} {year}
-                </h2>
-                <span className="text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/10 text-amber-300 border border-amber-400/20">
-                  {monthStats.totalBookings} Active Stays
-                </span>
+        <div className="relative z-10 space-y-4">
+          {/* Top Bar: Title, Date navigation & View mode switchers */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Left: Brand / Title */}
+            <div className="flex items-center gap-3.5">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-black flex items-center justify-center shadow-lg shadow-amber-500/25 shrink-0 ring-2 ring-amber-400/40">
+                <CalendarDays className="h-6 w-6" />
               </div>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">
-                Room schedule, check-ins, and guest stays
-              </p>
+
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    {monthName} {year}
+                  </h1>
+                  <span className="text-[11px] font-black px-3 py-0.5 rounded-full bg-amber-400/15 text-amber-300 border border-amber-400/30 flex items-center gap-1.5 shadow-xs">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+                    {monthStats.totalBookings} Active Stays
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5 font-medium">
+                  Live Visual Reservation Grid, Room Occupancy &amp; Guest Schedules
+                </p>
+              </div>
+            </div>
+
+            {/* Right: View Segmented Toggle + Navigation + Action */}
+            <div className="flex items-center gap-2.5 flex-wrap justify-start lg:justify-end">
+              {/* Segmented View Mode */}
+              <div className="flex items-center bg-black/50 backdrop-blur-md p-1 rounded-xl border border-white/15 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setSubView("month")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all",
+                    subView === "month"
+                      ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md scale-[1.02]"
+                      : "text-slate-300 hover:text-white"
+                  )}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span>Month Matrix</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSubView("week")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all",
+                    subView === "week"
+                      ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md scale-[1.02]"
+                      : "text-slate-300 hover:text-white"
+                  )}
+                >
+                  <Columns className="h-3.5 w-3.5" />
+                  <span>7-Day Week</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSubView("day")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all",
+                    subView === "day"
+                      ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-md scale-[1.02]"
+                      : "text-slate-300 hover:text-white"
+                  )}
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>Day Operations</span>
+                </button>
+              </div>
+
+              {/* Month Navigation */}
+              <div className="flex items-center gap-1 bg-white/10 p-1 rounded-xl border border-white/15">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePrevMonth}
+                  className="h-8 w-8 p-0 text-slate-200 hover:text-white hover:bg-white/15 rounded-lg"
+                  title="Previous Month"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToday}
+                  className="h-8 px-3 text-xs font-black text-amber-300 hover:text-amber-200 hover:bg-white/15 rounded-lg"
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNextMonth}
+                  className="h-8 w-8 p-0 text-slate-200 hover:text-white hover:bg-white/15 rounded-lg"
+                  title="Next Month"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <Link href={`/bookings/new?checkIn=${selectedDayStr}`}>
+                <Button
+                  size="sm"
+                  className="h-9 px-3.5 gap-1.5 font-black bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:brightness-105 text-slate-950 rounded-xl shadow-lg shadow-amber-500/20 text-xs"
+                >
+                  <Plus className="h-4 w-4 stroke-[3]" />
+                  <span>New Booking</span>
+                </Button>
+              </Link>
             </div>
           </div>
 
-          {/* Right: View Switcher & Month Navigation Controls */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* View Mode Switcher */}
-            <div className="flex items-center bg-black/50 p-1 rounded-xl border border-white/10 shadow-inner">
-              <button
-                type="button"
-                onClick={() => setSubView("month")}
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition",
-                  subView === "month"
-                    ? "bg-amber-500 text-slate-950 shadow-md font-black"
-                    : "text-slate-400 hover:text-white"
-                )}
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-                <span>Month</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSubView("week")}
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition",
-                  subView === "week"
-                    ? "bg-amber-500 text-slate-950 shadow-md font-black"
-                    : "text-slate-400 hover:text-white"
-                )}
-              >
-                <Columns className="h-3.5 w-3.5" />
-                <span>7-Day</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSubView("day")}
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition",
-                  subView === "day"
-                    ? "bg-amber-500 text-slate-950 shadow-md font-black"
-                    : "text-slate-400 hover:text-white"
-                )}
-              >
-                <Clock className="h-3.5 w-3.5" />
-                <span>Day</span>
-              </button>
+          {/* Bottom Bar: Search, Status Filter & Live Glowing Metric Chips */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-3.5 border-t border-white/15 items-center">
+            {/* Search Input */}
+            <div className="md:col-span-4 relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Quick search guest, room #, conf..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 text-xs bg-white/10 hover:bg-white/15 focus:bg-slate-950 border border-white/20 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400/60 rounded-xl h-9 transition"
+              />
             </div>
 
-            {/* Navigation buttons */}
-            <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handlePrevMonth}
-                className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg"
-                title="Previous Month"
+            {/* Status Select */}
+            <div className="md:col-span-3">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full h-9 px-3 rounded-xl text-xs font-bold bg-slate-900 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-amber-400/60 cursor-pointer"
               >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleToday}
-                className="h-7 px-2.5 text-xs font-black text-amber-400 hover:text-amber-300 hover:bg-white/10 rounded-lg"
-              >
-                Today
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNextMonth}
-                className="h-7 w-7 p-0 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg"
-                title="Next Month"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* ── FILTER & QUICK STATS STRIP ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 mt-3 pt-3 border-t border-white/10 items-center">
-          {/* Quick Search */}
-          <div className="sm:col-span-5 relative">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search guest, room #, confirmation..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1 text-xs bg-white/5 border border-white/15 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 h-8 rounded-xl"
-            />
-          </div>
-
-          {/* Status Filter Dropdown */}
-          <div className="sm:col-span-3">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full h-8 px-2.5 rounded-xl text-xs font-bold bg-slate-800 border border-white/15 text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="PENDING">Pending</option>
-              <option value="CANCELLED">Cancelled</option>
-              <option value="COMPLETED">Completed</option>
-            </select>
-          </div>
-
-          {/* Mini Monthly KPI Badges */}
-          <div className="sm:col-span-4 flex items-center gap-1.5 justify-start sm:justify-end flex-wrap">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-black">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span>{monthStats.totalArrivals} In</span>
+                <option value="ALL">All Reservation Statuses</option>
+                <option value="CONFIRMED">Confirmed Only</option>
+                <option value="PENDING">Pending Inquiries</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="COMPLETED">Completed Stays</option>
+              </select>
             </div>
 
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 text-[11px] font-black">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-              <span>{monthStats.totalDepartures} Out</span>
-            </div>
+            {/* Live Vibrant Stat Badges */}
+            <div className="md:col-span-5 flex items-center gap-2 justify-start md:justify-end flex-wrap">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-black shadow-xs">
+                <LogIn className="h-3.5 w-3.5 text-emerald-400" />
+                <span>{monthStats.totalArrivals} Arrivals</span>
+              </div>
 
-            <div className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-mono font-black">
-              {formatCurrency(monthStats.totalRevenue, currency)}
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-black shadow-xs">
+                <LogOut className="h-3.5 w-3.5 text-rose-400" />
+                <span>{monthStats.totalDepartures} Departures</span>
+              </div>
+
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-mono font-black shadow-xs">
+                <span>{formatCurrency(monthStats.totalRevenue, currency)}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── 1. MONTH GRID VIEW (FULL WIDTH, NO CUTOFFS, EXPANDABLE BOTTOM INSPECTOR) ── */}
+      {/* ── 2. MAIN MONTH MATRIX (GRAPHICAL, HIGH-CONTRAST & COLORFUL) ── */}
       {subView === "month" && (
         <div className="space-y-4 w-full">
-          {/* Main Full-Width Month Grid Card */}
-          <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
-            {/* Days of week header */}
-            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-center text-[11px] font-black uppercase tracking-wider py-2">
-              <span className="text-rose-500">Sun</span>
+          {/* Month Calendar Grid Card */}
+          <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl overflow-hidden">
+            {/* Weekdays Header Strip */}
+            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 dark:from-slate-800/90 dark:via-slate-800/60 dark:to-slate-800/90 text-center text-[11px] font-black uppercase tracking-wider py-3">
+              <span className="text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1">
+                <span>Sun</span>
+              </span>
               <span className="text-slate-700 dark:text-slate-300">Mon</span>
               <span className="text-slate-700 dark:text-slate-300">Tue</span>
               <span className="text-slate-700 dark:text-slate-300">Wed</span>
               <span className="text-slate-700 dark:text-slate-300">Thu</span>
               <span className="text-slate-700 dark:text-slate-300">Fri</span>
-              <span className="text-amber-500">Sat</span>
+              <span className="text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1">
+                <span>Sat</span>
+              </span>
             </div>
 
-            {/* 7-column calendar day grid */}
+            {/* 7-Column Day Grid */}
             <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-800">
               {calendarDays.map((cell) => {
                 const dayData = bookingsByDate[cell.dateStr] || {
@@ -498,23 +543,23 @@ export function BookingMonthlyCalendar({
                       }
                     }}
                     className={cn(
-                      "min-h-[85px] p-2 transition-all cursor-pointer flex flex-col justify-between group relative select-none",
-                      !cell.isCurrentMonth && "bg-slate-50/50 dark:bg-slate-950/40 opacity-40 hover:opacity-80",
+                      "min-h-[92px] p-2 transition-all duration-150 cursor-pointer flex flex-col justify-between group relative select-none",
+                      !cell.isCurrentMonth && "bg-slate-50/40 dark:bg-slate-950/40 opacity-40 hover:opacity-80",
                       cell.isCurrentMonth && "bg-white dark:bg-slate-900 hover:bg-amber-50/20 dark:hover:bg-slate-800/50",
-                      cell.isSelected && "ring-2 ring-amber-500 bg-amber-50/30 dark:bg-amber-950/30 z-10 shadow-inner",
-                      cell.isToday && "bg-gradient-to-br from-amber-50/60 via-transparent to-transparent dark:from-amber-950/40"
+                      cell.isSelected && "ring-2 ring-amber-500 bg-amber-50/40 dark:bg-amber-950/30 z-10 shadow-md",
+                      cell.isToday && "bg-gradient-to-br from-amber-100/50 via-amber-50/20 to-transparent dark:from-amber-950/40"
                     )}
                   >
-                    {/* Date Number & Mini Counters */}
+                    {/* Cell Top Header: Date badge + Total Stay Counter */}
                     <div className="flex items-center justify-between">
                       <span
                         className={cn(
-                          "h-5 w-5 rounded-full flex items-center justify-center text-[11px] font-black transition",
+                          "h-6 w-6 rounded-full flex items-center justify-center text-xs font-black transition-all",
                           cell.isToday
-                            ? "bg-amber-500 text-slate-950 font-black shadow-xs ring-2 ring-amber-400/40"
+                            ? "bg-amber-500 text-slate-950 font-black shadow-md ring-2 ring-amber-400/50 scale-105"
                             : cell.isSelected
-                            ? "bg-indigo-600 text-white font-black"
-                            : "text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white"
+                            ? "bg-indigo-600 text-white font-black shadow-xs scale-105"
+                            : "text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400"
                         )}
                       >
                         {cell.dayNum}
@@ -523,25 +568,25 @@ export function BookingMonthlyCalendar({
                       {totalBookingsCount > 0 && (
                         <div className="flex items-center gap-1">
                           {dayData.arrivals.length > 0 && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" title={`${dayData.arrivals.length} arrivals`} />
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-xs" title={`${dayData.arrivals.length} arrivals`} />
                           )}
                           {dayData.departures.length > 0 && (
-                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" title={`${dayData.departures.length} departures`} />
+                            <span className="h-2 w-2 rounded-full bg-rose-500 shadow-xs" title={`${dayData.departures.length} departures`} />
                           )}
-                          <span className="text-[9px] font-black px-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                          <span className="text-[9.5px] font-black px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700">
                             {totalBookingsCount}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    {/* Booking Pills on this day */}
-                    <div className="space-y-1 my-1 flex-1 overflow-hidden">
+                    {/* Booking Graphical Pills */}
+                    <div className="space-y-1 my-1.5 flex-1 overflow-hidden">
                       {allDayList.slice(0, 2).map(({ res, type }) => {
                         const guestName = res.primary_guest
                           ? `${res.primary_guest.first_name} ${res.primary_guest.last_name?.[0] || ""}.`
                           : "Guest";
-                        const roomNo = res.rooms?.[0]?.room_number || "Unass.";
+                        const roomNo = res.rooms?.[0]?.room_number || "Unass";
 
                         return (
                           <div
@@ -552,12 +597,12 @@ export function BookingMonthlyCalendar({
                               setSelectedReservation(res);
                             }}
                             className={cn(
-                              "px-1.5 py-0.5 rounded text-[9.5px] font-black truncate flex items-center gap-1 border transition-all hover:scale-[1.02]",
+                              "px-1.5 py-1 rounded-md text-[9.5px] font-black truncate flex items-center gap-1.5 border shadow-2xs transition-all hover:scale-[1.02]",
                               type === "arrival"
-                                ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-300/70 dark:border-emerald-800"
+                                ? "bg-gradient-to-r from-emerald-50 to-emerald-100/80 dark:from-emerald-950/80 dark:to-emerald-900/60 text-emerald-900 dark:text-emerald-300 border-emerald-300/80 dark:border-emerald-800"
                                 : type === "departure"
-                                ? "bg-rose-50 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border-rose-300/70 dark:border-rose-800"
-                                : "bg-indigo-50 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border-indigo-300/70 dark:border-indigo-800"
+                                ? "bg-gradient-to-r from-rose-50 to-rose-100/80 dark:from-rose-950/80 dark:to-rose-900/60 text-rose-900 dark:text-rose-300 border-rose-300/80 dark:border-rose-800"
+                                : "bg-gradient-to-r from-indigo-50 to-indigo-100/80 dark:from-indigo-950/80 dark:to-indigo-900/60 text-indigo-900 dark:text-indigo-300 border-indigo-300/80 dark:border-indigo-800"
                             )}
                             title={`${guestName} (Room ${roomNo}) - ${res.status}`}
                           >
@@ -565,30 +610,38 @@ export function BookingMonthlyCalendar({
                               className={cn(
                                 "h-1.5 w-1.5 rounded-full shrink-0",
                                 type === "arrival"
-                                  ? "bg-emerald-500"
+                                  ? "bg-emerald-500 animate-pulse"
                                   : type === "departure"
                                   ? "bg-rose-500"
                                   : "bg-indigo-500"
                               )}
                             />
-                            <span className="truncate">
-                              {roomNo !== "Unass." ? `R${roomNo}` : "Unass"} · {guestName}
+                            <span className="font-mono font-black text-[9px] px-1 rounded bg-black/5 dark:bg-white/10 shrink-0">
+                              {roomNo !== "Unass" ? `R${roomNo}` : "Unass"}
+                            </span>
+                            <span className="truncate font-bold">
+                              {guestName}
                             </span>
                           </div>
                         );
                       })}
 
                       {totalBookingsCount > 2 && (
-                        <div className="text-[8.5px] font-extrabold text-amber-600 dark:text-amber-400 pl-0.5">
-                          +{totalBookingsCount - 2} more stays
+                        <div className="text-[9px] font-black text-amber-600 dark:text-amber-400 pl-1 flex items-center gap-1">
+                          <Flame className="h-2.5 w-2.5" />
+                          <span>+{totalBookingsCount - 2} more stays</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Bottom Day Indicator */}
-                    <div className="flex items-center justify-between text-[8px] font-bold text-slate-400 opacity-80">
-                      <span>{dayData.arrivals.length > 0 ? `+${dayData.arrivals.length} In` : ""}</span>
-                      <span>{dayData.departures.length > 0 ? `-${dayData.departures.length} Out` : ""}</span>
+                    {/* Bottom Day Indicator Pills */}
+                    <div className="flex items-center justify-between text-[8.5px] font-extrabold text-slate-400 pt-0.5 border-t border-slate-100 dark:border-slate-800/80">
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        {dayData.arrivals.length > 0 ? `↓ ${dayData.arrivals.length} In` : ""}
+                      </span>
+                      <span className="text-rose-600 dark:text-rose-400">
+                        {dayData.departures.length > 0 ? `↑ ${dayData.departures.length} Out` : ""}
+                      </span>
                     </div>
                   </div>
                 );
@@ -596,16 +649,16 @@ export function BookingMonthlyCalendar({
             </div>
           </div>
 
-          {/* ── SELECTED DATE INSPECTOR BAR (FULL WIDTH, RICH GRID, ZERO CUTOFFS) ── */}
-          <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 shadow-md space-y-3">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-amber-500/15 text-amber-500 flex items-center justify-center font-black">
-                  <CalendarDays className="h-4 w-4" />
+          {/* ── 3. SELECTED DATE COMMAND STATION (RICH, LUXURIOUS & INTERACTIVE) ── */}
+          <div className="w-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 p-5 shadow-xl space-y-4">
+            {/* Header: Date + Filter Tabs + New Booking Button */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-black shrink-0 ring-1 ring-amber-500/30">
+                  <CalendarDays className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  <h3 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
                     {selectedDay.toLocaleDateString("en-US", {
                       weekday: "long",
                       month: "long",
@@ -613,42 +666,98 @@ export function BookingMonthlyCalendar({
                       year: "numeric",
                     })}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
-                    {selectedDayAllBookings.length} bookings scheduled for this date
+                  <p className="text-xs text-slate-500 font-medium">
+                    {selectedDayAllBookings.length} total scheduled stays ({selectedDayData.arrivals.length} arrivals, {selectedDayData.departures.length} departures)
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Sub-Tabs for this day & Action */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setDayTabFilter("ALL")}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-xs font-bold transition",
+                      dayTabFilter === "ALL"
+                        ? "bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-xs"
+                        : "text-slate-600 dark:text-slate-400"
+                    )}
+                  >
+                    All ({selectedDayAllBookings.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDayTabFilter("ARRIVALS")}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1",
+                      dayTabFilter === "ARRIVALS"
+                        ? "bg-emerald-500 text-slate-950 font-black shadow-xs"
+                        : "text-emerald-700 dark:text-emerald-400"
+                    )}
+                  >
+                    <span>Arrivals ({selectedDayData.arrivals.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDayTabFilter("IN_HOUSE")}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1",
+                      dayTabFilter === "IN_HOUSE"
+                        ? "bg-indigo-600 text-white font-black shadow-xs"
+                        : "text-indigo-700 dark:text-indigo-400"
+                    )}
+                  >
+                    <span>In-House ({selectedDayData.inHouse.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDayTabFilter("DEPARTURES")}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1",
+                      dayTabFilter === "DEPARTURES"
+                        ? "bg-rose-500 text-white font-black shadow-xs"
+                        : "text-rose-700 dark:text-rose-400"
+                    )}
+                  >
+                    <span>Departures ({selectedDayData.departures.length})</span>
+                  </button>
+                </div>
+
                 <Link href={`/bookings/new?checkIn=${selectedDayStr}`}>
-                  <Button size="sm" className="h-7 px-3 text-xs font-black bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg">
-                    + New Booking for this Date
+                  <Button size="sm" className="h-8 px-3 text-xs font-black bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-105 text-slate-950 rounded-xl shadow-xs">
+                    + Book This Date
                   </Button>
                 </Link>
               </div>
             </div>
 
-            {/* Bookings on this Day */}
-            {selectedDayAllBookings.length === 0 ? (
-              <div className="py-6 text-center space-y-1.5">
-                <div className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center">
-                  <BedDouble className="h-4 w-4" />
+            {/* List of Stays Grid for Selected Day */}
+            {filteredDayBookings.length === 0 ? (
+              <div className="py-10 text-center space-y-2">
+                <div className="h-12 w-12 rounded-2xl bg-amber-50 dark:bg-slate-800 text-amber-500 mx-auto flex items-center justify-center border border-amber-200/60 dark:border-slate-700">
+                  <BedDouble className="h-6 w-6" />
                 </div>
-                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  No reservations or stays on this date
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                  No reservations matching filter on this date
                 </h4>
-                <p className="text-[11px] text-slate-500">
-                  Click "+ New Booking for this Date" to create a reservation.
+                <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                  Click &ldquo;+ Book This Date&rdquo; to create a new reservation checking in on this day.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                {selectedDayAllBookings.map(({ res, role }) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+                {filteredDayBookings.map(({ res, role }) => {
                   const guestName = res.primary_guest
                     ? `${res.primary_guest.first_name} ${res.primary_guest.last_name}`.trim()
                     : "Guest";
                   const firstRoom = res.rooms?.[0];
                   const roomNo = firstRoom?.room_number;
+                  const roomTypeName = firstRoom?.room_type_name || "Standard Room";
                   const isCardSelected = selectedReservation?.id === res.id;
 
                   return (
@@ -656,22 +765,22 @@ export function BookingMonthlyCalendar({
                       key={`${res.id}-${role}`}
                       onClick={() => setSelectedReservation(res)}
                       className={cn(
-                        "p-3.5 rounded-xl border transition-all cursor-pointer shadow-xs space-y-2",
+                        "p-4 rounded-2xl border transition-all cursor-pointer shadow-sm hover:shadow-md space-y-3",
                         isCardSelected
-                          ? "bg-amber-50/40 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/30"
-                          : "bg-slate-50/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 hover:border-amber-400/50"
+                          ? "bg-amber-50/50 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/30"
+                          : "bg-slate-50/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 hover:border-amber-400"
                       )}
                     >
-                      {/* Top: Role & Status */}
-                      <div className="flex items-center justify-between gap-1">
+                      {/* Top Row: Role Badge & Reservation Status */}
+                      <div className="flex items-center justify-between gap-1.5">
                         <span
                           className={cn(
-                            "px-2 py-0.5 rounded text-[9.5px] font-black uppercase tracking-wider flex items-center gap-1",
+                            "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-2xs",
                             role === "ARRIVAL"
-                              ? "bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300"
+                              ? "bg-emerald-100 dark:bg-emerald-950/90 text-emerald-800 dark:text-emerald-300 border border-emerald-300/80"
                               : role === "DEPARTURE"
-                              ? "bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300"
-                              : "bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300"
+                              ? "bg-rose-100 dark:bg-rose-950/90 text-rose-800 dark:text-rose-300 border border-rose-300/80"
+                              : "bg-indigo-100 dark:bg-indigo-950/90 text-indigo-800 dark:text-indigo-300 border border-indigo-300/80"
                           )}
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-current" />
@@ -685,29 +794,46 @@ export function BookingMonthlyCalendar({
                         <BookingStatusBadge status={res.status} />
                       </div>
 
-                      {/* Guest & Amount */}
+                      {/* Guest Details & Pricing */}
                       <div>
                         <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">
+                          <h4 className="text-sm font-black text-slate-900 dark:text-white truncate">
                             {guestName}
                           </h4>
-                          <span className="font-mono text-xs font-black text-slate-900 dark:text-white shrink-0">
+                          <span className="font-mono text-sm font-black text-slate-900 dark:text-white shrink-0">
                             {formatCurrency(res.total_amount, currency)}
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1 flex-wrap">
-                          <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1 py-0.2 rounded">
+                        <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap font-medium">
+                          <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
                             #{res.confirmation_number}
                           </span>
                           <span>•</span>
-                          <span className="font-bold text-slate-700 dark:text-slate-300">
+                          <span className="font-bold text-slate-800 dark:text-slate-200">
                             {roomNo ? `Room ${roomNo}` : "Unassigned Room"}
                           </span>
+                          <span>•</span>
+                          <span className="text-slate-500">{roomTypeName}</span>
                         </div>
                       </div>
 
-                      {/* Action buttons */}
+                      {/* Stay Duration Timeline */}
+                      <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                        <div>
+                          <span className="text-slate-400 block text-[9px] uppercase font-bold">Check-In</span>
+                          <span className="font-bold text-slate-800 dark:text-slate-200">{res.check_in_date}</span>
+                        </div>
+                        <div className="text-center font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                          {res.nights || 1}N
+                        </div>
+                        <div className="text-right">
+                          <span className="text-slate-400 block text-[9px] uppercase font-bold">Check-Out</span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400">{res.check_out_date}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
                       <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
                         {firstRoom && !firstRoom.room_number && (
                           <Button
@@ -717,7 +843,7 @@ export function BookingMonthlyCalendar({
                               e.stopPropagation();
                               onAssignRoomClick(res, firstRoom);
                             }}
-                            className="h-6 px-2 text-[10px] font-bold rounded-md border-amber-300 text-amber-800 hover:bg-amber-50"
+                            className="h-7 px-2.5 text-xs font-bold rounded-lg border-amber-300 text-amber-800 hover:bg-amber-50"
                           >
                             Assign Room
                           </Button>
@@ -729,17 +855,17 @@ export function BookingMonthlyCalendar({
                             e.stopPropagation();
                             onStatusClick(res);
                           }}
-                          className="h-6 px-2 text-[10px] font-bold rounded-md text-slate-600 hover:text-slate-900"
+                          className="h-7 px-2.5 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900"
                         >
                           Status
                         </Button>
                         <Link href={`/bookings/${res.id}`} onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
-                            className="h-6 px-2.5 text-[10px] font-bold rounded-md bg-indigo-600 hover:bg-indigo-700 text-white gap-1"
+                            className="h-7 px-3 text-xs font-black rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white gap-1 shadow-xs"
                           >
                             <span>Inspect</span>
-                            <ArrowRight className="h-2.5 w-2.5" />
+                            <ArrowRight className="h-3 w-3" />
                           </Button>
                         </Link>
                       </div>
@@ -752,21 +878,33 @@ export function BookingMonthlyCalendar({
         </div>
       )}
 
-      {/* ── 2. 7-DAY WEEK VIEW (FULL WIDTH, NO CUTOFFS) ── */}
+      {/* ── 4. 7-DAY WEEK VIEW (GRAPHICAL HORIZONTAL GANTT STRIP) ── */}
       {subView === "week" && (
-        <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Columns className="h-4 w-4 text-amber-500" />
-              <span>7-Day Comprehensive Schedule</span>
-            </h3>
-            <span className="text-xs text-slate-500 font-bold">
-              {weekDays[0]?.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })} –{" "}
-              {weekDays[6]?.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-            </span>
+        <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-black">
+                <Columns className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                  7-Day Continuous Schedule
+                </h3>
+                <span className="text-xs text-slate-500 font-bold">
+                  {weekDays[0]?.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })} –{" "}
+                  {weekDays[6]?.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+              </div>
+            </div>
+
+            <Link href={`/bookings/new?checkIn=${selectedDayStr}`}>
+              <Button size="sm" className="h-8 px-3 text-xs font-black bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl">
+                + New Booking
+              </Button>
+            </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
             {weekDays.map((col) => {
               const dayData = bookingsByDate[col.dateStr] || { arrivals: [], departures: [], inHouse: [] };
               const allStays = [
@@ -780,25 +918,25 @@ export function BookingMonthlyCalendar({
                   key={col.dateStr}
                   onClick={() => setSelectedDay(col.date)}
                   className={cn(
-                    "rounded-xl border p-2.5 flex flex-col justify-between min-h-[300px] transition-all cursor-pointer",
+                    "rounded-2xl border p-3 flex flex-col justify-between min-h-[320px] transition-all cursor-pointer shadow-xs hover:shadow-md",
                     col.isSelected
-                      ? "bg-amber-50/40 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/30"
-                      : "bg-slate-50/50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 hover:border-slate-300",
+                      ? "bg-amber-50/50 dark:bg-amber-950/40 border-amber-500 ring-2 ring-amber-500/30"
+                      : "bg-slate-50/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 hover:border-slate-300",
                     col.isToday && "border-amber-400 bg-amber-50/20"
                   )}
                 >
-                  {/* Column Header */}
-                  <div className="pb-2 border-b border-slate-200/60 dark:border-slate-700/60 text-center">
+                  {/* Header */}
+                  <div className="pb-2.5 border-b border-slate-200/60 dark:border-slate-700/60 text-center">
                     <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                       {col.date.toLocaleDateString("en-US", { weekday: "short" })}
                     </div>
                     <div
                       className={cn(
-                        "h-7 w-7 rounded-full mx-auto flex items-center justify-center text-xs font-black mt-1",
+                        "h-8 w-8 rounded-full mx-auto flex items-center justify-center text-xs font-black mt-1",
                         col.isToday
-                          ? "bg-amber-500 text-slate-950 shadow-xs"
+                          ? "bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400/40"
                           : col.isSelected
-                          ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                          ? "bg-indigo-600 text-white font-black"
                           : "text-slate-800 dark:text-slate-200"
                       )}
                     >
@@ -809,8 +947,8 @@ export function BookingMonthlyCalendar({
                     </div>
                   </div>
 
-                  {/* List of stays */}
-                  <div className="space-y-1.5 my-2 flex-1 overflow-y-auto max-h-[220px] pr-0.5">
+                  {/* Stay List */}
+                  <div className="space-y-1.5 my-2 flex-1 overflow-y-auto max-h-[200px] pr-0.5">
                     {allStays.map(({ res, type }) => {
                       const guestName = res.primary_guest
                         ? `${res.primary_guest.first_name} ${res.primary_guest.last_name?.[0] || ""}.`
@@ -822,20 +960,20 @@ export function BookingMonthlyCalendar({
                           key={`${res.id}-${type}`}
                           href={`/bookings/${res.id}`}
                           className={cn(
-                            "block p-1.5 rounded-lg border text-[10px] font-bold transition hover:scale-[1.02] shadow-2xs",
+                            "block p-2 rounded-xl border text-[10px] font-bold transition hover:scale-[1.02] shadow-2xs",
                             type === "arrival"
-                              ? "bg-emerald-50 dark:bg-emerald-950/70 border-emerald-300/80 text-emerald-800 dark:text-emerald-300"
+                              ? "bg-emerald-50 dark:bg-emerald-950/80 border-emerald-300/90 text-emerald-800 dark:text-emerald-300"
                               : type === "departure"
-                              ? "bg-rose-50 dark:bg-rose-950/70 border-rose-300/80 text-rose-800 dark:text-rose-300"
-                              : "bg-indigo-50 dark:bg-indigo-950/70 border-indigo-300/80 text-indigo-800 dark:text-indigo-300"
+                              ? "bg-rose-50 dark:bg-rose-950/80 border-rose-300/90 text-rose-800 dark:text-rose-300"
+                              : "bg-indigo-50 dark:bg-indigo-950/80 border-indigo-300/90 text-indigo-800 dark:text-indigo-300"
                           )}
                         >
                           <div className="flex items-center justify-between">
                             <span className="truncate">{guestName}</span>
                             <span className="font-mono text-[9px] font-black">{roomNo ? `R${roomNo}` : "Unass"}</span>
                           </div>
-                          <div className="text-[8.5px] opacity-75 mt-0.5 flex items-center justify-between">
-                            <span>{type === "arrival" ? "↓ Check-in" : type === "departure" ? "↑ Check-out" : "Stay"}</span>
+                          <div className="text-[8.5px] opacity-80 mt-0.5 flex items-center justify-between">
+                            <span>{type === "arrival" ? "↓ In" : type === "departure" ? "↑ Out" : "Stay"}</span>
                             <span>{res.status}</span>
                           </div>
                         </Link>
@@ -844,8 +982,8 @@ export function BookingMonthlyCalendar({
                   </div>
 
                   <Link href={`/bookings/new?checkIn=${col.dateStr}`} className="block">
-                    <Button variant="outline" size="sm" className="w-full h-6 text-[10px] font-bold rounded-md">
-                      + Add
+                    <Button variant="outline" size="sm" className="w-full h-7 text-[10px] font-bold rounded-xl">
+                      + Add Stay
                     </Button>
                   </Link>
                 </div>
@@ -855,9 +993,9 @@ export function BookingMonthlyCalendar({
         </div>
       )}
 
-      {/* ── 3. DAY AGENDA VIEW (FULL ROOM & GUEST OPERATIONS) ── */}
+      {/* ── 5. DAY OPERATIONS DESK (SWIMLANE WORKSTATION) ── */}
       {subView === "day" && (
-        <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md p-5 space-y-4">
+        <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
             <div>
               <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
@@ -878,7 +1016,7 @@ export function BookingMonthlyCalendar({
 
             <div className="flex items-center gap-2">
               <Link href={`/bookings/new?checkIn=${selectedDayStr}`}>
-                <Button size="sm" className="h-8 gap-1.5 font-black bg-amber-500 hover:bg-amber-600 text-slate-950">
+                <Button size="sm" className="h-8 gap-1.5 font-black bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl">
                   <span>+ Create Booking</span>
                 </Button>
               </Link>
@@ -888,22 +1026,22 @@ export function BookingMonthlyCalendar({
           {/* 3 Columns: Arrivals | In-House | Departures */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Arrivals Column */}
-            <div className="rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/20 dark:bg-emerald-950/20 p-3.5 space-y-3">
+            <div className="rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/30 dark:bg-emerald-950/20 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
                   <LogIn className="h-4 w-4" />
-                  <span>Arrivals ({selectedDayData.arrivals.length})</span>
+                  <span>Arrivals Queue ({selectedDayData.arrivals.length})</span>
                 </span>
               </div>
 
               {selectedDayData.arrivals.length === 0 ? (
-                <div className="p-4 text-center text-xs text-slate-400">No arrivals today</div>
+                <div className="p-6 text-center text-xs text-slate-400">No arrivals today</div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {selectedDayData.arrivals.map((res) => (
                     <div
                       key={res.id}
-                      className="p-3 rounded-lg bg-white dark:bg-slate-800 border border-emerald-200/70 dark:border-emerald-800 shadow-xs space-y-1.5"
+                      className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-emerald-200/80 dark:border-emerald-800 shadow-xs space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
@@ -915,10 +1053,10 @@ export function BookingMonthlyCalendar({
                         <span>Room {res.rooms?.[0]?.room_number || "Unassigned"}</span>
                         <span className="font-mono font-bold">{formatCurrency(res.total_amount, currency)}</span>
                       </div>
-                      <div className="flex items-center justify-end gap-1 pt-1">
+                      <div className="flex items-center justify-end gap-1 pt-1 border-t border-slate-100 dark:border-slate-700">
                         <Link href={`/bookings/${res.id}`}>
                           <Button size="sm" variant="outline" className="h-6 px-2 text-[10px] font-bold">
-                            View
+                            View Folio
                           </Button>
                         </Link>
                       </div>
@@ -929,7 +1067,7 @@ export function BookingMonthlyCalendar({
             </div>
 
             {/* In-House Column */}
-            <div className="rounded-xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/20 dark:bg-indigo-950/20 p-3.5 space-y-3">
+            <div className="rounded-2xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/30 dark:bg-indigo-950/20 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-indigo-800 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
                   <BedDouble className="h-4 w-4" />
@@ -938,13 +1076,13 @@ export function BookingMonthlyCalendar({
               </div>
 
               {selectedDayData.inHouse.length === 0 ? (
-                <div className="p-4 text-center text-xs text-slate-400">No in-house stays</div>
+                <div className="p-6 text-center text-xs text-slate-400">No in-house stays</div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {selectedDayData.inHouse.map((res) => (
                     <div
                       key={res.id}
-                      className="p-3 rounded-lg bg-white dark:bg-slate-800 border border-indigo-200/70 dark:border-indigo-800 shadow-xs space-y-1.5"
+                      className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-indigo-200/80 dark:border-indigo-800 shadow-xs space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
@@ -958,10 +1096,10 @@ export function BookingMonthlyCalendar({
                         <span>Check-Out: {res.check_out_date}</span>
                         <span className="font-bold text-slate-700 dark:text-slate-300">{res.nights || 1} Nights</span>
                       </div>
-                      <div className="flex items-center justify-end gap-1 pt-1">
+                      <div className="flex items-center justify-end gap-1 pt-1 border-t border-slate-100 dark:border-slate-700">
                         <Link href={`/bookings/${res.id}`}>
                           <Button size="sm" variant="outline" className="h-6 px-2 text-[10px] font-bold">
-                            Details
+                            Stay Details
                           </Button>
                         </Link>
                       </div>
@@ -972,22 +1110,22 @@ export function BookingMonthlyCalendar({
             </div>
 
             {/* Departures Column */}
-            <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/20 dark:bg-rose-950/20 p-3.5 space-y-3">
+            <div className="rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/30 dark:bg-rose-950/20 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black text-rose-800 dark:text-rose-300 uppercase tracking-wider flex items-center gap-1.5">
                   <LogOut className="h-4 w-4" />
-                  <span>Departures ({selectedDayData.departures.length})</span>
+                  <span>Departures Queue ({selectedDayData.departures.length})</span>
                 </span>
               </div>
 
               {selectedDayData.departures.length === 0 ? (
-                <div className="p-4 text-center text-xs text-slate-400">No departures today</div>
+                <div className="p-6 text-center text-xs text-slate-400">No departures today</div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {selectedDayData.departures.map((res) => (
                     <div
                       key={res.id}
-                      className="p-3 rounded-lg bg-white dark:bg-slate-800 border border-rose-200/70 dark:border-rose-800 shadow-xs space-y-1.5"
+                      className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-rose-200/80 dark:border-rose-800 shadow-xs space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <h4 className="text-xs font-bold text-slate-900 dark:text-white">
@@ -999,7 +1137,7 @@ export function BookingMonthlyCalendar({
                         <span>Room {res.rooms?.[0]?.room_number || "Unassigned"}</span>
                         <span className="font-mono font-bold text-rose-600">{formatCurrency(res.total_amount, currency)}</span>
                       </div>
-                      <div className="flex items-center justify-end gap-1 pt-1">
+                      <div className="flex items-center justify-end gap-1 pt-1 border-t border-slate-100 dark:border-slate-700">
                         <Link href={`/bookings/${res.id}`}>
                           <Button size="sm" variant="outline" className="h-6 px-2 text-[10px] font-bold">
                             Settle Folio

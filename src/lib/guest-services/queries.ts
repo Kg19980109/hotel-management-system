@@ -105,8 +105,7 @@ export async function getStaffGuestServiceRequests(
       updated_by,
       guest:guests(id, first_name, last_name, email, phone),
       room:rooms(id, room_number),
-      stay:stays(id, status, actual_check_in_at, expected_check_out_date),
-      assigned_staff:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
+      stay:stays(id, status, actual_check_in_at, expected_check_out_date)
     `
     )
     .eq("property_id", propertyId)
@@ -129,7 +128,45 @@ export async function getStaffGuestServiceRequests(
     return [];
   }
 
-  return (data || []) as unknown as StaffGuestServiceRequest[];
+  // Fetch staff members & profiles to resolve assigned_staff cleanly
+  const assignedIds = [...new Set(data.map((r) => r.assigned_to).filter(Boolean))] as string[];
+  const staffMap = new Map<string, { id: string; full_name: string; email: string }>();
+
+  if (assignedIds.length > 0) {
+    const [{ data: staffDir }, { data: profiles }] = await Promise.all([
+      supabase
+        .from("staff_members")
+        .select("id, profile_id, first_name, last_name, display_name, email")
+        .eq("property_id", propertyId)
+        .or(`id.in.(${assignedIds.join(",")}),profile_id.in.(${assignedIds.join(",")})`),
+      supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", assignedIds),
+    ]);
+
+    for (const sm of (staffDir || [])) {
+      const name =
+        sm.display_name ||
+        `${sm.first_name || ""} ${sm.last_name || ""}`.trim() ||
+        sm.email ||
+        "Staff Member";
+      const info = { id: sm.id, full_name: name, email: sm.email || "" };
+      staffMap.set(sm.id, info);
+      if (sm.profile_id) staffMap.set(sm.profile_id, info);
+    }
+
+    for (const p of (profiles || [])) {
+      if (!staffMap.has(p.id)) {
+        staffMap.set(p.id, { id: p.id, full_name: p.full_name, email: p.email });
+      }
+    }
+  }
+
+  return (data || []).map((r) => ({
+    ...r,
+    assigned_staff: r.assigned_to ? staffMap.get(r.assigned_to) : undefined,
+  })) as unknown as StaffGuestServiceRequest[];
 }
 
 /**
@@ -172,8 +209,7 @@ export async function getStaffGuestServiceRequestDetail(
       updated_by,
       guest:guests(id, first_name, last_name, email, phone),
       room:rooms(id, room_number),
-      stay:stays(id, status, actual_check_in_at, expected_check_out_date),
-      assigned_staff:profiles!guest_service_requests_assigned_to_fkey(id, full_name, email)
+      stay:stays(id, status, actual_check_in_at, expected_check_out_date)
     `
     )
     .eq("property_id", propertyId)
@@ -184,7 +220,38 @@ export async function getStaffGuestServiceRequestDetail(
     return null;
   }
 
-  return data as unknown as StaffGuestServiceRequest;
+  let assignedStaff: { id: string; full_name: string; email: string } | undefined;
+  if (data.assigned_to) {
+    const [{ data: sm }, { data: profile }] = await Promise.all([
+      supabase
+        .from("staff_members")
+        .select("id, profile_id, first_name, last_name, display_name, email")
+        .eq("property_id", propertyId)
+        .or(`id.eq.${data.assigned_to},profile_id.eq.${data.assigned_to}`)
+        .maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .eq("id", data.assigned_to)
+        .maybeSingle(),
+    ]);
+
+    if (sm) {
+      const name =
+        sm.display_name ||
+        `${sm.first_name || ""} ${sm.last_name || ""}`.trim() ||
+        sm.email ||
+        "Staff Member";
+      assignedStaff = { id: sm.id, full_name: name, email: sm.email || "" };
+    } else if (profile) {
+      assignedStaff = { id: profile.id, full_name: profile.full_name, email: profile.email };
+    }
+  }
+
+  return {
+    ...data,
+    assigned_staff: assignedStaff,
+  } as unknown as StaffGuestServiceRequest;
 }
 
 /**

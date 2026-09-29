@@ -334,35 +334,48 @@ export async function staffAssignGuestRequestAction(
   const supabase = await createClient();
 
   if (assignedTo) {
-    const { data: targetMem } = await supabase
-      .from("property_memberships")
+    // 1. Check if staff member exists in staff_members directory for this property
+    const { data: staffMember } = await supabase
+      .from("staff_members")
       .select("id")
       .eq("property_id", propertyId)
-      .eq("user_id", assignedTo)
-      .eq("status", "active")
+      .or(`id.eq.${assignedTo},profile_id.eq.${assignedTo}`)
+      .eq("is_active", true)
       .maybeSingle();
 
-    if (!targetMem) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("auth_user_id")
-        .eq("id", assignedTo)
+    if (!staffMember) {
+      // 2. Check direct property membership
+      const { data: targetMem } = await supabase
+        .from("property_memberships")
+        .select("id")
+        .eq("property_id", propertyId)
+        .eq("user_id", assignedTo)
+        .eq("status", "active")
         .maybeSingle();
 
-      if (profile) {
-        const { data: mem } = await supabase
-          .from("property_memberships")
-          .select("id")
-          .eq("property_id", propertyId)
-          .eq("user_id", profile.auth_user_id)
-          .eq("status", "active")
+      if (!targetMem) {
+        // 3. Check profile auth_user_id membership
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("auth_user_id")
+          .eq("id", assignedTo)
           .maybeSingle();
 
-        if (!mem) {
-          return {
-            success: false,
-            error: "Cannot assign request: Target staff member does not have active membership for this property.",
-          };
+        if (profile) {
+          const { data: mem } = await supabase
+            .from("property_memberships")
+            .select("id")
+            .eq("property_id", propertyId)
+            .eq("user_id", profile.auth_user_id)
+            .eq("status", "active")
+            .maybeSingle();
+
+          if (!mem) {
+            return {
+              success: false,
+              error: "Cannot assign request: Target staff member does not have active membership or staff record for this property.",
+            };
+          }
         }
       }
     }

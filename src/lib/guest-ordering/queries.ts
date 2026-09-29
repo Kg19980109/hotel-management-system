@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 /**
- * Fetch active restaurants for a property available for guest dining
+ * Fetch active restaurants for a property available for guest dining (single primary outlet)
  */
 export async function getGuestRestaurants(
   propertyId?: string
@@ -23,7 +23,8 @@ export async function getGuestRestaurants(
     query = query.eq("property_id", propertyId);
   }
 
-  const { data, error } = await query.order("name", { ascending: true });
+  // Exactly 1 outlet for guests
+  const { data, error } = await query.order("name", { ascending: true }).limit(1);
 
   if (error || !data) {
     return [];

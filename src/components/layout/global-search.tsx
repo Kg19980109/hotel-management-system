@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { SearchInput } from "@/components/ui/input";
-import { Users, CalendarDays, BedDouble, Receipt, CornerDownLeft, Sparkles } from "lucide-react";
+import { Users, CalendarDays, BedDouble, Receipt, CornerDownLeft, Sparkles, Search, X } from "lucide-react";
 
 interface QuickResult {
   category: "Bookings" | "Guests" | "Rooms" | "Invoices";
@@ -41,7 +41,9 @@ const mockSuggestions: QuickResult[] = [
 export function GlobalSearch() {
   const [query, setQuery] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
+  const [mobileModalOpen, setMobileModalOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const mobileInputRef = React.useRef<HTMLInputElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Global ⌘K / Ctrl+K shortcut
@@ -49,19 +51,28 @@ export function GlobalSearch() {
     function handleKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        inputRef.current?.focus();
-        setIsOpen(true);
+        if (window.innerWidth < 640) {
+          setMobileModalOpen(true);
+        } else {
+          inputRef.current?.focus();
+          setIsOpen(true);
+        }
       }
-      if (event.key === "Escape" && isOpen) {
-        setIsOpen(false);
-        inputRef.current?.blur();
+      if (event.key === "Escape") {
+        if (isOpen) {
+          setIsOpen(false);
+          inputRef.current?.blur();
+        }
+        if (mobileModalOpen) {
+          setMobileModalOpen(false);
+        }
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, mobileModalOpen]);
 
-  // Click outside to close results dropdown
+  // Click outside desktop dropdown
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -75,6 +86,13 @@ export function GlobalSearch() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
+
+  // Focus mobile input on open
+  React.useEffect(() => {
+    if (mobileModalOpen) {
+      setTimeout(() => mobileInputRef.current?.focus(), 100);
+    }
+  }, [mobileModalOpen]);
 
   const filtered = query.trim()
     ? mockSuggestions.filter(
@@ -99,91 +117,178 @@ export function GlobalSearch() {
   };
 
   return (
-    <div className="relative w-full max-w-sm sm:max-w-md" ref={containerRef}>
-      <div className="relative flex items-center">
-        <SearchInput
-          ref={inputRef}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            if (!isOpen) setIsOpen(true);
-          }}
-          onFocus={() => setIsOpen(true)}
-          placeholder="Search guests, rooms, bookings..."
-          className="pr-11 text-xs sm:text-[13px] bg-white/[0.07] border-white/[0.12] hover:border-white/[0.22] focus:border-indigo-400/80 focus:bg-white/[0.12] focus:ring-2 focus:ring-indigo-500/20 text-white placeholder:text-slate-400 rounded-xl h-9.5 transition-all shadow-inner"
-          aria-expanded={isOpen}
-          aria-autocomplete="list"
-          aria-label="Global search"
-        />
-        <div className="absolute right-2.5 pointer-events-none hidden sm:flex items-center gap-0.5">
-          <kbd className="text-[10px] font-bold text-slate-300 bg-white/[0.10] border border-white/[0.15] px-1.5 py-0.5 rounded-md shadow-2xs">
-            ⌘K
-          </kbd>
-        </div>
+    <>
+      {/* ── MOBILE SEARCH TRIGGER BUTTON (Visible on < sm screens) ── */}
+      <div className="sm:hidden flex items-center">
+        <button
+          type="button"
+          onClick={() => setMobileModalOpen(true)}
+          className="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.10] text-slate-300 hover:text-white transition-all h-9 w-9 flex items-center justify-center shrink-0 shadow-inner"
+          aria-label="Open search"
+        >
+          <Search className="h-4 w-4 text-slate-300" />
+        </button>
       </div>
 
-      {isOpen && (
-        <div
-          role="listbox"
-          aria-label="Search suggestions"
-          className="absolute left-0 right-0 mt-2 rounded-2xl bg-[#0A1124] border border-white/[0.12] shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden backdrop-blur-2xl"
-        >
-          <div className="px-3.5 py-1.5 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-white/[0.08]">
-            <span>{query.trim() ? "Search Results" : "Quick Access"}</span>
-            <span className="flex items-center gap-1 font-normal lowercase text-indigo-400">
-              <Sparkles className="h-3 w-3 text-indigo-400" />
-              instant search
-            </span>
+      {/* ── DESKTOP & TABLET SEARCH BAR (Visible on >= sm screens) ── */}
+      <div className="relative w-full max-w-sm sm:max-w-md hidden sm:block" ref={containerRef}>
+        <div className="relative flex items-center">
+          <SearchInput
+            ref={inputRef}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (!isOpen) setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Search guests, rooms, bookings..."
+            className="pr-11 text-xs sm:text-[13px] bg-white/[0.07] border-white/[0.12] hover:border-white/[0.22] focus:border-indigo-400/80 focus:bg-white/[0.12] focus:ring-2 focus:ring-indigo-500/20 text-white placeholder:text-slate-400 rounded-xl h-9.5 transition-all shadow-inner"
+            aria-expanded={isOpen}
+            aria-autocomplete="list"
+            aria-label="Global search"
+          />
+          <div className="absolute right-2.5 pointer-events-none hidden sm:flex items-center gap-0.5">
+            <kbd className="text-[10px] font-bold text-slate-300 bg-white/[0.10] border border-white/[0.15] px-1.5 py-0.5 rounded-md shadow-2xs">
+              ⌘K
+            </kbd>
+          </div>
+        </div>
+
+        {isOpen && (
+          <div
+            role="listbox"
+            aria-label="Search suggestions"
+            className="absolute left-0 right-0 mt-2 rounded-2xl bg-[#0A1124] border border-white/[0.12] shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden backdrop-blur-2xl"
+          >
+            <div className="px-3.5 py-1.5 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-white/[0.08]">
+              <span>{query.trim() ? "Search Results" : "Quick Access"}</span>
+              <span className="flex items-center gap-1 font-normal lowercase text-indigo-400">
+                <Sparkles className="h-3 w-3 text-indigo-400" />
+                instant search
+              </span>
+            </div>
+
+            <div className="py-1 max-h-[300px] overflow-y-auto divide-y divide-white/[0.04]">
+              {filtered.length === 0 ? (
+                <div className="py-6 text-center text-[13px] text-slate-400">
+                  No matching results found for &ldquo;{query}&rdquo;
+                </div>
+              ) : (
+                filtered.map((item, idx) => (
+                  <div
+                    key={idx}
+                    role="option"
+                    aria-selected={false}
+                    onClick={() => {
+                      setIsOpen(false);
+                      window.location.href = item.href;
+                    }}
+                    className="flex items-center justify-between px-3.5 py-2.5 hover:bg-white/[0.08] cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="h-7.5 w-7.5 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center shrink-0">
+                        {getCategoryIcon(item.category)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13px] font-medium text-slate-100 truncate leading-tight">
+                          {item.title}
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate leading-tight mt-0.5">
+                          {item.subtitle}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white/[0.08] text-slate-300 border border-white/[0.08]">
+                        {item.category}
+                      </span>
+                      <CornerDownLeft className="h-3 w-3 text-slate-400" />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="px-3.5 py-2 border-t border-white/[0.08] bg-black/20 flex items-center justify-between text-[11px] text-slate-400">
+              <span>Press <kbd className="font-semibold text-slate-200">ESC</kbd> to dismiss</span>
+              <span><kbd className="font-semibold text-slate-200">↵</kbd> to select</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── FULLSCREEN MOBILE SEARCH OVERLAY DIALOG ── */}
+      {mobileModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#08111F]/90 backdrop-blur-xl flex flex-col p-4 animate-in fade-in duration-150 sm:hidden">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="relative flex-1">
+              <SearchInput
+                ref={mobileInputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search guests, rooms, bookings..."
+                className="pr-4 text-sm bg-white/[0.08] border-white/[0.15] text-white placeholder:text-slate-400 rounded-xl h-11"
+                aria-label="Mobile global search"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileModalOpen(false);
+                setQuery("");
+              }}
+              className="p-2.5 rounded-xl bg-white/[0.08] text-slate-300 hover:text-white border border-white/[0.10]"
+              aria-label="Close search"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
-          <div className="py-1 max-h-[300px] overflow-y-auto divide-y divide-white/[0.04]">
+          <div className="flex-1 overflow-y-auto rounded-2xl bg-[#0A1124] border border-white/[0.10] p-2 divide-y divide-white/[0.05]">
+            <div className="px-3 py-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <span>{query.trim() ? "Search Results" : "Quick Access"}</span>
+              <span className="flex items-center gap-1 font-normal lowercase text-indigo-400">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                instant
+              </span>
+            </div>
+
             {filtered.length === 0 ? (
-              <div className="py-6 text-center text-[13px] text-slate-400">
+              <div className="py-8 text-center text-sm text-slate-400">
                 No matching results found for &ldquo;{query}&rdquo;
               </div>
             ) : (
               filtered.map((item, idx) => (
                 <div
                   key={idx}
-                  role="option"
-                  aria-selected={false}
                   onClick={() => {
-                    setIsOpen(false);
-                    // Navigate to destination
+                    setMobileModalOpen(false);
                     window.location.href = item.href;
                   }}
-                  className="flex items-center justify-between px-3.5 py-2.5 hover:bg-white/[0.08] cursor-pointer transition-colors"
+                  className="flex items-center justify-between p-3 hover:bg-white/[0.08] rounded-xl cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="h-7.5 w-7.5 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center shrink-0">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-white/[0.08] border border-white/[0.10] flex items-center justify-center shrink-0">
                       {getCategoryIcon(item.category)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-medium text-slate-100 truncate leading-tight">
+                      <p className="text-sm font-semibold text-slate-100 truncate">
                         {item.title}
                       </p>
-                      <p className="text-[11px] text-slate-400 truncate leading-tight mt-0.5">
+                      <p className="text-xs text-slate-400 truncate mt-0.5">
                         {item.subtitle}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-white/[0.08] text-slate-300 border border-white/[0.08]">
-                      {item.category}
-                    </span>
-                    <CornerDownLeft className="h-3 w-3 text-slate-400" />
-                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/[0.10] text-slate-300 shrink-0 ml-2">
+                    {item.category}
+                  </span>
                 </div>
               ))
             )}
           </div>
-
-          <div className="px-3.5 py-2 border-t border-white/[0.08] bg-black/20 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Press <kbd className="font-semibold text-slate-200">ESC</kbd> to dismiss</span>
-            <span><kbd className="font-semibold text-slate-200">↵</kbd> to select</span>
-          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

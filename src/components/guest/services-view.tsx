@@ -493,7 +493,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
   const [activeTab, setActiveTab] = React.useState<"ALL" | "COMPLIMENTARY" | "PAID">("ALL");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedCat, setSelectedCat] = React.useState<ServiceCategoryMeta | null>(matchedInitialCat);
-  const [selectedQuickOption, setSelectedQuickOption] = React.useState<string>("");
+  const [selectedQuickOptions, setSelectedQuickOptions] = React.useState<string[]>([]);
   const [selectedPaidItem, setSelectedPaidItem] = React.useState<PayableServiceItem | null>(null);
   const [customMessage, setCustomMessage] = React.useState<string>("");
   const [priority, setPriority] = React.useState<ServiceRequestPriority>("MEDIUM");
@@ -556,16 +556,16 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     const availablePaid = getCategoryPaidItems(cat);
     if (preselectOption) {
       setModalMode("CUSTOM");
-      setSelectedQuickOption(preselectOption);
+      setSelectedQuickOptions([preselectOption]);
       setSelectedPaidItem(null);
     } else if (cat.isPaid && availablePaid.length > 0) {
       setModalMode("PACKAGES");
       setSelectedPaidItem(availablePaid[0]); // Auto-select 1st package for immediate seamless booking
-      setSelectedQuickOption("");
+      setSelectedQuickOptions([]);
     } else {
       setModalMode("CUSTOM");
       setSelectedPaidItem(null);
-      setSelectedQuickOption("");
+      setSelectedQuickOptions([]);
     }
     setCustomMessage("");
     setPriority("MEDIUM");
@@ -575,7 +575,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
   const closeModal = React.useCallback(() => {
     setSelectedCat(null);
-    setSelectedQuickOption("");
+    setSelectedQuickOptions([]);
     setSelectedPaidItem(null);
     setCustomMessage("");
     setErrorMsg(null);
@@ -591,16 +591,25 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     let finalTitle = "";
     if (selectedPaidItem) {
       finalTitle = `${selectedPaidItem.name} (₹${selectedPaidItem.price.toFixed(2)})`;
-    } else if (selectedQuickOption) {
-      finalTitle = selectedQuickOption;
+    } else if (selectedQuickOptions.length > 0) {
+      if (selectedQuickOptions.length === 1) {
+        finalTitle = selectedQuickOptions[0];
+      } else {
+        const fullJoined = selectedQuickOptions.join(", ");
+        if (fullJoined.length <= 80) {
+          finalTitle = fullJoined;
+        } else {
+          finalTitle = `${selectedQuickOptions[0]}, ${selectedQuickOptions[1]} +${selectedQuickOptions.length - 2} more`;
+        }
+      }
     } else if (customMessage.trim()) {
       finalTitle = customMessage.trim().split("\n")[0].substring(0, 80);
     } else {
       finalTitle = `${selectedCat.name} Assistance`;
     }
 
-    if (!selectedPaidItem && !selectedQuickOption && !customMessage.trim()) {
-      setErrorMsg("Please select an option or specify your request.");
+    if (!selectedPaidItem && selectedQuickOptions.length === 0 && !customMessage.trim()) {
+      setErrorMsg("Please select at least one requirement or specify your request.");
       return;
     }
 
@@ -609,7 +618,9 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
     const fullDescription = [
       selectedPaidItem ? `Requested Item: ${selectedPaidItem.name} — Rate: ₹${selectedPaidItem.price.toFixed(2)} (Billed to Folio)` : null,
-      selectedQuickOption ? `Service Type: ${selectedQuickOption}` : null,
+      selectedQuickOptions.length > 0
+        ? `Selected Requirements (${selectedQuickOptions.length}):\n${selectedQuickOptions.map((o) => `• ${o}`).join("\n")}`
+        : null,
       customMessage.trim() ? `Guest Note: ${customMessage.trim()}` : null,
     ]
       .filter(Boolean)
@@ -617,7 +628,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
     const res = await createGuestServiceRequestAction({
       category: selectedCat.id,
-      requestType: selectedPaidItem?.name || selectedQuickOption || selectedCat.name,
+      requestType: selectedPaidItem?.name || (selectedQuickOptions.length > 0 ? selectedQuickOptions.join(", ") : selectedCat.name),
       title: finalTitle,
       description: fullDescription || undefined,
       priority,
@@ -1069,7 +1080,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                           if (!selectedPaidItem && paidItems.length > 0) {
                             setSelectedPaidItem(paidItems[0]);
                           }
-                          setSelectedQuickOption("");
+                          setSelectedQuickOptions([]);
                         }}
                         className={cn(
                           "py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none",
@@ -1151,7 +1162,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                               key={`${item.id}-${idx}`}
                               onClick={() => {
                                 setSelectedPaidItem(item);
-                                setSelectedQuickOption("");
+                                setSelectedQuickOptions([]);
                               }}
                               className={cn(
                                 "p-4 rounded-3xl transition-all duration-200 border cursor-pointer select-none relative overflow-hidden group",
@@ -1271,35 +1282,50 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   );
                 })()}
 
-                {/* ── VIEW 2: CUSTOM REQUEST & QUICK REQUIREMENT CHIPS ── */}
+                {/* ── VIEW 2: CUSTOM REQUEST & QUICK REQUIREMENT CHIPS (MULTI-SELECT SUPPORT) ── */}
                 {(!selectedCat.isPaid || modalMode === "CUSTOM") && (
                   <div className="space-y-3.5">
                     {/* Quick Options Chips */}
                     <div className="space-y-2">
-                      <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
-                        <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        <span>Select Requirement</span>
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
+                          <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Select Requirement(s)</span>
+                        </label>
+
+                        {selectedQuickOptions.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10.5px] font-bold text-[#A67C1E] bg-[#FAF4E6] px-2 py-0.5 rounded-full border border-[#D4AF37]/30">
+                              {selectedQuickOptions.length} Selected
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedQuickOptions([])}
+                              className="text-[10.5px] text-slate-500 hover:text-slate-800 underline font-medium"
+                            >
+                              Clear
+                            </button>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="grid grid-cols-2 gap-2">
                         {selectedCat.commonQuickOptions.map((opt) => {
-                          const isSelected = selectedQuickOption === opt;
+                          const isSelected = selectedQuickOptions.includes(opt);
                           return (
                             <button
                               key={opt}
                               type="button"
                               onClick={() => {
-                                if (isSelected) {
-                                  setSelectedQuickOption("");
-                                } else {
-                                  setSelectedQuickOption(opt);
-                                  setSelectedPaidItem(null);
-                                }
+                                setSelectedPaidItem(null);
+                                setSelectedQuickOptions((prev) =>
+                                  prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
+                                );
                               }}
                               className={cn(
-                                "p-2.5 rounded-xl text-xs text-left transition-transform duration-75 active:scale-95 flex items-center justify-between border select-none",
+                                "p-2.5 rounded-xl text-xs text-left transition-all duration-150 active:scale-95 flex items-center justify-between border select-none",
                                 isSelected
-                                  ? "bg-[#0B1526] text-[#E4C980] font-semibold border-[#D4AF37]/50 shadow-2xs"
+                                  ? "bg-[#0B1526] text-[#E4C980] font-semibold border-[#D4AF37]/60 shadow-2xs ring-1 ring-[#D4AF37]/30"
                                   : "bg-[#FAF8F5] border-[#EAE3D2] text-slate-700 hover:bg-slate-100"
                               )}
                             >
@@ -1389,11 +1415,13 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   ) : (
                     <>
                       <Send className="w-4 h-4 text-[#D4AF37]" />
-                      <span>
+                      <span className="truncate">
                         {selectedPaidItem
                           ? `Book Package: ${selectedPaidItem.name} (₹${selectedPaidItem.price.toFixed(2)})`
-                          : selectedQuickOption
-                          ? `Submit: ${selectedQuickOption}`
+                          : selectedQuickOptions.length === 1
+                          ? `Submit: ${selectedQuickOptions[0]}`
+                          : selectedQuickOptions.length > 1
+                          ? `Submit (${selectedQuickOptions.length} Requirements): ${selectedQuickOptions.slice(0, 2).join(", ")}${selectedQuickOptions.length > 2 ? ` +${selectedQuickOptions.length - 2} more` : ""}`
                           : customMessage.trim()
                           ? "Submit Custom Request"
                           : `Submit ${selectedCat.name} Request`}

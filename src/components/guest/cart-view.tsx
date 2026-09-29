@@ -136,25 +136,37 @@ export function CartView({ session }: CartViewProps) {
     if (targetPropId) {
       try {
         const supabase = createClient();
-        const alertChannel = supabase.channel(`stayhub:operational-alerts:${targetPropId}`);
+        const alertChannel = supabase.channel(`stayhub:operational-alerts:${targetPropId}`, {
+          config: { broadcast: { ack: false, self: false } },
+        });
         const itemsSummary = orderItemsSnapshot.map((i) => `${i.quantity}x ${i.name}`).join(", ");
-        void alertChannel.send({
-          type: "broadcast",
-          event: "OPERATIONAL_ALERT",
-          payload: {
-            id: res.orderId,
-            type: "FOOD_ORDER",
-            category: "ROOM_SERVICE",
-            department: "RESTAURANT",
-            roomNumber: res.roomNumber || session?.room_number || "—",
-            guestName: res.guestName || (session?.guest_first_name ? `${session.guest_first_name} ${session.guest_last_name || ""}`.trim() : "Guest"),
-            title: `Food Order #${res.orderNumber || "RS-ORDER"}`,
-            description: itemsSummary ? `${itemsSummary} • ₹${res.totalAmount || totalSnapshot}` : `Total: ₹${res.totalAmount || totalSnapshot}`,
-            priority: "HIGH",
-            receivedAt: Date.now(),
-            propertyId: targetPropId,
-            status: "CONFIRMED",
-          },
+        const payloadData = {
+          id: res.orderId,
+          type: "FOOD_ORDER" as const,
+          category: "ROOM_SERVICE",
+          department: "RESTAURANT",
+          roomNumber: res.roomNumber || session?.room_number || "—",
+          guestName: res.guestName || (session?.guest_first_name ? `${session.guest_first_name} ${session.guest_last_name || ""}`.trim() : "Guest"),
+          title: `Food Order #${res.orderNumber || "RS-ORDER"}`,
+          description: itemsSummary ? `${itemsSummary} • ₹${res.totalAmount || totalSnapshot}` : `Total: ₹${res.totalAmount || totalSnapshot}`,
+          priority: "HIGH" as const,
+          receivedAt: Date.now(),
+          propertyId: targetPropId,
+          status: "CONFIRMED",
+        };
+
+        alertChannel.subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            void alertChannel.send({
+              type: "broadcast",
+              event: "OPERATIONAL_ALERT",
+              payload: payloadData,
+            }).finally(() => {
+              setTimeout(() => {
+                void supabase.removeChannel(alertChannel);
+              }, 2000);
+            });
+          }
         });
       } catch (broadcastErr) {
         console.warn("Realtime broadcast trigger:", broadcastErr);

@@ -133,11 +133,11 @@ function GuestRequestsContent() {
         .subscribe();
     });
 
-    // 20s visible-only backup sync poll + instant on-focus sync
+    // Fast 4s visible-only backup sync poll + instant on-focus sync
     const pollInterval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void refreshQuiet();
-    }, 20000);
+    }, 4000);
 
     const handleFocus = () => {
       if (document.visibilityState === "visible") {

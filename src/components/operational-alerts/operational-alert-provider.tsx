@@ -185,11 +185,11 @@ export function OperationalAlertProvider({
     // Initial sync
     void syncOpenRequests(propertyId, currentRole);
 
-    // Efficient heartbeat backup (30s) with instant sync on tab focus
+    // Fast 2.5s heartbeat backup guarantees zero-latency alert popup on hotel screen
     const heartbeatInterval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void syncOpenRequests(propertyId, currentRole);
-    }, 30000);
+    }, 2500);
 
     const handleFocus = () => {
       if (document.visibilityState === "visible") {

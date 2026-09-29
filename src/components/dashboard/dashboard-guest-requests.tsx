@@ -171,12 +171,11 @@ export function DashboardGuestRequests({ propertyId }: DashboardGuestRequestsPro
         .subscribe();
     });
 
-    // Realtime subscription above handles instant updates. Polling every 60s is
-    // purely a safety fallback to recover from any missed realtime events.
+    // Fast 5s background sync backup for instant live dashboard table
     const interval = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       void loadRequests();
-    }, 60000);
+    }, 5000);
 
     const handleFocus = () => {
       if (document.visibilityState === "visible") {

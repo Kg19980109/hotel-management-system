@@ -646,25 +646,37 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     if (targetPropId) {
       try {
         const supabase = createClient();
-        const alertChannel = supabase.channel(`stayhub:operational-alerts:${targetPropId}`);
+        const alertChannel = supabase.channel(`stayhub:operational-alerts:${targetPropId}`, {
+          config: { broadcast: { ack: false, self: false } },
+        });
         const finalCategory = res.category || selectedCat.id;
-        void alertChannel.send({
-          type: "broadcast",
-          event: "OPERATIONAL_ALERT",
-          payload: {
-            id: res.requestId,
-            type: "SERVICE_REQUEST",
-            category: finalCategory,
-            department: getDepartmentForCategory(finalCategory),
-            roomNumber: res.roomNumber || session?.room_number || "—",
-            guestName: res.guestName || (session?.guest_first_name ? `${session.guest_first_name} ${session.guest_last_name || ""}`.trim() : "Guest"),
-            title: res.title || finalTitle,
-            description: res.description || fullDescription || undefined,
-            priority: res.priority || priority || "NORMAL",
-            receivedAt: Date.now(),
-            propertyId: targetPropId,
-            status: "SUBMITTED",
-          },
+        const payloadData = {
+          id: res.requestId,
+          type: "SERVICE_REQUEST" as const,
+          category: finalCategory,
+          department: getDepartmentForCategory(finalCategory),
+          roomNumber: res.roomNumber || session?.room_number || "—",
+          guestName: res.guestName || (session?.guest_first_name ? `${session.guest_first_name} ${session.guest_last_name || ""}`.trim() : "Guest"),
+          title: res.title || finalTitle,
+          description: res.description || fullDescription || undefined,
+          priority: (res.priority as "NORMAL" | "HIGH" | "URGENT") || priority || "NORMAL",
+          receivedAt: Date.now(),
+          propertyId: targetPropId,
+          status: "SUBMITTED",
+        };
+
+        alertChannel.subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            void alertChannel.send({
+              type: "broadcast",
+              event: "OPERATIONAL_ALERT",
+              payload: payloadData,
+            }).finally(() => {
+              setTimeout(() => {
+                void supabase.removeChannel(alertChannel);
+              }, 2000);
+            });
+          }
         });
       } catch (broadcastErr) {
         console.warn("Realtime broadcast trigger:", broadcastErr);

@@ -46,6 +46,8 @@ export interface GuestServiceRequestDetailEvent {
   from_status?: string | null;
   to_status: string;
   actor_type: "GUEST" | "STAFF" | "SYSTEM";
+  actor_name?: string | null;
+  event_note?: string | null;
   created_at: string;
 }
 

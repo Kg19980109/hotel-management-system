@@ -159,6 +159,57 @@ export async function cancelGuestServiceRequestAction(
   return { success: true };
 }
 
+/**
+ * Add a follow-up message / note from guest portal
+ */
+export async function addGuestServiceRequestFollowUpAction(
+  requestId: string,
+  note: string
+) {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(GUEST_SESSION_COOKIE_NAME);
+
+  if (!sessionCookie || !sessionCookie.value) {
+    return {
+      success: false,
+      error: "No active guest session found.",
+    };
+  }
+
+  if (!note || !note.trim()) {
+    return {
+      success: false,
+      error: "Note cannot be empty.",
+    };
+  }
+
+  const supabase = await createClient();
+  const sessionTokenHash = hashToken(sessionCookie.value);
+
+  const { data, error } = await supabase.rpc("add_guest_service_request_follow_up", {
+    p_session_token_hash: sessionTokenHash,
+    p_request_id: requestId,
+    p_note: note.trim(),
+  });
+
+  if (error || !data?.success) {
+    return {
+      success: false,
+      error: error?.message || data?.error || "Failed to send follow-up note.",
+    };
+  }
+
+  revalidatePath(`/guest/requests/${requestId}`);
+  revalidatePath("/guest/requests");
+  revalidatePath("/guest-requests");
+  revalidatePath(`/guest-requests/${requestId}`);
+  revalidatePath("/housekeeping");
+  revalidatePath("/maintenance");
+  revalidatePath("/dashboard");
+
+  return { success: true, eventId: data.event_id };
+}
+
 // ------------------------------------------------------------
 // GUEST LIVE POLLING (secure — reads httpOnly session cookie server-side)
 // Direct realtime on guest_service_requests is RLS-blocked for anon guests,
@@ -184,7 +235,16 @@ export async function getGuestRequestLiveStatusAction(requestId: string) {
     guest_visible_notes?: string | null;
     assigned_staff_name?: string | null;
     assigned_department?: string | null;
-    events?: { id?: string; to_status?: string; created_at?: string }[];
+    events?: {
+      id?: string;
+      event_type?: string;
+      from_status?: string | null;
+      to_status?: string;
+      actor_type?: string;
+      actor_name?: string | null;
+      event_note?: string | null;
+      created_at?: string;
+    }[];
   };
   return {
     success: true as const,
@@ -194,6 +254,7 @@ export async function getGuestRequestLiveStatusAction(requestId: string) {
     assigned_department: r.assigned_department ?? null,
     eventCount: r.events?.length ?? 0,
     lastEvent: r.events?.[r.events.length - 1]?.to_status ?? null,
+    events: (r.events || []) as any,
   };
 }
 

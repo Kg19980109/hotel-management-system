@@ -32,8 +32,8 @@ import {
   Headphones,
   Zap,
 } from "lucide-react";
-import { GuestServiceRequestDetail, ServiceRequestCategory, ServiceRequestStatus } from "@/lib/guest-services/types";
-import { cancelGuestServiceRequestAction, getGuestRequestLiveStatusAction } from "@/lib/guest-services/actions";
+import { GuestServiceRequestDetail, GuestServiceRequestDetailEvent, ServiceRequestCategory, ServiceRequestStatus } from "@/lib/guest-services/types";
+import { cancelGuestServiceRequestAction, getGuestRequestLiveStatusAction, addGuestServiceRequestFollowUpAction } from "@/lib/guest-services/actions";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -81,11 +81,12 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
   const [guestNotes, setGuestNotes] = React.useState<string | null | undefined>(request.guest_visible_notes);
   const [assignedStaffName, setAssignedStaffName] = React.useState<string | null | undefined>(request.assigned_staff_name);
   const [assignedDepartment, setAssignedDepartment] = React.useState<string | null | undefined>(request.assigned_department);
+  const [events, setEvents] = React.useState<GuestServiceRequestDetailEvent[]>(request.events || []);
   const [isCancelling, setIsCancelling] = React.useState(false);
+  const [isSendingFollowUp, setIsSendingFollowUp] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
   const [guestFollowUpNote, setGuestFollowUpNote] = React.useState("");
-  const [localFollowUps, setLocalFollowUps] = React.useState<string[]>([]);
   const [followUpSuccess, setFollowUpSuccess] = React.useState(false);
 
   const currentStatusRef = React.useRef(currentStatus);
@@ -129,7 +130,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
   }, [request.id, router]);
 
   // Guaranteed live path: secure server-action poll (validates httpOnly
-  // session cookie + RPC). Updates stepper the moment staff changes status.
+  // session cookie + RPC). Updates stepper and chat stream the moment staff changes status or notes.
   React.useEffect(() => {
     const isTerminal = ["COMPLETED", "CANCELLED", "REJECTED"].includes(currentStatusRef.current);
     if (isTerminal) return;
@@ -148,18 +149,21 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
         if (res.success) {
           if (res.status && res.status !== currentStatusRef.current) {
             setCurrentStatus(res.status as ServiceRequestStatus);
-            router.refresh(); // pull fresh timeline events only when status changes
+            router.refresh();
           }
           if (res.guest_visible_notes !== undefined) setGuestNotes(res.guest_visible_notes);
           if (res.assigned_staff_name !== undefined) setAssignedStaffName(res.assigned_staff_name);
           if (res.assigned_department !== undefined) setAssignedDepartment(res.assigned_department);
+          if (res.events && Array.isArray(res.events)) {
+            setEvents(res.events as GuestServiceRequestDetailEvent[]);
+          }
         }
       } catch {
         // offline — next tick retries
       }
     };
 
-    timer = setInterval(() => void poll(), 8000);
+    timer = setInterval(() => void poll(), 6000);
     return () => {
       if (timer) clearInterval(timer);
     };
@@ -196,14 +200,40 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSendFollowUp = (noteText?: string) => {
+  const handleSendFollowUp = async (noteText?: string) => {
     const textToSend = (noteText || guestFollowUpNote).trim();
-    if (!textToSend) return;
+    if (!textToSend || isSendingFollowUp) return;
 
-    setLocalFollowUps((prev) => [...prev, textToSend]);
+    setIsSendingFollowUp(true);
+    setErrorMsg(null);
+
+    // Optimistically add to events stream
+    const optimisticEvent: GuestServiceRequestDetailEvent = {
+      id: `temp-${Date.now()}`,
+      event_type: "NOTE_ADDED",
+      to_status: currentStatus,
+      actor_type: "GUEST",
+      actor_name: "You",
+      event_note: textToSend,
+      created_at: new Date().toISOString(),
+    };
+    setEvents((prev) => [...prev, optimisticEvent]);
     setGuestFollowUpNote("");
     setFollowUpSuccess(true);
     setTimeout(() => setFollowUpSuccess(false), 3000);
+
+    try {
+      const res = await addGuestServiceRequestFollowUpAction(request.id, textToSend);
+      if (!res.success) {
+        setErrorMsg(res.error || "Failed to send message to concierge.");
+      } else {
+        router.refresh();
+      }
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "Failed to send message.");
+    } finally {
+      setIsSendingFollowUp(false);
+    }
   };
 
   // Determine Stepper Stage: 1 = Submitted, 2 = Acknowledged, 3 = Assigned, 4 = In Progress, 5 = Completed
@@ -547,13 +577,42 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
               </div>
             </div>
 
-            {/* ── BUBBLE 3: Operational Timeline Events from Staff ── */}
-            {(request.events || []).map((evt, idx) => {
-              const isGuest = evt.actor_type === "GUEST";
+            {/* ── BUBBLE 3: Operational Timeline Events & Follow-up Notes ── */}
+            {events.map((evt, idx) => {
+              const isGuest = evt.actor_type === "GUEST" || evt.event_type === "NOTE_ADDED";
               const timeStr = new Date(evt.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
+              if (isGuest && evt.event_note) {
+                return (
+                  <div key={evt.id || idx} className="flex items-start justify-end gap-2.5 max-w-[90%] ml-auto animate-in fade-in slide-in-from-bottom-2">
+                    <div className="space-y-1 text-right">
+                      <div className="p-3 rounded-2xl rounded-tr-sm bg-[#FAF4E6] border border-[#D4AF37]/50 text-slate-900 shadow-sm text-left">
+                        <div className="flex items-center justify-between gap-2 border-b border-[#EAE3D2] pb-1">
+                          <span className="text-[9.5px] font-bold text-[#A67C1E]">
+                            Suite {request.room_number} • Follow-up Note
+                          </span>
+                          <span className="text-[9px] text-slate-500 font-mono">
+                            {timeStr}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-800 mt-1 leading-relaxed whitespace-pre-line">
+                          {evt.event_note}
+                        </p>
+                      </div>
+                      <span className="text-[9px] text-emerald-400 mr-1 flex items-center justify-end gap-1 font-medium">
+                        <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+                        <span>Received by Concierge</span>
+                      </span>
+                    </div>
+                    <div className="w-7 h-7 rounded-xl bg-slate-800 text-[#E4C980] border border-[#D4AF37]/30 flex items-center justify-center text-xs font-bold shrink-0 mt-1">
+                      <User className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                );
+              }
+
               if (isGuest) {
-                return null; // Guest events already visualized
+                return null;
               }
 
               let statusEmoji = "📌";
@@ -632,27 +691,6 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
                 </div>
               </div>
             )}
-
-            {/* ── BUBBLE 5: Local Follow-Up Notes Sent by Guest in this Session ── */}
-            {localFollowUps.map((msg, idx) => (
-              <div key={idx} className="flex items-start justify-end gap-2.5 max-w-[90%] ml-auto animate-in fade-in slide-in-from-bottom-2">
-                <div className="space-y-1 text-right">
-                  <div className="p-3 rounded-2xl rounded-tr-sm bg-[#FAF4E6] border border-[#D4AF37]/50 text-slate-900 shadow-sm text-left">
-                    <div className="flex items-center justify-between gap-2 border-b border-[#EAE3D2] pb-1">
-                      <span className="text-[9.5px] font-bold text-[#A67C1E]">Follow-up Note</span>
-                      <span className="text-[9px] text-slate-400 font-mono">Just now</span>
-                    </div>
-                    <p className="text-xs text-slate-800 mt-1 leading-relaxed">
-                      {msg}
-                    </p>
-                  </div>
-                  <span className="text-[9px] text-emerald-400 mr-1">✓ Logged to concierge</span>
-                </div>
-                <div className="w-7 h-7 rounded-xl bg-slate-800 text-[#E4C980] border border-[#D4AF37]/30 flex items-center justify-center text-xs font-bold shrink-0 mt-1">
-                  <User className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            ))}
           </div>
 
           {/* ── 4. QUICK FOLLOW-UP CHAT INPUT & CHIPS ── */}
@@ -660,7 +698,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
             {followUpSuccess && (
               <div className="p-2 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[11px] font-medium flex items-center gap-1.5 animate-in fade-in">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Note noted! Our concierge desk has logged your instruction.</span>
+                <span>Note delivered! Our concierge desk &amp; staff have logged your instruction.</span>
               </div>
             )}
 
@@ -675,8 +713,9 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
                 <button
                   key={chip}
                   type="button"
+                  disabled={isSendingFollowUp}
                   onClick={() => handleSendFollowUp(chip)}
-                  className="text-[10.5px] font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 px-2.5 py-1 rounded-full border border-white/10 whitespace-nowrap transition-transform active:scale-95 select-none"
+                  className="text-[10.5px] font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/15 px-2.5 py-1 rounded-full border border-white/10 whitespace-nowrap transition-transform active:scale-95 select-none disabled:opacity-50"
                 >
                   {chip}
                 </button>
@@ -689,6 +728,7 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
                 type="text"
                 placeholder="Type additional note for concierge..."
                 value={guestFollowUpNote}
+                disabled={isSendingFollowUp}
                 onChange={(e) => setGuestFollowUpNote(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -696,16 +736,20 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
                     handleSendFollowUp();
                   }
                 }}
-                className="flex-1 px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition"
+                className="flex-1 px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition disabled:opacity-50"
               />
               <button
                 type="button"
                 onClick={() => handleSendFollowUp()}
-                disabled={!guestFollowUpNote.trim()}
-                className="p-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#AA7C11] text-[#0B1526] font-bold disabled:opacity-40 transition-transform active:scale-95 shadow-md shadow-[#D4AF37]/20 shrink-0"
+                disabled={!guestFollowUpNote.trim() || isSendingFollowUp}
+                className="p-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#AA7C11] text-[#0B1526] font-bold disabled:opacity-40 transition-transform active:scale-95 shadow-md shadow-[#D4AF37]/20 shrink-0 flex items-center justify-center min-w-[34px] min-h-[34px]"
                 aria-label="Send Note"
               >
-                <Send className="w-4 h-4 stroke-[2.5]" />
+                {isSendingFollowUp ? (
+                  <Loader2 className="w-4 h-4 animate-spin stroke-[2.5]" />
+                ) : (
+                  <Send className="w-4 h-4 stroke-[2.5]" />
+                )}
               </button>
             </div>
           </div>

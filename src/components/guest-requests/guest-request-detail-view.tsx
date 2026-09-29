@@ -22,7 +22,8 @@ import {
   AlertCircle,
   FileText,
   Play,
-  Inbox
+  Inbox,
+  MessageSquare
 } from "lucide-react";
 import { 
   StaffGuestServiceRequest, 
@@ -345,13 +346,53 @@ export function StaffGuestRequestDetailView({
               </div>
             </div>
 
+            {/* Live Guest In-Suite Messages / Follow-ups */}
+            {(() => {
+              const guestNotesList = events.filter(
+                (e) => (e.actor_type === "GUEST" || e.event_type === "NOTE_ADDED") && !!e.event_note
+              );
+              if (guestNotesList.length === 0) return null;
+
+              return (
+                <div className="space-y-2 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-amber-500 dark:text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1.5 font-serif">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      Live Guest In-Suite Messages ({guestNotesList.length})
+                    </span>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-300 font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
+                      Real-time Direct Chat
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    {guestNotesList.map((e, idx) => (
+                      <div key={e.id || idx} className="p-3 rounded-lg bg-background/90 border border-amber-500/20 shadow-2xs space-y-1">
+                        <div className="flex items-center justify-between text-[10.5px] text-muted-foreground border-b border-border/40 pb-1">
+                          <span className="font-bold text-amber-600 dark:text-amber-400">
+                            {e.actor_name || "Guest (Suite " + (request.room?.room_number || "") + ")"}
+                          </span>
+                          <span className="font-mono text-[10px]">
+                            {new Date(e.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-foreground font-semibold leading-relaxed pt-0.5 whitespace-pre-line">
+                          &ldquo;{e.event_note}&rdquo;
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
             {request.description && (
               <div className="space-y-1.5">
                 <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5" />
                   Guest Instructions & Details
                 </span>
-                <p className="text-sm text-foreground bg-muted/40 p-4 rounded-xl border border-border/60 leading-relaxed font-medium">
+                <p className="text-sm text-foreground bg-muted/40 p-4 rounded-xl border border-border/60 leading-relaxed font-medium whitespace-pre-line">
                   {request.description}
                 </p>
               </div>

@@ -373,6 +373,106 @@ const GROUP_LABELS: Record<"ROOM" | "ASSISTANCE" | "EXPERIENCE", { title: string
   },
 };
 
+function getPackagePerks(name: string, categoryId: string): { icon: string; text: string }[] {
+  const n = name.toLowerCase();
+
+  if (categoryId === "SPA") {
+    if (n.includes("ayurvedic") || n.includes("therapy") || n.includes("massage")) {
+      return [
+        { icon: "🌿", text: "60-Min Full Body" },
+        { icon: "✨", text: "Herbal Warm Oils" },
+        { icon: "🧖", text: "Steam & Shower" },
+      ];
+    }
+    if (n.includes("pool") || n.includes("health club") || n.includes("pass")) {
+      return [
+        { icon: "🏊", text: "Full Day Access" },
+        { icon: "♨️", text: "Heated Jacuzzi" },
+        { icon: "🥋", text: "Robes & Locker" },
+      ];
+    }
+    if (n.includes("facial") || n.includes("skin")) {
+      return [
+        { icon: "🌸", text: "Radiant Skin Care" },
+        { icon: "🧴", text: "Organic Botanicals" },
+        { icon: "💆", text: "Relaxation Suite" },
+      ];
+    }
+    return [
+      { icon: "🌿", text: "Wellness Ritual" },
+      { icon: "⭐", text: "5-Star Therapist" },
+      { icon: "🧖", text: "Suite Attendance" },
+    ];
+  }
+
+  if (categoryId === "TRANSPORT") {
+    if (n.includes("airport")) {
+      return [
+        { icon: "🚗", text: "Private Premium Sedan" },
+        { icon: "✈️", text: "Flight Monitored" },
+        { icon: "🧳", text: "Luggage Valet" },
+      ];
+    }
+    if (n.includes("chauffeur") || n.includes("day")) {
+      return [
+        { icon: "🚘", text: "Full-Day Driver (8h)" },
+        { icon: "🗺️", text: "Flexible Stops" },
+        { icon: "💧", text: "Water & Mints" },
+      ];
+    }
+    return [
+      { icon: "🚗", text: "Direct Porch Pickup" },
+      { icon: "⚡", text: "Instant Dispatch" },
+      { icon: "🛡️", text: "Verified Chauffeur" },
+    ];
+  }
+
+  if (categoryId === "LAUNDRY") {
+    if (n.includes("express") || n.includes("same-day")) {
+      return [
+        { icon: "⚡", text: "4-Hour Express Return" },
+        { icon: "👔", text: "Steam Press & Fold" },
+        { icon: "📦", text: "Hanger & Cover" },
+      ];
+    }
+    if (n.includes("dry clean")) {
+      return [
+        { icon: "✨", text: "Gentle Fabric Care" },
+        { icon: "🛡️", text: "Stain Protection" },
+        { icon: "👔", text: "Garment Bag Finish" },
+      ];
+    }
+    return [
+      { icon: "👔", text: "Professional Wash" },
+      { icon: "♨️", text: "Steam Pressing" },
+      { icon: "🛎️", text: "Suite Delivery" },
+    ];
+  }
+
+  if (categoryId === "OTHER") {
+    if (n.includes("suite") || n.includes("tariff")) {
+      return [
+        { icon: "👑", text: "Executive High Floor" },
+        { icon: "🍸", text: "Club Lounge Access" },
+        { icon: "⏰", text: "Late 2 PM Checkout" },
+      ];
+    }
+    if (n.includes("extra bed") || n.includes("bed")) {
+      return [
+        { icon: "🛏️", text: "Plush Ortho Mattress" },
+        { icon: "✨", text: "Fresh Duvet & Pillows" },
+        { icon: "⚡", text: "Express Setup" },
+      ];
+    }
+  }
+
+  return [
+    { icon: "⭐", text: "5-Star Hotel Service" },
+    { icon: "✓", text: "Direct Folio Charge" },
+    { icon: "⚡", text: "Priority Desk Dispatch" },
+  ];
+}
+
 export function ServicesView({ session, payableServices = [], initialCategory }: ServicesViewProps) {
   const router = useRouter();
   const isVerifiedStay = session?.session_type === "VERIFIED_STAY";
@@ -1002,46 +1102,48 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   );
                 })()}
 
-                {/* ── VIEW 1: CURATED PACKAGES SHOWCASE ── */}
+                {/* ── VIEW 1: SIGNATURE CURATED PACKAGES SHOWCASE ── */}
                 {selectedCat.isPaid && modalMode === "PACKAGES" && (() => {
                   const paidItems = getCategoryPaidItems(selectedCat);
                   if (paidItems.length === 0) return null;
 
                   return (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between px-0.5">
+                      <div className="flex items-center justify-between px-1">
                         <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider font-serif flex items-center gap-1.5">
-                          <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
-                          <span>Choose Service Package</span>
+                          <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Select Experience Package</span>
                         </span>
-                        <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300">
-                          Billed to Room Folio
+                        <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100/90 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>Billed to Room Folio</span>
                         </span>
                       </div>
 
-                      {/* Fully visible, unclipped package cards stack */}
-                      <div className="space-y-3">
+                      {/* Signature Experience Cards Stack */}
+                      <div className="space-y-3 pt-0.5">
                         {paidItems.map((item, idx) => {
                           const isSelected = selectedPaidItem?.id === item.id;
                           const itemName = item.name.toLowerCase();
+                          const perks = getPackagePerks(item.name, selectedCat.id);
 
-                          let packageBadge = "💎 Exclusive Package";
-                          let packageIcon = "✨";
+                          let packageTag = "Curated Package";
+                          let packageIcon = "💎";
                           if (idx === 0) {
-                            packageBadge = "★ Most Popular";
-                            packageIcon = "👑";
+                            packageTag = "Most Popular Choice";
+                            packageIcon = "★";
                           } else if (itemName.includes("ayurvedic") || itemName.includes("therapy") || itemName.includes("spa")) {
-                            packageBadge = "🌿 Wellness Therapy";
-                            packageIcon = "🌸";
+                            packageTag = "Signature Wellness";
+                            packageIcon = "🌿";
                           } else if (itemName.includes("airport") || itemName.includes("cab") || itemName.includes("chauffeur")) {
-                            packageBadge = "🚗 VIP Chauffeur";
-                            packageIcon = "✨";
+                            packageTag = "VIP Chauffeur Transfer";
+                            packageIcon = "🚗";
                           } else if (itemName.includes("laundry") || itemName.includes("dry clean")) {
-                            packageBadge = "👔 Valet Express";
-                            packageIcon = "⚡";
+                            packageTag = "Valet Garment Express";
+                            packageIcon = "👔";
                           } else if (itemName.includes("suite") || itemName.includes("tariff") || itemName.includes("extra bed")) {
-                            packageBadge = "🛎️ Suite Privilege";
-                            packageIcon = "🌟";
+                            packageTag = "Suite Upgrade Privilege";
+                            packageIcon = "👑";
                           }
 
                           return (
@@ -1052,60 +1154,99 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                                 setSelectedQuickOption("");
                               }}
                               className={cn(
-                                "p-4 rounded-2xl text-left transition-all duration-150 border select-none relative overflow-hidden cursor-pointer shadow-sm",
+                                "p-4 rounded-3xl transition-all duration-200 border cursor-pointer select-none relative overflow-hidden group",
                                 isSelected
-                                  ? "bg-gradient-to-br from-amber-50/95 via-white to-amber-100/70 border-amber-500 ring-2 ring-amber-400/50 shadow-md"
-                                  : "bg-white border-[#EAE3D2] hover:border-amber-400/80 hover:bg-amber-50/20 active:scale-[0.99]"
+                                  ? "bg-gradient-to-br from-[#0B1526] via-[#111F36] to-[#0B1526] text-white border-2 border-[#D4AF37] shadow-xl shadow-amber-950/20 ring-2 ring-[#D4AF37]/30 scale-[1.01]"
+                                  : "bg-white hover:bg-[#FAF8F5] border-[#E2D9C8] hover:border-[#D4AF37]/70 text-slate-900 shadow-sm hover:shadow-md active:scale-[0.99]"
                               )}
                             >
-                              {/* Top Bar: Badge + Price Tag */}
-                              <div className="flex items-center justify-between gap-2 pb-2 border-b border-amber-100/80">
+                              {/* Accent gold line on top when selected */}
+                              {isSelected && (
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37]" />
+                              )}
+
+                              {/* Card Header: Tag Badge + Price & Radio Check */}
+                              <div className="flex items-center justify-between gap-2">
                                 <span className={cn(
-                                  "text-[9.5px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex items-center gap-1 shadow-2xs",
+                                  "text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex items-center gap-1 shadow-2xs",
                                   isSelected
-                                    ? "bg-amber-500 text-white border-amber-600 font-extrabold"
-                                    : "bg-amber-100/90 text-amber-900 border-amber-300/80"
+                                    ? "bg-white/10 text-[#E4C980] border-[#D4AF37]/40"
+                                    : "bg-[#FAF4E6] text-[#A67C1E] border-[#D4AF37]/30"
                                 )}>
                                   <span>{packageIcon}</span>
-                                  <span>{packageBadge}</span>
+                                  <span>{packageTag}</span>
                                 </span>
 
-                                <div className="flex items-baseline gap-1">
-                                  <span className="text-xs font-bold text-slate-500">₹</span>
-                                  <span className="text-lg font-black font-mono text-slate-900 tracking-tight">
-                                    {item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                  </span>
+                                <div className="flex items-center gap-2.5">
+                                  <div className="flex items-baseline gap-0.5">
+                                    <span className={cn("text-xs font-bold", isSelected ? "text-[#E4C980]" : "text-slate-500")}>₹</span>
+                                    <span className={cn("text-xl font-black font-mono tracking-tight", isSelected ? "text-white" : "text-slate-900")}>
+                                      {item.price.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </span>
+                                    <span className={cn("text-[10px] font-mono", isSelected ? "text-slate-400" : "text-slate-400")}>.00</span>
+                                  </div>
+
+                                  <div className={cn(
+                                    "w-6 h-6 rounded-full flex items-center justify-center transition-all",
+                                    isSelected
+                                      ? "bg-gradient-to-r from-[#D4AF37] to-[#E4C980] text-[#0B1526] shadow-sm scale-110"
+                                      : "border-2 border-slate-300 text-transparent group-hover:border-[#D4AF37]"
+                                  )}>
+                                    <Check className="w-3.5 h-3.5 stroke-[3.5]" />
+                                  </div>
                                 </div>
                               </div>
 
-                              {/* Middle: Title & Description */}
-                              <div className="py-2.5 space-y-1">
-                                <h4 className="text-sm font-bold text-slate-900 font-serif leading-snug">
+                              {/* Card Title & Description */}
+                              <div className="pt-2 pb-1 space-y-1">
+                                <h4 className={cn(
+                                  "text-sm sm:text-base font-bold font-serif leading-snug tracking-tight",
+                                  isSelected ? "text-white" : "text-slate-900 group-hover:text-amber-950"
+                                )}>
                                   {item.name}
                                 </h4>
-                                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                                <p className={cn(
+                                  "text-[11px] leading-relaxed line-clamp-2",
+                                  isSelected ? "text-slate-300/90" : "text-slate-600"
+                                )}>
                                   {item.description || "Curated 5-star hotel service package billed directly to your room folio upon completion."}
                                 </p>
                               </div>
 
-                              {/* Bottom: Inclusions & Selection Action */}
-                              <div className="pt-2 border-t border-amber-100/80 flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2 text-[10px] text-slate-600 font-medium">
-                                  <span className="text-emerald-700 font-bold">✓ Direct Room Folio Charge</span>
-                                  <span className="text-slate-300">•</span>
-                                  <span className="text-indigo-700 font-bold">✓ Priority Dispatch</span>
-                                </div>
+                              {/* Smart Package Inclusions Chips */}
+                              <div className="flex items-center gap-1.5 flex-wrap pt-2">
+                                {perks.map((p, pIdx) => (
+                                  <span
+                                    key={pIdx}
+                                    className={cn(
+                                      "text-[10px] font-semibold px-2.5 py-1 rounded-xl border flex items-center gap-1 shadow-2xs",
+                                      isSelected
+                                        ? "bg-white/10 text-slate-200 border-white/10"
+                                        : "bg-[#FAF8F5] text-slate-700 border-[#EAE3D2]"
+                                    )}
+                                  >
+                                    <span>{p.icon}</span>
+                                    <span>{p.text}</span>
+                                  </span>
+                                ))}
+                              </div>
 
-                                {isSelected ? (
-                                  <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center gap-1.5 text-xs font-bold shadow-xs">
-                                    <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                    <span>Selected</span>
-                                  </div>
-                                ) : (
-                                  <div className="px-3.5 py-1.5 rounded-xl bg-[#FAF8F5] text-slate-700 hover:bg-amber-100 hover:text-amber-900 border border-[#EAE3D2] flex items-center gap-1 text-xs font-bold transition-colors">
-                                    <span>Tap to Select</span>
-                                  </div>
-                                )}
+                              {/* Bottom Footer Info */}
+                              <div className={cn(
+                                "pt-2.5 mt-2.5 border-t flex items-center justify-between text-[10.5px] font-medium",
+                                isSelected ? "border-white/10 text-slate-300" : "border-slate-100 text-slate-500"
+                              )}>
+                                <span className="flex items-center gap-1 text-emerald-500 font-semibold">
+                                  <ShieldCheck className="w-3.5 h-3.5" />
+                                  <span>Direct Room Folio Charge</span>
+                                </span>
+
+                                <span className={cn(
+                                  "font-bold text-[11px] flex items-center gap-1",
+                                  isSelected ? "text-[#E4C980]" : "text-[#A67C1E] group-hover:underline"
+                                )}>
+                                  {isSelected ? "Selected ✓" : "Tap to Select"}
+                                </span>
                               </div>
                             </div>
                           );
@@ -1115,14 +1256,14 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                       {/* Instructions for Selected Package */}
                       <div className="space-y-1.5 p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] mt-2">
                         <label className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5 font-serif">
-                          <MessageSquarePlus className="w-3.5 h-3.5 text-[#D4AF37]" />
-                          <span>Timing / Delivery Preferences (Optional)</span>
+                          <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Preferred Timing &amp; Delivery Notes (Optional)</span>
                         </label>
                         <input
                           type="text"
                           value={customMessage}
                           onChange={(e) => setCustomMessage(e.target.value)}
-                          placeholder="E.g., Please arrive around 6:00 PM, or specific preferences..."
+                          placeholder="E.g., Please arrive around 6:00 PM, or mention any preferences..."
                           className="w-full px-3 py-2 rounded-xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition"
                         />
                       </div>

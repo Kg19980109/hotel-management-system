@@ -49,6 +49,7 @@ interface OrderSuccessData {
   }[];
   subtotal: number;
   tax: number;
+  others: number;
   total: number;
   placedAt: string;
 }
@@ -87,8 +88,9 @@ export function CartView({ session }: CartViewProps) {
   const [successOrder, setSuccessOrder] = React.useState<OrderSuccessData | null>(null);
 
   const isVerifiedStay = session?.session_type === "VERIFIED_STAY";
-  const tax = subtotal * 0.05; // 5% GST/VAT
-  const total = subtotal + tax;
+  const tax = Number((subtotal * 0.05).toFixed(2)); // 5% GST (2.5% CGST + 2.5% SGST)
+  const others = items.length > 0 ? 2 : 0; // ₹2.00 Others (Packaging & Eco Cess)
+  const total = Number((subtotal + tax + others).toFixed(2));
 
   const handlePlaceOrder = async () => {
     if (!restaurantId || items.length === 0 || isSubmitting) return;
@@ -105,6 +107,7 @@ export function CartView({ session }: CartViewProps) {
     const orderItemsSnapshot = [...items];
     const subtotalSnapshot = subtotal;
     const taxSnapshot = tax;
+    const othersSnapshot = others;
     const totalSnapshot = total;
     const restNameSnapshot = restaurantName || "Restaurant";
 
@@ -167,6 +170,7 @@ export function CartView({ session }: CartViewProps) {
       items: orderItemsSnapshot,
       subtotal: subtotalSnapshot,
       tax: taxSnapshot,
+      others: othersSnapshot,
       total: totalSnapshot,
       placedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     });
@@ -255,18 +259,32 @@ export function CartView({ session }: CartViewProps) {
             ))}
           </div>
 
-          <div className="pt-2 border-t border-[#EAE3D2] space-y-1.5 text-slate-600">
-            <div className="flex justify-between">
+          <div className="pt-2 border-t border-[#EAE3D2] space-y-2 text-slate-600">
+            <div className="flex justify-between items-center">
               <span>Subtotal</span>
               <span className="font-semibold text-slate-800">₹{successOrder.subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>GST &amp; Taxes (5%)</span>
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium text-slate-700">GST (5%)</span>
+                <span className="text-[10px] text-slate-400 block">2.5% CGST + 2.5% SGST (Goods &amp; Services Tax)</span>
+              </div>
               <span className="font-semibold text-slate-800">₹{successOrder.tax.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between pt-1 border-t border-[#EAE3D2] text-sm font-bold text-slate-900">
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium text-slate-700">Others</span>
+                <span className="text-[10px] text-slate-400 block">Packaging &amp; Service Cess</span>
+              </div>
+              <span className="font-semibold text-slate-800">₹{(successOrder.others || 2).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Room Service Delivery</span>
+              <span className="font-bold text-emerald-700 uppercase text-[10.5px]">COMPLIMENTARY</span>
+            </div>
+            <div className="flex justify-between pt-1.5 border-t border-[#EAE3D2] text-sm font-bold text-slate-900 items-baseline">
               <span>Total (Charged to Room Folio)</span>
-              <span className="text-base text-slate-900 font-mono">
+              <span className="text-base text-slate-900 font-mono font-black">
                 ₹{successOrder.total.toFixed(2)}
               </span>
             </div>
@@ -498,24 +516,35 @@ export function CartView({ session }: CartViewProps) {
           Payment &amp; Folio Summary
         </h4>
 
-        <div className="flex justify-between text-slate-600">
+        <div className="flex justify-between items-center text-slate-600">
           <span>Subtotal</span>
           <span className="font-semibold text-slate-800">₹{subtotal.toFixed(2)}</span>
         </div>
 
-        <div className="flex justify-between text-slate-600">
-          <span>Taxes &amp; GST (5%)</span>
+        <div className="flex justify-between items-center text-slate-600">
+          <div>
+            <span className="font-medium text-slate-700">GST (5%)</span>
+            <span className="text-[10px] text-slate-400 block">2.5% CGST + 2.5% SGST (Goods &amp; Services Tax)</span>
+          </div>
           <span className="font-semibold text-slate-800">₹{tax.toFixed(2)}</span>
         </div>
 
-        <div className="flex justify-between text-slate-600">
+        <div className="flex justify-between items-center text-slate-600">
+          <div>
+            <span className="font-medium text-slate-700">Others</span>
+            <span className="text-[10px] text-slate-400 block">Packaging &amp; Service Cess</span>
+          </div>
+          <span className="font-semibold text-slate-800">₹{others.toFixed(2)}</span>
+        </div>
+
+        <div className="flex justify-between items-center text-slate-600">
           <span>Room Service Delivery</span>
-          <span className="font-bold text-emerald-700 uppercase">COMPLIMENTARY</span>
+          <span className="font-bold text-emerald-700 uppercase text-[10.5px]">COMPLIMENTARY</span>
         </div>
 
         <div className="pt-2 border-t border-amber-200/70 flex justify-between items-center text-sm font-bold text-slate-900">
           <span>Total (Charged to Room Folio)</span>
-          <span className="text-base text-slate-900 font-mono">
+          <span className="text-base text-slate-900 font-mono font-black">
             ₹{total.toFixed(2)}
           </span>
         </div>

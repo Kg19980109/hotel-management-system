@@ -361,8 +361,19 @@ export default function PublicBookingCheckoutPage() {
                   </div>
 
                   <div className="flex justify-between text-slate-600">
-                    <span>Taxes & Hotel Fees (18%)</span>
+                    <div>
+                      <span className="font-medium text-slate-700">GST (18%)</span>
+                      <span className="text-[10px] text-slate-400 block">9% CGST + 9% SGST (Goods &amp; Services Tax)</span>
+                    </div>
                     <span className="font-medium text-slate-800">{pricing.currency} {pricing.taxAmount.toFixed(2)}</span>
+                  </div>
+
+                  <div className="flex justify-between text-slate-600">
+                    <div>
+                      <span className="font-medium text-slate-700">Others</span>
+                      <span className="text-[10px] text-slate-400 block">Platform &amp; Govt Eco Cess</span>
+                    </div>
+                    <span className="font-medium text-slate-800">{pricing.currency} {pricing.otherCharges.toFixed(2)}</span>
                   </div>
 
                   <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline">

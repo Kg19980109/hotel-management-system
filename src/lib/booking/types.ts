@@ -59,6 +59,7 @@ export interface PublicBookingPricing {
   discountAmount: number;
   taxRatePercent: number;
   taxAmount: number;
+  otherCharges: number;
   totalAmount: number;
   currency: string;
 }

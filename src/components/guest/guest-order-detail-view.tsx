@@ -343,26 +343,38 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
           </div>
 
           {/* Bill Breakdown */}
-          <div className="pt-3 border-t border-amber-200/80 space-y-1.5 text-xs text-slate-600">
-            <div className="flex justify-between">
+          <div className="pt-3 border-t border-amber-200/80 space-y-2 text-xs text-slate-600">
+            <div className="flex justify-between items-center">
               <span>Subtotal</span>
               <span className="font-mono font-semibold text-slate-800">
                 ₹{Number(order.subtotal).toFixed(2)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span>Taxes &amp; GST (5%)</span>
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium text-slate-700">GST (5%)</span>
+                <span className="text-[10px] text-slate-400 block">2.5% CGST + 2.5% SGST (Goods &amp; Services Tax)</span>
+              </div>
               <span className="font-mono font-semibold text-slate-800">
-                ₹{Number(order.tax_amount).toFixed(2)}
+                ₹{Number(order.tax_amount || (Number(order.subtotal) * 0.05)).toFixed(2)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span>Room Service Delivery</span>
-              <span className="font-bold text-emerald-700 uppercase text-[11px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLIMENTARY</span>
+            <div className="flex justify-between items-center">
+              <div>
+                <span className="font-medium text-slate-700">Others</span>
+                <span className="text-[10px] text-slate-400 block">Packaging &amp; Service Cess</span>
+              </div>
+              <span className="font-mono font-semibold text-slate-800">
+                ₹2.00
+              </span>
             </div>
-            <div className="flex justify-between pt-2 border-t border-amber-200/80 font-bold text-slate-900 text-sm">
+            <div className="flex justify-between items-center">
+              <span>Room Service Delivery</span>
+              <span className="font-bold text-emerald-700 uppercase text-[10.5px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLIMENTARY</span>
+            </div>
+            <div className="flex justify-between pt-2 border-t border-amber-200/80 font-bold text-slate-900 text-sm items-baseline">
               <span className="font-serif">Total Charged to Room</span>
-              <span className="font-mono text-base text-slate-900 font-bold">
+              <span className="font-mono text-base text-slate-900 font-black">
                 ₹{Number(order.total_amount).toFixed(2)}
               </span>
             </div>

@@ -191,7 +191,10 @@ export function GuestFolioView({ folioContext, session }: GuestFolioViewProps) {
             </div>
 
             <div className="flex items-center justify-between text-slate-600">
-              <span>Applicable Taxes (GST / VAT)</span>
+              <div>
+                <span>GST &amp; Taxes</span>
+                <span className="text-[10px] text-slate-400 block">Goods &amp; Services Tax (CGST + SGST)</span>
+              </div>
               <span className="font-mono font-bold text-slate-900">
                 {currSym}{folioContext.taxes_total.toFixed(2)}
               </span>

@@ -38,7 +38,8 @@ export function calculateBookingPricing(
   const roomSubtotal = Number((grossSubtotal - validDiscount).toFixed(2));
   
   const taxAmount = Number(((roomSubtotal * taxRatePercent) / 100).toFixed(2));
-  const totalAmount = Number((roomSubtotal + taxAmount).toFixed(2));
+  const otherCharges = 4.00; // ₹4.00 Others (Platform & Govt Eco Cess)
+  const totalAmount = Number((roomSubtotal + taxAmount + otherCharges).toFixed(2));
 
   return {
     nightlyRate: validRate,
@@ -48,6 +49,7 @@ export function calculateBookingPricing(
     discountAmount: validDiscount,
     taxRatePercent,
     taxAmount,
+    otherCharges,
     totalAmount,
     currency,
   };

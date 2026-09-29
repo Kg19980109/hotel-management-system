@@ -98,8 +98,9 @@ export async function createStaffMemberAction(
         const { createAdminClient } = await import("@/lib/supabase/admin");
         const adminSupabase = createAdminClient();
         const staffEmail = input.email.trim();
+        const fullName = `${input.first_name.trim()} ${input.last_name.trim()}`;
 
-        // Check if user already exists
+        // 1. Check or create Auth User
         const { data: uList } = await adminSupabase.auth.admin.listUsers();
         let targetUser = uList?.users?.find((u) => u.email?.toLowerCase() === staffEmail.toLowerCase()) || null;
 
@@ -109,47 +110,117 @@ export async function createStaffMemberAction(
             password: "StayHub@2026",
             email_confirm: true,
             user_metadata: {
-              full_name: `${input.first_name.trim()} ${input.last_name.trim()}`,
+              full_name: fullName,
               designation: input.designation?.trim() || "Staff",
             },
           });
           targetUser = newUser?.user || null;
+        } else {
+          // Ensure password is set to default if needed
+          await adminSupabase.auth.admin.updateUserById(targetUser.id, {
+            password: "StayHub@2026",
+            user_metadata: {
+              ...targetUser.user_metadata,
+              full_name: fullName,
+            },
+          });
         }
 
         if (targetUser) {
-          // Ensure profile
-          const { data: prof } = await adminSupabase
+          // 2. Ensure Profile
+          const { data: existingProfile } = await adminSupabase
             .from("profiles")
-            .upsert(
-              {
+            .select("id")
+            .or(`auth_user_id.eq.${targetUser.id},email.eq.${staffEmail}`)
+            .maybeSingle();
+
+          let profileId = existingProfile?.id;
+          if (!profileId) {
+            const { data: newProfile } = await adminSupabase
+              .from("profiles")
+              .insert({
                 auth_user_id: targetUser.id,
                 email: staffEmail,
-                full_name: `${input.first_name.trim()} ${input.last_name.trim()}`,
+                full_name: fullName,
                 status: "active",
-              },
-              { onConflict: "email" }
-            )
-            .select()
-            .single();
+              })
+              .select("id")
+              .single();
+            profileId = newProfile?.id;
+          } else {
+            await adminSupabase
+              .from("profiles")
+              .update({
+                auth_user_id: targetUser.id,
+                full_name: fullName,
+                status: "active",
+              })
+              .eq("id", profileId);
+          }
 
-          if (prof) {
+          if (profileId) {
             await adminSupabase
               .from("staff_members")
-              .update({ profile_id: prof.id })
+              .update({ profile_id: profileId })
               .eq("id", data.id);
           }
 
-          // Link membership with role if provided
-          if (input.role_id) {
-            await adminSupabase.from("property_memberships").upsert(
-              {
-                property_id: propertyId,
-                user_id: targetUser.id,
-                role_id: input.role_id,
-                status: "active",
-              },
-              { onConflict: "property_id,user_id" }
-            );
+          // 3. Resolve role ID
+          let targetRoleId = input.role_id;
+          if (!targetRoleId) {
+            // Determine role by department or default
+            const { data: allRoles } = await adminSupabase
+              .from("roles")
+              .select("id, code");
+            
+            // Check department code/name
+            let targetCode = "STAFF";
+            if (input.department_id) {
+              const { data: dept } = await adminSupabase
+                .from("staff_departments")
+                .select("department_code, name")
+                .eq("id", input.department_id)
+                .maybeSingle();
+              const deptCode = dept?.department_code?.toUpperCase() || "";
+              const deptName = dept?.name?.toUpperCase() || "";
+              if (deptCode.includes("HK") || deptName.includes("HOUSEKEEP")) targetCode = "HOUSEKEEPING";
+              else if (deptCode.includes("FD") || deptName.includes("FRONT")) targetCode = "FRONT_DESK";
+              else if (deptCode.includes("MAINT") || deptName.includes("ENGINEER")) targetCode = "MAINTENANCE";
+              else if (deptCode.includes("FB") || deptName.includes("BEVERAGE") || deptName.includes("FOOD")) targetCode = "RESTAURANT_STAFF";
+              else if (deptCode.includes("KIT") || deptName.includes("CHEF")) targetCode = "KITCHEN_STAFF";
+              else if (deptCode.includes("MGT") || deptCode.includes("EXEC")) targetCode = "GENERAL_MANAGER";
+            }
+            const foundRole = allRoles?.find((r) => r.code === targetCode) || allRoles?.find((r) => r.code === "STAFF");
+            targetRoleId = foundRole?.id;
+          }
+
+          // 4. Ensure property membership
+          if (targetRoleId) {
+            const { data: existingMembership } = await adminSupabase
+              .from("property_memberships")
+              .select("id")
+              .eq("property_id", propertyId)
+              .eq("user_id", targetUser.id)
+              .maybeSingle();
+
+            if (existingMembership) {
+              await adminSupabase
+                .from("property_memberships")
+                .update({
+                  role_id: targetRoleId,
+                  status: "active",
+                })
+                .eq("id", existingMembership.id);
+            } else {
+              await adminSupabase
+                .from("property_memberships")
+                .insert({
+                  property_id: propertyId,
+                  user_id: targetUser.id,
+                  role_id: targetRoleId,
+                  status: "active",
+                });
+            }
           }
         }
       } catch (authErr) {
@@ -183,19 +254,85 @@ export async function resetStaffPasswordAction(
     const adminSupabase = createAdminClient();
 
     const { data: uList } = await adminSupabase.auth.admin.listUsers();
-    const user = uList?.users?.find((u) => u.email?.toLowerCase() === staffEmail.toLowerCase());
+    let user = uList?.users?.find((u) => u.email?.toLowerCase() === staffEmail.toLowerCase());
 
     if (!user) {
       // Create user with the password
-      await adminSupabase.auth.admin.createUser({
+      const { data: newUser, error: createErr } = await adminSupabase.auth.admin.createUser({
         email: staffEmail,
         password: newPassword,
         email_confirm: true,
       });
+      if (createErr) throw createErr;
+      user = newUser?.user || undefined;
     } else {
       await adminSupabase.auth.admin.updateUserById(user.id, {
         password: newPassword,
       });
+    }
+
+    if (user) {
+      // Ensure profile and property membership exist
+      const { data: staffMember } = await adminSupabase
+        .from("staff_members")
+        .select("id, first_name, last_name, department_id")
+        .eq("property_id", propertyId)
+        .eq("email", staffEmail)
+        .maybeSingle();
+
+      const fullName = staffMember ? `${staffMember.first_name} ${staffMember.last_name}` : staffEmail.split("@")[0];
+
+      const { data: existingProfile } = await adminSupabase
+        .from("profiles")
+        .select("id")
+        .or(`auth_user_id.eq.${user.id},email.eq.${staffEmail}`)
+        .maybeSingle();
+
+      let profileId = existingProfile?.id;
+      if (!profileId) {
+        const { data: newProfile } = await adminSupabase
+          .from("profiles")
+          .insert({
+            auth_user_id: user.id,
+            email: staffEmail,
+            full_name: fullName,
+            status: "active",
+          })
+          .select("id")
+          .single();
+        profileId = newProfile?.id;
+      }
+
+      if (profileId && staffMember) {
+        await adminSupabase
+          .from("staff_members")
+          .update({ profile_id: profileId })
+          .eq("id", staffMember.id);
+      }
+
+      // Check membership
+      const { data: existingMembership } = await adminSupabase
+        .from("property_memberships")
+        .select("id")
+        .eq("property_id", propertyId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!existingMembership) {
+        // Find default role
+        const { data: roles } = await adminSupabase
+          .from("roles")
+          .select("id, code");
+        const defaultRole = roles?.find((r) => r.code === "HOUSEKEEPING") || roles?.find((r) => r.code === "STAFF") || roles?.[0];
+        if (defaultRole) {
+          await adminSupabase.from("property_memberships").insert({
+            property_id: propertyId,
+            user_id: user.id,
+            role_id: defaultRole.id,
+            status: "active",
+          });
+        }
+      }
     }
 
     return { success: true };

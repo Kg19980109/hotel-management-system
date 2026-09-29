@@ -42,10 +42,20 @@ function LoginForm() {
         setError(result.error || "Failed to sign in. Please verify your credentials.");
       }
     } catch (err: unknown) {
-      if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+      // In Next.js, redirect() throws an error containing NEXT_REDIRECT in message or digest
+      const errorObj = err as { message?: string; digest?: string };
+      if (
+        (errorObj?.message && errorObj.message.includes("NEXT_REDIRECT")) ||
+        (errorObj?.digest && errorObj.digest.includes("NEXT_REDIRECT"))
+      ) {
         throw err;
       }
-      setError("An unexpected error occurred. Please try again.");
+      console.error("Login submission error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An unexpected error occurred. Please try again."
+      );
     } finally {
       setLoading(false);
     }

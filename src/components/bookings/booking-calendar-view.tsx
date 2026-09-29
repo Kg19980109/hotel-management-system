@@ -3,7 +3,19 @@
 import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  BedDouble,
+  Search,
+  Plus,
+  Layers,
+  Sparkles,
+  Users,
+  Filter,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CalendarBookingItem {
   id: string;
@@ -47,17 +59,31 @@ export function BookingCalendarView({
   onDateChange,
   loading,
 }: BookingCalendarViewProps) {
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [selectedRoomType, setSelectedRoomType] = React.useState<string>("ALL");
+
   // Generate date columns
-  const dateColumns: { date: Date; dateStr: string; label: string; dayName: string; isToday: boolean }[] = [];
+  const dateColumns: {
+    date: Date;
+    dateStr: string;
+    label: string;
+    dayName: string;
+    dayNum: number;
+    isWeekend: boolean;
+    isToday: boolean;
+  }[] = [];
   const todayStr = formatLocalDate(new Date());
 
   for (let i = 0; i < daysToShow; i++) {
     const d = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i);
     const dateStr = formatLocalDate(d);
     const isToday = dateStr === todayStr;
+    const dayOfWeek = d.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
     const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
     const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    dateColumns.push({ date: d, dateStr, label, dayName, isToday });
+    const dayNum = d.getDate();
+    dateColumns.push({ date: d, dateStr, label, dayName, dayNum, isWeekend, isToday });
   }
 
   const handlePrev = () => {
@@ -69,101 +95,184 @@ export function BookingCalendarView({
   };
 
   const handleToday = () => {
-    onDateChange(new Date());
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    onDateChange(d);
   };
 
-  return (
-    <div className="space-y-3">
-      {/* Calendar Header Controls */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-white rounded-[var(--radius-lg)] border border-[var(--border)] shadow-xs">
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="h-4 w-4 text-[var(--primary)]" />
-          <span className="font-semibold text-sm text-[var(--foreground)]">
-            Tape Chart ({dateColumns[0]?.label} – {dateColumns[dateColumns.length - 1]?.label})
-          </span>
-        </div>
+  // Filter rooms
+  const roomTypes = React.useMemo(() => {
+    const types = new Set<string>();
+    rooms.forEach((r) => {
+      if (r.room_type?.code) types.add(r.room_type.code);
+    });
+    return Array.from(types);
+  }, [rooms]);
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleToday} className="text-xs h-8">
-            Today
-          </Button>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrev}
-              className="h-8 w-8 p-0"
-              title="Previous 7 Days"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNext}
-              className="h-8 w-8 p-0"
-              title="Next 7 Days"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+  const filteredRooms = React.useMemo(() => {
+    return rooms.filter((r) => {
+      if (selectedRoomType !== "ALL" && r.room_type?.code !== selectedRoomType) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const numMatch = r.room_number?.toLowerCase().includes(q);
+        const nameMatch = r.room_name?.toLowerCase().includes(q);
+        const typeMatch = r.room_type?.name.toLowerCase().includes(q);
+        if (!numMatch && !nameMatch && !typeMatch) return false;
+      }
+      return true;
+    });
+  }, [rooms, searchQuery, selectedRoomType]);
+
+  return (
+    <div className="space-y-4">
+      {/* ── COMMAND BAR ── */}
+      <div className="bg-slate-900 border border-white/10 rounded-2xl p-4 shadow-xl text-white">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center font-black text-white shadow-md">
+              <CalendarIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-black text-white">
+                  Tape Chart Timeline
+                </h2>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-indigo-300 border border-indigo-400/30">
+                  {dateColumns[0]?.label} – {dateColumns[dateColumns.length - 1]?.label}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Visual matrix of room assignments, stay lengths, and live bookings
+              </p>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Search */}
+            <div className="relative min-w-[180px]">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Filter room..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-1 text-xs bg-white/5 border border-white/15 rounded-xl text-white placeholder:text-slate-400 h-8 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+              />
+            </div>
+
+            {/* Room Type */}
+            {roomTypes.length > 0 && (
+              <select
+                value={selectedRoomType}
+                onChange={(e) => setSelectedRoomType(e.target.value)}
+                className="h-8 px-2.5 rounded-xl text-xs font-bold bg-slate-800 border border-white/15 text-white focus:outline-none"
+              >
+                <option value="ALL">All Room Types</option>
+                {roomTypes.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Nav buttons */}
+            <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePrev}
+                className="h-7 w-7 p-0 text-slate-300 hover:text-white rounded-lg"
+                title="Previous 7 Days"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleToday}
+                className="h-7 px-2.5 text-xs font-black text-amber-400 hover:text-amber-300 rounded-lg"
+              >
+                Today
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNext}
+                className="h-7 w-7 p-0 text-slate-300 hover:text-white rounded-lg"
+                title="Next 7 Days"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Tape Chart Grid */}
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-white overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-xs min-w-[800px]">
+      {/* ── TAPE CHART GRID ── */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-md">
+        <div className="overflow-x-auto max-h-[680px]">
+          <table className="w-full border-collapse text-xs min-w-[950px]">
             <thead>
-              <tr className="border-b border-[var(--border)] bg-[var(--surface-elevated)]">
-                <th className="p-3 w-40 text-left font-semibold text-[var(--foreground)] sticky left-0 bg-[var(--surface-elevated)] z-10 border-r border-[var(--border)]">
-                  Room
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/90 sticky top-0 z-20">
+                <th className="p-3 w-48 text-left font-black text-slate-900 dark:text-white sticky left-0 bg-slate-100 dark:bg-slate-800 z-30 border-r border-slate-200 dark:border-slate-700 shadow-sm">
+                  Room &amp; Category
                 </th>
                 {dateColumns.map((col) => (
                   <th
                     key={col.dateStr}
-                    className={`p-2 text-center font-medium border-r border-[var(--border)] min-w-[70px] ${
-                      col.isToday ? "bg-amber-50/70 text-amber-900 font-bold" : "text-[var(--foreground-muted)]"
-                    }`}
+                    className={cn(
+                      "p-2 text-center border-r border-slate-200 dark:border-slate-800 min-w-[68px] transition-colors",
+                      col.isToday
+                        ? "bg-amber-500/15 text-amber-900 dark:text-amber-300 font-black ring-1 ring-amber-500/40"
+                        : col.isWeekend
+                        ? "bg-slate-200/50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 font-bold"
+                        : "text-slate-600 dark:text-slate-400 font-semibold"
+                    )}
                   >
-                    <div className="text-[10px] uppercase tracking-wider">{col.dayName}</div>
-                    <div className="text-xs">{col.label.split(" ")[1]}</div>
+                    <div className="text-[9.5px] uppercase tracking-wider font-extrabold">{col.dayName}</div>
+                    <div className="text-xs font-black">{col.dayNum}</div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border)]">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
               {loading ? (
                 <tr>
-                  <td colSpan={dateColumns.length + 1} className="p-8 text-center text-slate-500 animate-pulse">
+                  <td colSpan={dateColumns.length + 1} className="p-12 text-center text-slate-500 animate-pulse">
                     Loading reservation timeline...
                   </td>
                 </tr>
-              ) : rooms.length === 0 ? (
+              ) : filteredRooms.length === 0 ? (
                 <tr>
-                  <td colSpan={dateColumns.length + 1} className="p-8 text-center text-slate-500">
-                    No physical rooms configured yet. Add rooms in Room Management.
+                  <td colSpan={dateColumns.length + 1} className="p-12 text-center text-slate-500">
+                    No matching rooms found.
                   </td>
                 </tr>
               ) : (
-                rooms.map((room) => {
+                filteredRooms.map((room) => {
                   const roomBookings = bookings.filter((b) => b.roomId === room.id);
 
                   return (
-                    <tr key={room.id} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Room Label Column */}
-                      <td className="p-3 sticky left-0 bg-white z-10 border-r border-[var(--border)] font-medium text-[var(--foreground)]">
-                        <div className="flex items-center gap-1.5 font-bold">
-                          Room {room.room_number}
+                    <tr key={room.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
+                      {/* Room Column */}
+                      <td className="p-2.5 sticky left-0 bg-white dark:bg-slate-900 z-10 border-r border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-xs text-slate-900 dark:text-white">
+                            Room {room.room_number}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded text-[9.5px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            {room.room_type?.code || "STD"}
+                          </span>
                         </div>
-                        <div className="text-[10px] text-[var(--foreground-muted)] truncate max-w-[130px]">
-                          {room.room_type?.code || "STD"} {room.room_name ? `• ${room.room_name}` : ""}
+                        <div className="text-[10px] text-slate-500 truncate max-w-[160px] mt-0.5">
+                          {room.room_name || room.room_type?.name || "Standard Unit"}
                         </div>
                       </td>
 
                       {/* Date Cells */}
                       {dateColumns.map((col) => {
-                        // Find booking that covers this night: checkIn <= col.dateStr AND checkOut > col.dateStr
                         const booking = roomBookings.find(
                           (b) => b.checkInDate <= col.dateStr && b.checkOutDate > col.dateStr
                         );
@@ -173,33 +282,44 @@ export function BookingCalendarView({
                         return (
                           <td
                             key={col.dateStr}
-                            className={`p-1 border-r border-[var(--border)] h-12 text-center align-middle relative ${
-                              col.isToday ? "bg-amber-50/20" : ""
-                            }`}
+                            className={cn(
+                              "p-1 border-r border-slate-100 dark:border-slate-800/60 h-11 text-center align-middle relative group/cell",
+                              col.isToday && "bg-amber-500/[0.04]",
+                              col.isWeekend && "bg-slate-50/40 dark:bg-slate-900/40"
+                            )}
                           >
                             {booking ? (
                               <Link
                                 href={`/bookings/${booking.id}`}
                                 title={`${booking.confirmationNumber} • ${booking.guestName} (${booking.checkInDate} to ${booking.checkOutDate})`}
-                                className={`block w-full py-1.5 px-1 rounded text-[11px] font-semibold truncate transition-transform hover:scale-[1.02] shadow-2xs ${
+                                className={cn(
+                                  "block w-full py-1 px-1 rounded-md text-[10px] font-black truncate transition-all hover:scale-[1.03] shadow-xs",
                                   booking.status === "CONFIRMED"
-                                    ? "bg-indigo-100 text-indigo-900 border border-indigo-200"
+                                    ? "bg-indigo-600 text-white shadow-indigo-500/20"
                                     : booking.status === "PENDING"
-                                    ? "bg-amber-100 text-amber-900 border border-amber-200"
-                                    : "bg-slate-100 text-slate-700 border border-slate-200"
-                                }`}
+                                    ? "bg-amber-500 text-slate-950 shadow-amber-500/20 font-black"
+                                    : "bg-slate-700 text-white"
+                                )}
                               >
                                 {isCheckInDay ? (
-                                  <span className="truncate">
-                                    ▶ {booking.confirmationNumber}
+                                  <span className="truncate flex items-center justify-center gap-0.5">
+                                    <span>▶</span> {booking.guestName?.split(" ")[0] || "Guest"}
                                   </span>
                                 ) : (
-                                  <span className="truncate opacity-80">
-                                    {booking.guestName.split(" ")[0]}
+                                  <span className="truncate opacity-90">
+                                    {booking.guestName?.split(" ")[0] || "Stay"}
                                   </span>
                                 )}
                               </Link>
-                            ) : null}
+                            ) : (
+                              <Link
+                                href={`/bookings/new?roomId=${room.id}&checkIn=${col.dateStr}`}
+                                className="hidden group-hover/cell:flex items-center justify-center text-[9px] font-extrabold text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 py-1 rounded transition"
+                                title={`Book Room ${room.room_number} on ${col.label}`}
+                              >
+                                + Book
+                              </Link>
+                            )}
                           </td>
                         );
                       })}

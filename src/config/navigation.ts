@@ -78,6 +78,13 @@ export const navigationConfig: NavGroup[] = [
         permission: "bookings.view",
       },
       {
+        label: "Guest Requests",
+        href: "/guest-requests",
+        icon: Bell,
+        matchPaths: ["/guest-requests"],
+        permission: "guest_requests.view",
+      },
+      {
         label: "Front Desk",
         href: "/front-desk",
         icon: MonitorCheck,
@@ -109,13 +116,6 @@ export const navigationConfig: NavGroup[] = [
         icon: Wrench,
         matchPaths: ["/maintenance/new"],
         permission: "maintenance.view",
-      },
-      {
-        label: "Guest Requests",
-        href: "/guest-requests",
-        icon: Bell,
-        matchPaths: ["/guest-requests"],
-        permission: "guest_requests.view",
       },
     ],
   },

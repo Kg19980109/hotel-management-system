@@ -389,6 +389,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
     ) || null;
   }, [initialCategory]);
 
+  const [modalMode, setModalMode] = React.useState<"PACKAGES" | "CUSTOM">("PACKAGES");
   const [activeTab, setActiveTab] = React.useState<"ALL" | "COMPLIMENTARY" | "PAID">("ALL");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedCat, setSelectedCat] = React.useState<ServiceCategoryMeta | null>(matchedInitialCat);
@@ -452,13 +453,25 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
 
   const openCategoryModal = React.useCallback((cat: ServiceCategoryMeta, preselectOption?: string) => {
     setSelectedCat(cat);
-    setSelectedQuickOption(preselectOption || "");
-    setSelectedPaidItem(null);
+    const availablePaid = getCategoryPaidItems(cat);
+    if (preselectOption) {
+      setModalMode("CUSTOM");
+      setSelectedQuickOption(preselectOption);
+      setSelectedPaidItem(null);
+    } else if (cat.isPaid && availablePaid.length > 0) {
+      setModalMode("PACKAGES");
+      setSelectedPaidItem(availablePaid[0]); // Auto-select 1st package for immediate seamless booking
+      setSelectedQuickOption("");
+    } else {
+      setModalMode("CUSTOM");
+      setSelectedPaidItem(null);
+      setSelectedQuickOption("");
+    }
     setCustomMessage("");
     setPriority("MEDIUM");
     setErrorMsg(null);
     setSuccessNotice(null);
-  }, []);
+  }, [getCategoryPaidItems]);
 
   const closeModal = React.useCallback(() => {
     setSelectedCat(null);
@@ -942,36 +955,83 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
               </div>
             ) : (
               <div className="space-y-4 pt-1">
-                {/* 1. Paid items catalog if chargeable */}
+                {/* ── TOP SEGMENTED SWITCHER (FOR PAID SERVICES) ── */}
                 {selectedCat.isPaid && (() => {
                   const paidItems = getCategoryPaidItems(selectedCat);
                   if (paidItems.length === 0) return null;
 
                   return (
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
+                    <div className="grid grid-cols-2 p-1 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModalMode("PACKAGES");
+                          if (!selectedPaidItem && paidItems.length > 0) {
+                            setSelectedPaidItem(paidItems[0]);
+                          }
+                          setSelectedQuickOption("");
+                        }}
+                        className={cn(
+                          "py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none",
+                          modalMode === "PACKAGES"
+                            ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/50 shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
+                        )}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Packages ({paidItems.length})</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setModalMode("CUSTOM");
+                          setSelectedPaidItem(null);
+                        }}
+                        className={cn(
+                          "py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 select-none",
+                          modalMode === "CUSTOM"
+                            ? "bg-[#0B1526] text-[#E4C980] border border-[#D4AF37]/50 shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
+                        )}
+                      >
+                        <MessageSquarePlus className="w-3.5 h-3.5" />
+                        <span>Custom Request</span>
+                      </button>
+                    </div>
+                  );
+                })()}
+
+                {/* ── VIEW 1: CURATED PACKAGES SHOWCASE ── */}
+                {selectedCat.isPaid && modalMode === "PACKAGES" && (() => {
+                  const paidItems = getCategoryPaidItems(selectedCat);
+                  if (paidItems.length === 0) return null;
+
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between px-0.5">
+                        <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider font-serif flex items-center gap-1.5">
                           <Tag className="w-3.5 h-3.5 text-[#D4AF37]" />
-                          <span>Select Curated Package (Billed to Room Folio)</span>
-                        </label>
-                        <span className="text-[10px] text-amber-800 font-bold bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300/60">
-                          {paidItems.length} Available
+                          <span>Choose Service Package</span>
+                        </span>
+                        <span className="text-[10px] text-emerald-800 font-bold bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-300">
+                          Billed to Room Folio
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-3 max-h-72 overflow-y-auto p-1.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] scrollbar-thin">
+                      {/* Fully visible, unclipped package cards stack */}
+                      <div className="space-y-3">
                         {paidItems.map((item, idx) => {
                           const isSelected = selectedPaidItem?.id === item.id;
                           const itemName = item.name.toLowerCase();
-                          
-                          // Contextual badges & icons
+
                           let packageBadge = "💎 Exclusive Package";
                           let packageIcon = "✨";
                           if (idx === 0) {
                             packageBadge = "★ Most Popular";
                             packageIcon = "👑";
                           } else if (itemName.includes("ayurvedic") || itemName.includes("therapy") || itemName.includes("spa")) {
-                            packageBadge = "🌿 Wellness Experience";
+                            packageBadge = "🌿 Wellness Therapy";
                             packageIcon = "🌸";
                           } else if (itemName.includes("airport") || itemName.includes("cab") || itemName.includes("chauffeur")) {
                             packageBadge = "🚗 VIP Chauffeur";
@@ -985,148 +1045,152 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                           }
 
                           return (
-                            <button
+                            <div
                               key={`${item.id}-${idx}`}
-                              type="button"
                               onClick={() => {
-                                if (isSelected) {
-                                  setSelectedPaidItem(null);
-                                } else {
-                                  setSelectedPaidItem(item);
-                                  setSelectedQuickOption("");
-                                }
+                                setSelectedPaidItem(item);
+                                setSelectedQuickOption("");
                               }}
                               className={cn(
-                                "p-3.5 rounded-2xl text-left transition-all duration-150 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border select-none relative overflow-hidden group",
+                                "p-4 rounded-2xl text-left transition-all duration-150 border select-none relative overflow-hidden cursor-pointer shadow-sm",
                                 isSelected
-                                  ? "bg-gradient-to-br from-amber-50/95 via-white to-amber-100/70 border-amber-500 ring-2 ring-amber-400/50 shadow-md scale-[1.01]"
-                                  : "bg-white border-[#EAE3D2] hover:border-amber-400/80 hover:bg-amber-50/20 shadow-xs active:scale-[0.99]"
+                                  ? "bg-gradient-to-br from-amber-50/95 via-white to-amber-100/70 border-amber-500 ring-2 ring-amber-400/50 shadow-md"
+                                  : "bg-white border-[#EAE3D2] hover:border-amber-400/80 hover:bg-amber-50/20 active:scale-[0.99]"
                               )}
                             >
-                              {/* Left / Top Side: Badges, Title, Benefits */}
-                              <div className="space-y-1.5 min-w-0 flex-1">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className={cn(
-                                    "text-[9.5px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex items-center gap-1 shadow-2xs",
-                                    isSelected
-                                      ? "bg-amber-500 text-white border-amber-600 font-extrabold"
-                                      : "bg-amber-100/90 text-amber-900 border-amber-300/80"
-                                  )}>
-                                    <span>{packageIcon}</span>
-                                    <span>{packageBadge}</span>
-                                  </span>
-                                  <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                    Direct Room Charge
-                                  </span>
-                                </div>
+                              {/* Top Bar: Badge + Price Tag */}
+                              <div className="flex items-center justify-between gap-2 pb-2 border-b border-amber-100/80">
+                                <span className={cn(
+                                  "text-[9.5px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border flex items-center gap-1 shadow-2xs",
+                                  isSelected
+                                    ? "bg-amber-500 text-white border-amber-600 font-extrabold"
+                                    : "bg-amber-100/90 text-amber-900 border-amber-300/80"
+                                )}>
+                                  <span>{packageIcon}</span>
+                                  <span>{packageBadge}</span>
+                                </span>
 
-                                <div>
-                                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 font-serif group-hover:text-amber-950 transition-colors">
-                                    {item.name}
-                                  </h4>
-                                  <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed mt-0.5">
-                                    {item.description || "Curated 5-star hotel service package billed directly to your room folio upon completion."}
-                                  </p>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-[10px] text-slate-600 font-medium pt-0.5 flex-wrap">
-                                  <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                                    ✓ No Pre-payment
-                                  </span>
-                                  <span className="text-slate-300">•</span>
-                                  <span className="text-indigo-700 font-bold flex items-center gap-0.5">
-                                    ✓ Priority Desk Dispatch
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-xs font-bold text-slate-500">₹</span>
+                                  <span className="text-lg font-black font-mono text-slate-900 tracking-tight">
+                                    {item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
                                 </div>
                               </div>
 
-                              {/* Right / Bottom Side: Pricing Pill & Selection Toggle */}
-                              <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-amber-100">
-                                <div className="flex flex-col sm:items-end">
-                                  <div className="flex items-baseline gap-0.5">
-                                    <span className="text-[11px] font-bold text-slate-500">₹</span>
-                                    <span className="text-base sm:text-lg font-black font-mono text-slate-900 tracking-tight">
-                                      {item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
-                                  </div>
-                                  <span className="text-[9px] text-slate-400 font-medium">Billed to Folio</span>
+                              {/* Middle: Title & Description */}
+                              <div className="py-2.5 space-y-1">
+                                <h4 className="text-sm font-bold text-slate-900 font-serif leading-snug">
+                                  {item.name}
+                                </h4>
+                                <p className="text-[11.5px] text-slate-600 leading-relaxed">
+                                  {item.description || "Curated 5-star hotel service package billed directly to your room folio upon completion."}
+                                </p>
+                              </div>
+
+                              {/* Bottom: Inclusions & Selection Action */}
+                              <div className="pt-2 border-t border-amber-100/80 flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 text-[10px] text-slate-600 font-medium">
+                                  <span className="text-emerald-700 font-bold">✓ Direct Room Folio Charge</span>
+                                  <span className="text-slate-300">•</span>
+                                  <span className="text-indigo-700 font-bold">✓ Priority Dispatch</span>
                                 </div>
 
                                 {isSelected ? (
-                                  <div className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center gap-1.5 text-[10.5px] font-bold shadow-xs">
+                                  <div className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white flex items-center gap-1.5 text-xs font-bold shadow-xs">
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                                     <span>Selected</span>
                                   </div>
                                 ) : (
-                                  <div className="px-3 py-1 rounded-full bg-slate-100 group-hover:bg-amber-100 text-slate-700 group-hover:text-amber-900 border border-slate-200 group-hover:border-amber-300 flex items-center gap-1 text-[10.5px] font-semibold transition-colors">
-                                    <span>+ Select</span>
+                                  <div className="px-3.5 py-1.5 rounded-xl bg-[#FAF8F5] text-slate-700 hover:bg-amber-100 hover:text-amber-900 border border-[#EAE3D2] flex items-center gap-1 text-xs font-bold transition-colors">
+                                    <span>Tap to Select</span>
                                   </div>
                                 )}
                               </div>
-                            </button>
+                            </div>
                           );
                         })}
+                      </div>
+
+                      {/* Instructions for Selected Package */}
+                      <div className="space-y-1.5 p-3 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2] mt-2">
+                        <label className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5 font-serif">
+                          <MessageSquarePlus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Timing / Delivery Preferences (Optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={customMessage}
+                          onChange={(e) => setCustomMessage(e.target.value)}
+                          placeholder="E.g., Please arrive around 6:00 PM, or specific preferences..."
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition"
+                        />
                       </div>
                     </div>
                   );
                 })()}
 
-                {/* 2. Quick Options Chips */}
-                <div className="space-y-2">
-                  <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
-                    <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-                    <span>{selectedCat.isPaid ? "Or Choose Common Option" : "Select Requirement"}</span>
-                  </label>
+                {/* ── VIEW 2: CUSTOM REQUEST & QUICK REQUIREMENT CHIPS ── */}
+                {(!selectedCat.isPaid || modalMode === "CUSTOM") && (
+                  <div className="space-y-3.5">
+                    {/* Quick Options Chips */}
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 font-serif">
+                        <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                        <span>Select Requirement</span>
+                      </label>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {selectedCat.commonQuickOptions.map((opt) => {
-                      const isSelected = selectedQuickOption === opt;
-                      return (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedQuickOption("");
-                            } else {
-                              setSelectedQuickOption(opt);
-                              setSelectedPaidItem(null);
-                            }
-                          }}
-                          className={cn(
-                            "p-2.5 rounded-xl text-xs text-left transition-transform duration-75 active:scale-95 flex items-center justify-between border select-none",
-                            isSelected
-                              ? "bg-[#0B1526] text-[#E4C980] font-semibold border-[#D4AF37]/50 shadow-2xs"
-                              : "bg-[#FAF8F5] border-[#EAE3D2] text-slate-700 hover:bg-slate-100"
-                          )}
-                        >
-                          <span className="line-clamp-2 leading-tight">{opt}</span>
-                          {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ml-1 stroke-[3] text-[#D4AF37]" />}
-                        </button>
-                      );
-                    })}
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedCat.commonQuickOptions.map((opt) => {
+                          const isSelected = selectedQuickOption === opt;
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedQuickOption("");
+                                } else {
+                                  setSelectedQuickOption(opt);
+                                  setSelectedPaidItem(null);
+                                }
+                              }}
+                              className={cn(
+                                "p-2.5 rounded-xl text-xs text-left transition-transform duration-75 active:scale-95 flex items-center justify-between border select-none",
+                                isSelected
+                                  ? "bg-[#0B1526] text-[#E4C980] font-semibold border-[#D4AF37]/50 shadow-2xs"
+                                  : "bg-[#FAF8F5] border-[#EAE3D2] text-slate-700 hover:bg-slate-100"
+                              )}
+                            >
+                              <span className="line-clamp-2 leading-tight">{opt}</span>
+                              {isSelected && <Check className="w-3.5 h-3.5 shrink-0 ml-1 stroke-[3] text-[#D4AF37]" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Custom message box */}
+                    <div className="space-y-1.5 p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2]">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5 font-serif">
+                          <MessageSquarePlus className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>Additional Instructions / Timing</span>
+                        </label>
+                      </div>
+
+                      <textarea
+                        rows={3}
+                        value={customMessage}
+                        onChange={(e) => setCustomMessage(e.target.value)}
+                        placeholder="E.g., Please deliver around 6:00 PM, or mention any specific preferences..."
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] resize-none transition"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* 3. Custom message box */}
-                <div className="space-y-1.5 p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EAE3D2]">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5 font-serif">
-                      <MessageSquarePlus className="w-3.5 h-3.5 text-[#D4AF37]" />
-                      <span>Additional Instructions / Timing</span>
-                    </label>
-                  </div>
-
-                  <textarea
-                    rows={3}
-                    value={customMessage}
-                    onChange={(e) => setCustomMessage(e.target.value)}
-                    placeholder="E.g., Please deliver around 6:00 PM, or mention any specific preferences..."
-                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#EAE3D2] text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] resize-none transition"
-                  />
-                </div>
-
-                {/* 4. Priority selection */}
+                {/* ── PRIORITY SELECTION ── */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-slate-800 uppercase tracking-wider font-serif">
                     Dispatch Priority
@@ -1152,7 +1216,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                       className={cn(
                         "py-2 rounded-xl text-xs font-semibold transition-transform duration-75 active:scale-95 flex items-center justify-center gap-1.5 border select-none",
                         priority === "URGENT"
-                          ? "bg-amber-600 text-white border-amber-600 shadow-2xs"
+                          ? "bg-amber-600 text-white border-amber-600 shadow-2xs font-bold"
                           : "bg-[#FAF8F5] text-slate-600 border-[#EAE3D2] hover:bg-slate-100"
                       )}
                     >
@@ -1169,7 +1233,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                   </div>
                 )}
 
-                {/* Submit button */}
+                {/* ── SUBMIT BUTTON ── */}
                 <button
                   type="button"
                   onClick={handleSubmitRequest}
@@ -1186,7 +1250,7 @@ export function ServicesView({ session, payableServices = [], initialCategory }:
                       <Send className="w-4 h-4 text-[#D4AF37]" />
                       <span>
                         {selectedPaidItem
-                          ? `Request ${selectedPaidItem.name} • ₹${selectedPaidItem.price.toFixed(2)}`
+                          ? `Book Package: ${selectedPaidItem.name} (₹${selectedPaidItem.price.toFixed(2)})`
                           : selectedQuickOption
                           ? `Submit: ${selectedQuickOption}`
                           : customMessage.trim()

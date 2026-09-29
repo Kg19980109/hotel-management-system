@@ -10,7 +10,16 @@ import { StaffMember, StaffDepartment } from "@/lib/staff/types";
 import { StaffDirectoryView } from "@/components/staff/staff-directory-view";
 import { RoutePermissionGuard } from "@/components/auth/route-permission-guard";
 
+import { MyWorkWorkspace } from "@/components/staff/my-work-workspace";
+
 export default function StaffPage() {
+  const { currentRole, loading } = useAuth();
+  const isExecutive = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER"].includes(currentRole || "");
+
+  if (!loading && currentRole && !isExecutive) {
+    return <MyWorkWorkspace />;
+  }
+
   return (
     <RoutePermissionGuard permission="staff.view" moduleName="Staff & Roles Management">
       <StaffPageContent />

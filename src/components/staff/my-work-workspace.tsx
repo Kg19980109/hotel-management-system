@@ -278,6 +278,9 @@ export function MyWorkWorkspace() {
     };
   }, [propertyId, loadMyWork]);
 
+  // Status Filter Tab state
+  const [activeStatusFilter, setActiveStatusFilter] = React.useState<"ALL" | "ACTIVE" | "IN_PROGRESS" | "COMPLETED">("ALL");
+
   // Operational metrics calculation
   const metrics = React.useMemo(() => {
     const todayStr = new Date().toISOString().split("T")[0];
@@ -287,11 +290,17 @@ export function MyWorkWorkspace() {
     const completedHkToday = housekeepingTasks.filter(
       (t) => (t.status === "COMPLETED" || t.status === "INSPECTION_PENDING") && t.completed_at?.startsWith(todayStr)
     ).length;
+    const completedHkAllTime = housekeepingTasks.filter(
+      (t) => t.status === "COMPLETED" || t.status === "INSPECTION_PENDING"
+    ).length;
 
     const activeMaint = maintenanceOrders.filter((w) => ["OPEN", "ASSIGNED"].includes(w.status)).length;
     const inProgressMaint = maintenanceOrders.filter((w) => w.status === "IN_PROGRESS" || w.status === "ON_HOLD").length;
     const resolvedMaintToday = maintenanceOrders.filter(
       (w) => (w.status === "RESOLVED" || w.status === "CLOSED") && w.resolved_at?.startsWith(todayStr)
+    ).length;
+    const resolvedMaintAllTime = maintenanceOrders.filter(
+      (w) => w.status === "RESOLVED" || w.status === "CLOSED"
     ).length;
 
     const activeGuest = guestRequests.filter((g) => ["SUBMITTED", "ACKNOWLEDGED", "ASSIGNED"].includes(g.status)).length;
@@ -299,11 +308,15 @@ export function MyWorkWorkspace() {
     const completedGuestToday = guestRequests.filter(
       (g) => g.status === "COMPLETED" && g.completed_at?.startsWith(todayStr)
     ).length;
+    const completedGuestAllTime = guestRequests.filter(
+      (g) => g.status === "COMPLETED"
+    ).length;
 
     return {
       totalAssigned: activeHk + activeMaint + activeGuest,
       totalInProgress: inProgressHk + inProgressMaint + inProgressGuest,
       totalCompletedToday: completedHkToday + resolvedMaintToday + completedGuestToday,
+      totalResolvedAllTime: completedHkAllTime + resolvedMaintAllTime + completedGuestAllTime,
       totalHousekeeping: housekeepingTasks.length,
       totalMaintenance: maintenanceOrders.length,
       totalGuestRequests: guestRequests.length,
@@ -443,13 +456,13 @@ export function MyWorkWorkspace() {
       </div>
 
       {/* ── WORKLOAD SUMMARY KPIS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div className="stayhub-card p-4 flex items-center gap-3.5 border-l-4 border-l-indigo-500">
           <div className="h-10 w-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0">
             <Clock className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">
+            <p className="text-[10.5px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">
               Pending / Assigned
             </p>
             <p className="text-2xl font-black text-[var(--foreground)] font-mono">
@@ -463,7 +476,7 @@ export function MyWorkWorkspace() {
             <Play className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">
+            <p className="text-[10.5px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">
               In Progress
             </p>
             <p className="text-2xl font-black text-[var(--foreground)] font-mono">
@@ -477,7 +490,7 @@ export function MyWorkWorkspace() {
             <CheckCircle2 className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">
+            <p className="text-[10.5px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">
               Completed Today
             </p>
             <p className="text-2xl font-black text-[var(--foreground)] font-mono">
@@ -485,387 +498,480 @@ export function MyWorkWorkspace() {
             </p>
           </div>
         </div>
+
+        <div className="stayhub-card p-4 flex items-center gap-3.5 border-l-4 border-l-cyan-500">
+          <div className="h-10 w-10 rounded-xl bg-cyan-500/10 text-cyan-600 flex items-center justify-center shrink-0">
+            <CheckCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-[10.5px] font-bold text-[var(--foreground-muted)] uppercase tracking-wider">
+              Total Resolved
+            </p>
+            <p className="text-2xl font-black text-cyan-600 dark:text-cyan-400 font-mono">
+              {metrics.totalResolvedAllTime}
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* ── DOMAIN FILTER TABS ── */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-xl bg-card border border-border/80 shadow-xs">
-        <button
-          type="button"
-          onClick={() => setActiveDomainTab("ALL")}
-          className={cn(
-            "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
-            activeDomainTab === "ALL"
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          )}
-        >
-          <span>All My Work</span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/20">
-            {housekeepingTasks.length + maintenanceOrders.length + guestRequests.length}
-          </span>
-        </button>
+      {/* ── DOMAIN & STATUS FILTER TABS ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-xl bg-card border border-border/80 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setActiveDomainTab("ALL")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
+              activeDomainTab === "ALL"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            <span>All Tasks</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/20">
+              {housekeepingTasks.length + maintenanceOrders.length + guestRequests.length}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveDomainTab("HOUSEKEEPING")}
-          className={cn(
-            "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
-            activeDomainTab === "HOUSEKEEPING"
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          )}
-        >
-          <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
-          <span>Housekeeping</span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground">
-            {housekeepingTasks.length}
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveDomainTab("HOUSEKEEPING")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
+              activeDomainTab === "HOUSEKEEPING"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+            <span>Housekeeping</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground">
+              {housekeepingTasks.length}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveDomainTab("MAINTENANCE")}
-          className={cn(
-            "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
-            activeDomainTab === "MAINTENANCE"
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          )}
-        >
-          <Wrench className="h-3.5 w-3.5 text-indigo-500" />
-          <span>Maintenance</span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground">
-            {maintenanceOrders.length}
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveDomainTab("MAINTENANCE")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
+              activeDomainTab === "MAINTENANCE"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            <Wrench className="h-3.5 w-3.5 text-indigo-500" />
+            <span>Maintenance</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground">
+              {maintenanceOrders.length}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveDomainTab("GUEST_REQUESTS")}
-          className={cn(
-            "px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
-            activeDomainTab === "GUEST_REQUESTS"
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-          )}
-        >
-          <Bell className="h-3.5 w-3.5 text-amber-500" />
-          <span>Guest Requests</span>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground">
-            {guestRequests.length}
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveDomainTab("GUEST_REQUESTS")}
+            className={cn(
+              "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer",
+              activeDomainTab === "GUEST_REQUESTS"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            <Bell className="h-3.5 w-3.5 text-amber-500" />
+            <span>Guest Requests</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-muted text-foreground">
+              {guestRequests.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-card border border-border/80 text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setActiveStatusFilter("ALL")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg transition-all cursor-pointer",
+              activeStatusFilter === "ALL" ? "bg-muted text-foreground font-bold" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            All Statuses
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveStatusFilter("ACTIVE")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg transition-all cursor-pointer",
+              activeStatusFilter === "ACTIVE" ? "bg-indigo-500/20 text-indigo-400 font-bold" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Assigned ({metrics.totalAssigned})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveStatusFilter("IN_PROGRESS")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg transition-all cursor-pointer",
+              activeStatusFilter === "IN_PROGRESS" ? "bg-amber-500/20 text-amber-400 font-bold" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            In Progress ({metrics.totalInProgress})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveStatusFilter("COMPLETED")}
+            className={cn(
+              "px-2.5 py-1 rounded-lg transition-all cursor-pointer",
+              activeStatusFilter === "COMPLETED" ? "bg-emerald-500/20 text-emerald-400 font-bold" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Resolved ({metrics.totalResolvedAllTime})
+          </button>
+        </div>
       </div>
 
       {/* ── WORK ITEMS LIST ── */}
-      <div className="space-y-4">
-        {/* Housekeeping Section */}
-        {(activeDomainTab === "ALL" || activeDomainTab === "HOUSEKEEPING") && housekeepingTasks.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-emerald-500" />
-                <span>Housekeeping Tasks ({housekeepingTasks.length})</span>
-              </h3>
-            </div>
+      {(() => {
+        const filteredHk = housekeepingTasks.filter((t) => {
+          if (activeStatusFilter === "ACTIVE") return ["PENDING", "ASSIGNED"].includes(t.status);
+          if (activeStatusFilter === "IN_PROGRESS") return t.status === "IN_PROGRESS";
+          if (activeStatusFilter === "COMPLETED") return ["COMPLETED", "INSPECTION_PENDING"].includes(t.status);
+          return true;
+        });
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {housekeepingTasks.map((t) => {
-                const isLoading = actionLoadingId === `hk-${t.id}`;
-                const isUrgent = t.priority === "URGENT" || t.priority === "HIGH";
+        const filteredMaint = maintenanceOrders.filter((w) => {
+          if (activeStatusFilter === "ACTIVE") return ["OPEN", "ASSIGNED"].includes(w.status);
+          if (activeStatusFilter === "IN_PROGRESS") return ["IN_PROGRESS", "ON_HOLD"].includes(w.status);
+          if (activeStatusFilter === "COMPLETED") return ["RESOLVED", "CLOSED"].includes(w.status);
+          return true;
+        });
 
-                return (
-                  <div
-                    key={t.id}
-                    className={cn(
-                      "stayhub-card overflow-hidden flex flex-col justify-between transition-all",
-                      isUrgent && "border-rose-400/50 ring-2 ring-rose-400/10"
-                    )}
-                  >
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-black font-mono text-[var(--foreground)]">
-                            Room {t.room?.room_number}
-                          </span>
-                          <span
-                            className={cn(
-                              "px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase",
-                              t.priority === "URGENT"
-                                ? "bg-rose-500/20 text-rose-600"
-                                : t.priority === "HIGH"
-                                ? "bg-amber-500/20 text-amber-700"
-                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                            )}
-                          >
-                            {t.priority}
-                          </span>
-                        </div>
+        const filteredGuest = guestRequests.filter((g) => {
+          if (activeStatusFilter === "ACTIVE") return ["SUBMITTED", "ACKNOWLEDGED", "ASSIGNED"].includes(g.status);
+          if (activeStatusFilter === "IN_PROGRESS") return g.status === "IN_PROGRESS";
+          if (activeStatusFilter === "COMPLETED") return g.status === "COMPLETED";
+          return true;
+        });
 
-                        <span
-                          className={cn(
-                            "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                            t.status === "IN_PROGRESS"
-                              ? "bg-amber-500 text-slate-950"
-                              : t.status === "INSPECTION_PENDING"
-                              ? "bg-purple-500/20 text-purple-700"
-                              : t.status === "COMPLETED"
-                              ? "bg-emerald-500/20 text-emerald-700"
-                              : "bg-blue-500/20 text-blue-700"
-                          )}
-                        >
-                          {t.status.replace("_", " ")}
-                        </span>
-                      </div>
+        const hasAnyItems =
+          (activeDomainTab === "ALL" && (filteredHk.length > 0 || filteredMaint.length > 0 || filteredGuest.length > 0)) ||
+          (activeDomainTab === "HOUSEKEEPING" && filteredHk.length > 0) ||
+          (activeDomainTab === "MAINTENANCE" && filteredMaint.length > 0) ||
+          (activeDomainTab === "GUEST_REQUESTS" && filteredGuest.length > 0);
 
-                      <p className="text-xs text-[var(--foreground-muted)] flex items-center gap-1.5">
-                        <Layers className="h-3.5 w-3.5" />
-                        <span>Floor {t.room?.floor?.floor_number || 1} • {t.task_type}</span>
-                      </p>
+        return (
+          <div className="space-y-4">
+            {/* Housekeeping Section */}
+            {(activeDomainTab === "ALL" || activeDomainTab === "HOUSEKEEPING") && filteredHk.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-emerald-500" />
+                    <span>Housekeeping Tasks ({filteredHk.length})</span>
+                  </h3>
+                </div>
 
-                      {t.notes && (
-                        <p className="text-xs bg-muted/60 p-2 rounded-lg italic text-[var(--foreground)]">
-                          &quot;{t.notes}&quot;
-                        </p>
-                      )}
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {filteredHk.map((t) => {
+                    const isLoading = actionLoadingId === `hk-${t.id}`;
+                    const isUrgent = t.priority === "URGENT" || t.priority === "HIGH";
 
-                    <div className="p-3 bg-muted/30 border-t border-border flex items-center gap-2">
-                      {["PENDING", "ASSIGNED"].includes(t.status) ? (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          className="w-full font-bold h-9 text-xs"
-                          disabled={isLoading}
-                          onClick={() => handleStartHousekeeping(t)}
-                        >
-                          {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Play className="h-4 w-4 mr-1.5" />}
-                          Start Cleaning
-                        </Button>
-                      ) : t.status === "IN_PROGRESS" ? (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          className="w-full font-bold h-9 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950"
-                          disabled={isLoading}
-                          onClick={() => handleCompleteHousekeeping(t)}
-                        >
-                          {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCheck className="h-4 w-4 mr-1.5" />}
-                          Submit for Inspection
-                        </Button>
-                      ) : (
-                        <div className="w-full text-center text-xs font-semibold text-muted-foreground py-1">
-                          Task {t.status.replace("_", " ")}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Maintenance Section */}
-        {(activeDomainTab === "ALL" || activeDomainTab === "MAINTENANCE") && maintenanceOrders.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                <Wrench className="h-4 w-4 text-indigo-500" />
-                <span>Maintenance Work Orders ({maintenanceOrders.length})</span>
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {maintenanceOrders.map((w) => {
-                const isLoading = actionLoadingId === `maint-${w.id}`;
-                const isUrgent = w.priority === "URGENT" || w.priority === "HIGH";
-
-                return (
-                  <div
-                    key={w.id}
-                    className={cn(
-                      "stayhub-card overflow-hidden flex flex-col justify-between transition-all",
-                      isUrgent && "border-rose-400/50 ring-2 ring-rose-400/10"
-                    )}
-                  >
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-extrabold text-[var(--foreground)] truncate">
-                          {w.title}
-                        </span>
-                        <span
-                          className={cn(
-                            "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0",
-                            w.status === "IN_PROGRESS"
-                              ? "bg-purple-500/20 text-purple-700"
-                              : w.status === "RESOLVED"
-                              ? "bg-emerald-500/20 text-emerald-700"
-                              : "bg-blue-500/20 text-blue-700"
-                          )}
-                        >
-                          {w.status.replace("_", " ")}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)]">
-                        {w.room ? (
-                          <span className="font-semibold text-[var(--foreground)] font-mono">
-                            Room {w.room.room_number}
-                          </span>
-                        ) : (
-                          <span className="font-semibold text-indigo-600">Facility / Common Area</span>
+                    return (
+                      <div
+                        key={t.id}
+                        className={cn(
+                          "stayhub-card overflow-hidden flex flex-col justify-between transition-all",
+                          isUrgent && "border-rose-400/50 ring-2 ring-rose-400/10"
                         )}
-                        <span>•</span>
-                        <span className="uppercase text-[10px] font-bold text-slate-500">{w.category}</span>
-                      </div>
+                      >
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base font-black font-mono text-[var(--foreground)]">
+                                Room {t.room?.room_number}
+                              </span>
+                              <span
+                                className={cn(
+                                  "px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase",
+                                  t.priority === "URGENT"
+                                    ? "bg-rose-500/20 text-rose-600"
+                                    : t.priority === "HIGH"
+                                    ? "bg-amber-500/20 text-amber-700"
+                                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                )}
+                              >
+                                {t.priority}
+                              </span>
+                            </div>
 
-                      {w.description && (
-                        <p className="text-xs text-[var(--foreground-muted)] line-clamp-2">
-                          {w.description}
-                        </p>
-                      )}
-                    </div>
+                            <span
+                              className={cn(
+                                "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
+                                t.status === "IN_PROGRESS"
+                                  ? "bg-amber-500 text-slate-950"
+                                  : t.status === "INSPECTION_PENDING"
+                                  ? "bg-purple-500/20 text-purple-700"
+                                  : t.status === "COMPLETED"
+                                  ? "bg-emerald-500/20 text-emerald-700"
+                                  : "bg-blue-500/20 text-blue-700"
+                              )}
+                            >
+                              {t.status.replace("_", " ")}
+                            </span>
+                          </div>
 
-                    <div className="p-3 bg-muted/30 border-t border-border flex items-center gap-2">
-                      {["OPEN", "ASSIGNED"].includes(w.status) ? (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          className="w-full font-bold h-9 text-xs"
-                          disabled={isLoading}
-                          onClick={() => handleStartMaintenance(w)}
-                        >
-                          {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Play className="h-4 w-4 mr-1.5" />}
-                          Start Work
-                        </Button>
-                      ) : w.status === "IN_PROGRESS" ? (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          className="w-full font-bold h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                          disabled={isLoading}
-                          onClick={() => setResolveModalWo(w)}
-                        >
-                          <CheckCheck className="h-4 w-4 mr-1.5" />
-                          Mark Resolved
-                        </Button>
-                      ) : (
-                        <div className="w-full text-center text-xs font-semibold text-muted-foreground py-1">
-                          Status: {w.status}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                          <p className="text-xs text-[var(--foreground-muted)] flex items-center gap-1.5">
+                            <Layers className="h-3.5 w-3.5" />
+                            <span>Floor {t.room?.floor?.floor_number || 1} • {t.task_type}</span>
+                          </p>
 
-        {/* Guest Requests Section */}
-        {(activeDomainTab === "ALL" || activeDomainTab === "GUEST_REQUESTS") && guestRequests.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                <Bell className="h-4 w-4 text-amber-500" />
-                <span>Guest Service Requests ({guestRequests.length})</span>
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {guestRequests.map((r) => {
-                const isLoading = actionLoadingId === `guest-${r.id}`;
-
-                return (
-                  <div key={r.id} className="stayhub-card overflow-hidden flex flex-col justify-between">
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-extrabold text-[var(--foreground)] truncate">
-                          {r.title}
-                        </span>
-                        <span
-                          className={cn(
-                            "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
-                            r.status === "IN_PROGRESS"
-                              ? "bg-amber-500 text-slate-950"
-                              : r.status === "COMPLETED"
-                              ? "bg-emerald-500/20 text-emerald-700"
-                              : "bg-blue-500/20 text-blue-700"
+                          {t.notes && (
+                            <p className="text-xs bg-muted/60 p-2 rounded-lg italic text-[var(--foreground)]">
+                              &quot;{t.notes}&quot;
+                            </p>
                           )}
-                        >
-                          {r.status}
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-[var(--foreground-muted)] flex items-center gap-2">
-                        {r.room ? (
-                          <span className="font-bold text-[var(--foreground)] font-mono">
-                            Room {r.room.room_number}
-                          </span>
-                        ) : null}
-                        <span>•</span>
-                        <span className="text-[10px] font-bold uppercase">{r.category}</span>
-                      </div>
-
-                      {r.description && (
-                        <p className="text-xs text-[var(--foreground-muted)] line-clamp-2">
-                          {r.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="p-3 bg-muted/30 border-t border-border flex items-center gap-2">
-                      {["SUBMITTED", "ACKNOWLEDGED", "ASSIGNED"].includes(r.status) ? (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          className="w-full font-bold h-9 text-xs"
-                          disabled={isLoading}
-                          onClick={() => handleStartGuestRequest(r)}
-                        >
-                          {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Play className="h-4 w-4 mr-1.5" />}
-                          Start Request
-                        </Button>
-                      ) : r.status === "IN_PROGRESS" ? (
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          className="w-full font-bold h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                          disabled={isLoading}
-                          onClick={() => handleCompleteGuestRequest(r)}
-                        >
-                          {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCheck className="h-4 w-4 mr-1.5" />}
-                          Mark Completed
-                        </Button>
-                      ) : (
-                        <div className="w-full text-center text-xs font-semibold text-muted-foreground py-1">
-                          Completed
                         </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
-        {/* Empty State */}
-        {housekeepingTasks.length === 0 && maintenanceOrders.length === 0 && guestRequests.length === 0 && (
-          <div className="stayhub-card p-12 text-center">
-            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-3">
-              <CheckCircle2 className="h-6 w-6" />
-            </div>
-            <h3 className="text-base font-bold text-[var(--foreground)] font-heading">
-              You Have No Assigned Work
-            </h3>
-            <p className="text-xs text-[var(--foreground-muted)] max-w-sm mx-auto mt-1">
-              You are all caught up! When a manager assigns housekeeping cleaning, maintenance tickets, or guest requests to you, they will appear here in real time.
-            </p>
+                        <div className="p-3 bg-muted/30 border-t border-border flex items-center gap-2">
+                          {["PENDING", "ASSIGNED"].includes(t.status) ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="w-full font-bold h-9 text-xs"
+                              disabled={isLoading}
+                              onClick={() => handleStartHousekeeping(t)}
+                            >
+                              {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Play className="h-4 w-4 mr-1.5" />}
+                              Start Cleaning
+                            </Button>
+                          ) : t.status === "IN_PROGRESS" ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="w-full font-bold h-9 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950"
+                              disabled={isLoading}
+                              onClick={() => handleCompleteHousekeeping(t)}
+                            >
+                              {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCheck className="h-4 w-4 mr-1.5" />}
+                              Submit for Inspection
+                            </Button>
+                          ) : (
+                            <div className="w-full text-center text-xs font-semibold text-muted-foreground py-1">
+                              Task {t.status.replace("_", " ")}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Maintenance Section */}
+            {(activeDomainTab === "ALL" || activeDomainTab === "MAINTENANCE") && filteredMaint.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <Wrench className="h-4 w-4 text-indigo-500" />
+                    <span>Maintenance Work Orders ({filteredMaint.length})</span>
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {filteredMaint.map((w) => {
+                    const isLoading = actionLoadingId === `maint-${w.id}`;
+                    const isUrgent = w.priority === "URGENT" || w.priority === "HIGH";
+
+                    return (
+                      <div
+                        key={w.id}
+                        className={cn(
+                          "stayhub-card overflow-hidden flex flex-col justify-between transition-all",
+                          isUrgent && "border-rose-400/50 ring-2 ring-rose-400/10"
+                        )}
+                      >
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-extrabold text-[var(--foreground)] truncate">
+                              {w.title}
+                            </span>
+                            <span
+                              className={cn(
+                                "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0",
+                                w.status === "IN_PROGRESS"
+                                  ? "bg-purple-500/20 text-purple-700"
+                                  : w.status === "RESOLVED"
+                                  ? "bg-emerald-500/20 text-emerald-700"
+                                  : "bg-blue-500/20 text-blue-700"
+                              )}
+                            >
+                              {w.status.replace("_", " ")}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)]">
+                            {w.room ? (
+                              <span className="font-semibold text-[var(--foreground)] font-mono">
+                                Room {w.room.room_number}
+                              </span>
+                            ) : (
+                              <span className="font-semibold text-indigo-600">Facility / Common Area</span>
+                            )}
+                            <span>•</span>
+                            <span className="uppercase text-[10px] font-bold text-slate-500">{w.category}</span>
+                          </div>
+
+                          {w.description && (
+                            <p className="text-xs text-[var(--foreground-muted)] line-clamp-2">
+                              {w.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="p-3 bg-muted/30 border-t border-border flex items-center gap-2">
+                          {["OPEN", "ASSIGNED"].includes(w.status) ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="w-full font-bold h-9 text-xs"
+                              disabled={isLoading}
+                              onClick={() => handleStartMaintenance(w)}
+                            >
+                              {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Play className="h-4 w-4 mr-1.5" />}
+                              Start Work
+                            </Button>
+                          ) : w.status === "IN_PROGRESS" ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="w-full font-bold h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                              disabled={isLoading}
+                              onClick={() => setResolveModalWo(w)}
+                            >
+                              <CheckCheck className="h-4 w-4 mr-1.5" />
+                              Mark Resolved
+                            </Button>
+                          ) : (
+                            <div className="w-full text-center text-xs font-semibold text-muted-foreground py-1">
+                              Status: {w.status}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Guest Requests Section */}
+            {(activeDomainTab === "ALL" || activeDomainTab === "GUEST_REQUESTS") && filteredGuest.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    <Bell className="h-4 w-4 text-amber-500" />
+                    <span>Guest Service Requests ({filteredGuest.length})</span>
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {filteredGuest.map((r) => {
+                    const isLoading = actionLoadingId === `guest-${r.id}`;
+
+                    return (
+                      <div key={r.id} className="stayhub-card overflow-hidden flex flex-col justify-between">
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-extrabold text-[var(--foreground)] truncate">
+                              {r.title}
+                            </span>
+                            <span
+                              className={cn(
+                                "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider",
+                                r.status === "IN_PROGRESS"
+                                  ? "bg-amber-500 text-slate-950"
+                                  : r.status === "COMPLETED"
+                                  ? "bg-emerald-500/20 text-emerald-700"
+                                  : "bg-blue-500/20 text-blue-700"
+                              )}
+                            >
+                              {r.status}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-[var(--foreground-muted)] flex items-center gap-2">
+                            {r.room ? (
+                              <span className="font-bold text-[var(--foreground)] font-mono">
+                                Room {r.room.room_number}
+                              </span>
+                            ) : null}
+                            <span>•</span>
+                            <span className="text-[10px] font-bold uppercase">{r.category}</span>
+                          </div>
+
+                          {r.description && (
+                            <p className="text-xs text-[var(--foreground-muted)] line-clamp-2">
+                              {r.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="p-3 bg-muted/30 border-t border-border flex items-center gap-2">
+                          {["SUBMITTED", "ACKNOWLEDGED", "ASSIGNED"].includes(r.status) ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="w-full font-bold h-9 text-xs"
+                              disabled={isLoading}
+                              onClick={() => handleStartGuestRequest(r)}
+                            >
+                              {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Play className="h-4 w-4 mr-1.5" />}
+                              Start Request
+                            </Button>
+                          ) : r.status === "IN_PROGRESS" ? (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              className="w-full font-bold h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                              disabled={isLoading}
+                              onClick={() => handleCompleteGuestRequest(r)}
+                            >
+                              {isLoading ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <CheckCheck className="h-4 w-4 mr-1.5" />}
+                              Mark Completed
+                            </Button>
+                          ) : (
+                            <div className="w-full text-center text-xs font-semibold text-muted-foreground py-1">
+                              Completed
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!hasAnyItems && (
+              <div className="stayhub-card p-12 text-center">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <h3 className="text-base font-bold text-[var(--foreground)] font-heading">
+                  {activeStatusFilter === "COMPLETED" ? "No Resolved Tasks Yet" : "You Have No Tasks In This View"}
+                </h3>
+                <p className="text-xs text-[var(--foreground-muted)] max-w-sm mx-auto mt-1">
+                  {activeStatusFilter === "COMPLETED"
+                    ? "When you finish tasks and work orders, they will show up here as your resolved tickets history."
+                    : "You are all caught up! When a task is assigned or updated, it will appear here in real time."}
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
 
       {/* Resolve Work Order Modal */}
       {resolveModalWo && (

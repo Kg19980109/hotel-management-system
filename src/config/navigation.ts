@@ -54,6 +54,16 @@ export const navigationConfig: NavGroup[] = [
         icon: LayoutDashboard,
         permission: "dashboard.view",
       },
+      {
+        label: "My Operational Work",
+        href: "/staff/my-work",
+        icon: Sparkles,
+      },
+      {
+        label: "My Profile",
+        href: "/staff/profile",
+        icon: Users,
+      },
     ],
   },
   {

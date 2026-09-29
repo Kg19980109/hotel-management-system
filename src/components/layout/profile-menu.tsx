@@ -111,6 +111,15 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
           {/* Links */}
           <div className="py-1">
             <Link
+              href="/staff/my-work"
+              onClick={() => setIsOpen(false)}
+              role="menuitem"
+              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
+            >
+              <Shield className="h-4 w-4 text-cyan-400" />
+              <span>My Operational Work</span>
+            </Link>
+            <Link
               href="/staff/profile"
               onClick={() => setIsOpen(false)}
               role="menuitem"
@@ -119,24 +128,30 @@ export function ProfileMenu({ className }: ProfileMenuProps) {
               <User className="h-4 w-4 text-slate-400" />
               <span>My Profile</span>
             </Link>
-            <Link
-              href="/settings"
-              onClick={() => setIsOpen(false)}
-              role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
-            >
-              <Settings className="h-4 w-4 text-slate-400" />
-              <span>Hotel Settings</span>
-            </Link>
-            <Link
-              href="/settings"
-              onClick={() => setIsOpen(false)}
-              role="menuitem"
-              className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
-            >
-              <Shield className="h-4 w-4 text-slate-400" />
-              <span>Roles & Permissions</span>
-            </Link>
+            {(currentProperty?.role_code === "SUPER_ADMIN" ||
+              currentProperty?.role_code === "HOTEL_OWNER" ||
+              currentProperty?.role_code === "GENERAL_MANAGER") && (
+              <>
+                <Link
+                  href="/settings"
+                  onClick={() => setIsOpen(false)}
+                  role="menuitem"
+                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
+                >
+                  <Settings className="h-4 w-4 text-slate-400" />
+                  <span>Hotel Settings</span>
+                </Link>
+                <Link
+                  href="/staff"
+                  onClick={() => setIsOpen(false)}
+                  role="menuitem"
+                  className="flex items-center gap-2.5 px-4 py-2 text-[13px] text-slate-200 hover:bg-white/[0.08] hover:text-white transition-colors"
+                >
+                  <Shield className="h-4 w-4 text-slate-400" />
+                  <span>Roles & Permissions</span>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Sign Out */}

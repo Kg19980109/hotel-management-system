@@ -17,13 +17,14 @@ import {
 import { ErrorState, EmptyState } from "@/components/ui/states";
 import { Hotel } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { MyWorkWorkspace } from "@/components/staff/my-work-workspace";
 
 // In-memory instant client cache for 0ms navigation transition
 const dashboardCache = new Map<string, DashboardData>();
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { currentProperty, loading: authLoading } = useAuth();
+  const { currentProperty, currentRole, loading: authLoading } = useAuth();
   const activePropertyId = currentProperty?.property_id;
 
   const [dashboardData, setDashboardData] = React.useState<DashboardData | null>(() => {
@@ -106,8 +107,23 @@ export default function DashboardPage() {
     return () => clearInterval(timer);
   }, [activePropertyId, loadData]);
 
-  // 1. Initial Auth or Data Loading State (only if no cached data exists)
-  if (authLoading || (dataLoading && !dashboardData)) {
+  // 1. Initial Auth Loading State
+  if (authLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl p-6 h-64 animate-pulse bg-white dark:bg-card border border-slate-200/80 dark:border-border shadow-xs" />
+      </div>
+    );
+  }
+
+  // 2. Operational Staff Dedicated Workspace (Housekeeping, Maintenance, Kitchen, Restaurant, Staff)
+  const isExecutive = ["SUPER_ADMIN", "HOTEL_OWNER", "GENERAL_MANAGER"].includes(currentRole || "");
+  if (currentRole && !isExecutive) {
+    return <MyWorkWorkspace />;
+  }
+
+  // 3. Initial Data Loading State for Management
+  if (dataLoading && !dashboardData) {
     return (
       <div className="space-y-6">
         <DashboardHeader

@@ -18,6 +18,7 @@ import {
   Check,
 } from "lucide-react";
 import { GuestOrderDetail, GuestOrderItemSummary } from "@/lib/guest-ordering/types";
+import { getGuestFoodOrderLiveStatusAction } from "@/lib/guest-ordering/actions";
 import { createClient } from "@/lib/supabase/client";
 
 interface GuestOrderDetailViewProps {
@@ -30,6 +31,11 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
   const [order, setOrder] = React.useState<GuestOrderDetail>(initialOrder);
   const [lastUpdateNotice, setLastUpdateNotice] = React.useState<string | null>(null);
   const [copied, setCopied] = React.useState(false);
+
+  const orderStatusRef = React.useRef(order.status);
+  React.useEffect(() => {
+    orderStatusRef.current = order.status;
+  }, [order.status]);
 
   // Real-time subscription to restaurant_orders & kitchen_tickets for instant stage updates
   React.useEffect(() => {
@@ -87,14 +93,42 @@ export function GuestOrderDetailView({ initialOrder, roomNumber }: GuestOrderDet
     window.addEventListener("online", handleReconnectSync);
     document.addEventListener("visibilitychange", handleReconnectSync);
 
-    // Smart conditional fallback (25s while active/cooking) for safety, stops on terminal states
+    // Fast 1.5s active live polling to guarantee real-time updates on customer screen
     let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-    const isTerminal = ["COMPLETED", "SERVED", "CANCELLED"].includes(initialOrder.status?.toUpperCase() || "");
+    const pollStatus = async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      const currentTerminal = ["COMPLETED", "SERVED", "CANCELLED"].includes(
+        orderStatusRef.current?.toUpperCase() || ""
+      );
+      if (currentTerminal) {
+        if (heartbeatTimer) clearInterval(heartbeatTimer);
+        return;
+      }
+
+      try {
+        const res = await getGuestFoodOrderLiveStatusAction(orderId);
+        if (res.success && res.status) {
+          if (res.status !== orderStatusRef.current) {
+            setOrder((prev) => ({
+              ...prev,
+              status: res.status,
+              kds_status: res.kds_status || prev.kds_status,
+            }));
+            setLastUpdateNotice(`Order status: ${res.status}`);
+            setTimeout(() => setLastUpdateNotice(null), 4000);
+            router.refresh();
+          }
+        }
+      } catch {
+        // offline retry next interval
+      }
+    };
+
+    const isTerminal = ["COMPLETED", "SERVED", "CANCELLED"].includes(
+      initialOrder.status?.toUpperCase() || ""
+    );
     if (!isTerminal) {
-      heartbeatTimer = setInterval(() => {
-        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
-        router.refresh();
-      }, 25000);
+      heartbeatTimer = setInterval(() => void pollStatus(), 1500);
     }
 
     return () => {

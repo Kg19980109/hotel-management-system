@@ -163,7 +163,8 @@ export function GuestRequestDetailView({ request }: GuestRequestDetailViewProps)
       }
     };
 
-    timer = setInterval(() => void poll(), 6000);
+    // Fast 1.5s poll guarantees instant status update the moment staff acts on hotel portal
+    timer = setInterval(() => void poll(), 1500);
     return () => {
       if (timer) clearInterval(timer);
     };

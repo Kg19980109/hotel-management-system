@@ -124,3 +124,36 @@ export async function placeGuestFoodOrderAction(input: CreateGuestFoodOrderInput
     guestName: data.guest_name,
   };
 }
+
+/**
+ * Live polling action for food order status (reads httpOnly session cookie server-side)
+ */
+export async function getGuestFoodOrderLiveStatusAction(orderId: string) {
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get(GUEST_SESSION_COOKIE_NAME);
+  if (!sessionCookie?.value) return { success: false as const, error: "No guest session." };
+
+  const supabase = await createClient();
+  const sessionTokenHash = hashToken(sessionCookie.value);
+
+  const { data, error } = await supabase.rpc("get_guest_food_order_detail", {
+    p_session_token_hash: sessionTokenHash,
+    p_order_id: orderId,
+  });
+
+  if (error || !data?.success || !data.order) {
+    return { success: false as const, error: error?.message || data?.error || "Order not found." };
+  }
+
+  const order = data.order as {
+    id: string;
+    status: string;
+    kds_status?: string | null;
+  };
+
+  return {
+    success: true as const,
+    status: order.status,
+    kds_status: order.kds_status,
+  };
+}

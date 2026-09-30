@@ -72,8 +72,8 @@ function FrontDeskContent() {
   const supabase = React.useMemo(() => createClient(), []);
   const activePropertyId = currentProperty?.property_id;
 
-  // Default to in_house so receptionist immediately sees who is currently residing in the hotel
-  const [activeTab, setActiveTab] = React.useState<"in_house" | "arrivals" | "departures" | "rooms">("in_house");
+  // Default to arrivals so receptionist immediately sees expected guests arriving today
+  const [activeTab, setActiveTab] = React.useState<"arrivals" | "in_house" | "departures" | "rooms">("arrivals");
   const [search, setSearch] = React.useState("");
 
   const [loading, setLoading] = React.useState(false);
@@ -334,24 +334,7 @@ function FrontDeskContent() {
       <div className="bg-card border border-border/80 rounded-xl p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
         {/* Navigation Tabs */}
         <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-lg self-start overflow-x-auto max-w-full">
-          {/* Tab 1: In-House (Arrived Guests) */}
-          <button
-            type="button"
-            onClick={() => setActiveTab("in_house")}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
-              activeTab === "in_house"
-                ? "bg-card text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Users className="h-3.5 w-3.5 text-emerald-500" />
-            <span>In-House (Arrived Guests)</span>
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold font-mono">
-              {inHouseStays.length}
-            </span>
-          </button>
-
-          {/* Tab 2: Expected Arrivals (Pending Check-In) */}
+          {/* Tab 1: Expected Arrivals (Pending Check-In) */}
           <button
             type="button"
             onClick={() => setActiveTab("arrivals")}
@@ -365,6 +348,23 @@ function FrontDeskContent() {
             <span>Expected Arrivals (Pending Check-In)</span>
             <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold font-mono">
               {arrivals.length}
+            </span>
+          </button>
+
+          {/* Tab 2: In-House (Arrived Guests) */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("in_house")}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+              activeTab === "in_house"
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Users className="h-3.5 w-3.5 text-emerald-500" />
+            <span>In-House (Arrived Guests)</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+              {inHouseStays.length}
             </span>
           </button>
 

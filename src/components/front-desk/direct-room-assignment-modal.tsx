@@ -482,35 +482,29 @@ export function DirectRoomAssignmentModal({
                     <option value="">
                       {loadingInitial ? "-- Loading Property Rooms... --" : "-- Choose Available Room --"}
                     </option>
-                    {rooms.map((r) => {
-                      const isOccupied = r.is_occupied || r.status === "OCCUPIED";
-                      const isDirty = r.housekeeping_status === "DIRTY" || r.status === "DIRTY";
-                      const isOutOfOrder = r.status === "OUT_OF_ORDER" || r.status === "OUT_OF_SERVICE";
+                    {rooms
+                      .filter(
+                        (r) =>
+                          !r.is_occupied &&
+                          r.status !== "OCCUPIED" &&
+                          r.status !== "OUT_OF_ORDER" &&
+                          r.status !== "OUT_OF_SERVICE"
+                      )
+                      .map((r) => {
+                        const isDirty = r.housekeeping_status === "DIRTY" || r.status === "DIRTY";
+                        const statusBadge = isDirty ? "Available (Cleaning Pending)" : "Available / Clean";
+                        const rateStr = r.room_type?.base_rate ? ` • ₹${r.room_type.base_rate}/night` : "";
 
-                      let statusBadge = r.status;
-                      if (isOccupied) {
-                        statusBadge = `Occupied (${r.active_guest_name || "Guest in-house"})`;
-                      } else if (isOutOfOrder) {
-                        statusBadge = "Out of Order";
-                      } else if (isDirty) {
-                        statusBadge = "Available (Cleaning Pending)";
-                      } else {
-                        statusBadge = "Available / Clean";
-                      }
-
-                      const rateStr = r.room_type?.base_rate ? ` • ₹${r.room_type.base_rate}/night` : "";
-
-                      return (
-                        <option
-                          key={r.id}
-                          value={r.id}
-                          disabled={isOccupied || isOutOfOrder}
-                          className={isOccupied || isOutOfOrder ? "text-muted-foreground" : "text-foreground font-bold"}
-                        >
-                          Room {r.room_number} {r.room_type?.name ? `(${r.room_type.name})` : ""} — {statusBadge}{rateStr}
-                        </option>
-                      );
-                    })}
+                        return (
+                          <option
+                            key={r.id}
+                            value={r.id}
+                            className="text-foreground font-bold"
+                          >
+                            Room {r.room_number} {r.room_type?.name ? `(${r.room_type.name})` : ""} — {statusBadge}{rateStr}
+                          </option>
+                        );
+                      })}
                   </select>
                   {loadingInitial && (
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">

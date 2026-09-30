@@ -48,16 +48,6 @@ export function AssignRoomModal({
         reservationRoom.room_type_id
       );
 
-      // If current room is already assigned, keep it in the list of options
-      if (reservationRoom.room_id && !rooms.some((r) => r.id === reservationRoom.room_id)) {
-        rooms.unshift({
-          id: reservationRoom.room_id,
-          room_number: reservationRoom.room_number || "Current",
-          room_name: reservationRoom.room_name || null,
-          room_type_id: reservationRoom.room_type_id,
-        });
-      }
-
       setAvailableRooms(rooms);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load rooms";

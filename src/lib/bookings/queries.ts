@@ -340,38 +340,63 @@ export async function getAvailableRooms(
   checkOutDate: string,
   roomTypeId?: string
 ): Promise<{ id: string; room_number: string; room_name: string | null; room_type_id: string }[]> {
-  // 1. Fetch active, operational rooms
+  // 1. Fetch active, operational rooms (strictly exclude OCCUPIED, OUT_OF_ORDER, OUT_OF_SERVICE)
   let roomQuery = supabase
     .from("rooms")
-    .select("id, room_number, room_name, room_type_id")
+    .select("id, room_number, room_name, room_type_id, status")
     .eq("property_id", propertyId)
     .eq("is_active", true)
-    .not("status", "in", '("OUT_OF_ORDER","OUT_OF_SERVICE")');
+    .not("status", "in", '("OUT_OF_ORDER","OUT_OF_SERVICE","OCCUPIED")');
 
   if (roomTypeId) {
     roomQuery = roomQuery.eq("room_type_id", roomTypeId);
   }
 
-  const { data: allRooms, error: roomErr } = await roomQuery;
-  if (roomErr) throw new Error(`Failed to query rooms: ${roomErr.message}`);
+  // 2. In parallel: query operational rooms, active in-house stays, and overlapping reservations
+  const [roomsRes, activeStaysRes, bookedRoomsRes] = await Promise.all([
+    roomQuery,
+    supabase
+      .from("stays")
+      .select("room_id")
+      .eq("property_id", propertyId)
+      .eq("status", "CHECKED_IN")
+      .not("room_id", "is", null),
+    supabase
+      .from("reservation_rooms")
+      .select("room_id")
+      .eq("property_id", propertyId)
+      .eq("is_cancelled", false)
+      .not("room_id", "is", null)
+      .lt("check_in_date", checkOutDate)
+      .gt("check_out_date", checkInDate),
+  ]);
 
-  if (!allRooms || allRooms.length === 0) return [];
+  if (roomsRes.error) throw new Error(`Failed to query rooms: ${roomsRes.error.message}`);
+  if (bookedRoomsRes.error) throw new Error(`Failed to check conflicts: ${bookedRoomsRes.error.message}`);
 
-  // 2. Query overlapping reservation rooms
-  // Overlap condition: check_in_date < checkOutDate AND check_out_date > checkInDate
-  const { data: bookedRooms, error: bookedErr } = await supabase
-    .from("reservation_rooms")
-    .select("room_id")
-    .eq("property_id", propertyId)
-    .eq("is_cancelled", false)
-    .not("room_id", "is", null)
-    .lt("check_in_date", checkOutDate)
-    .gt("check_out_date", checkInDate);
+  const allRooms = roomsRes.data || [];
+  if (allRooms.length === 0) return [];
 
-  if (bookedErr) throw new Error(`Failed to check conflicts: ${bookedErr.message}`);
+  const occupiedStayRoomIds = new Set(
+    ((activeStaysRes.data as Array<{ room_id: string }>) || []).map((s) => s.room_id)
+  );
+  const bookedRoomIds = new Set(
+    ((bookedRoomsRes.data as Array<{ room_id: string }>) || []).map((b) => b.room_id)
+  );
 
-  const bookedRoomIds = new Set((bookedRooms || []).map((b) => b.room_id));
-  return allRooms.filter((r) => !bookedRoomIds.has(r.id));
+  return allRooms
+    .filter(
+      (r) =>
+        r.status !== "OCCUPIED" &&
+        !occupiedStayRoomIds.has(r.id) &&
+        !bookedRoomIds.has(r.id)
+    )
+    .map((r) => ({
+      id: r.id,
+      room_number: r.room_number,
+      room_name: r.room_name,
+      room_type_id: r.room_type_id,
+    }));
 }
 
 /**

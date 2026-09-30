@@ -53,17 +53,14 @@ export function CheckInModal({
         arrival.roomTypeId
       );
 
-      // If already assigned a room, prepend it if not already in list
-      if (arrival.roomId && !rooms.some((r) => r.id === arrival.roomId)) {
-        rooms.unshift({
-          id: arrival.roomId,
-          room_number: arrival.roomNumber || "Assigned",
-          room_name: null,
-          room_type_id: arrival.roomTypeId,
-        });
-      }
-
       setAvailableRooms(rooms);
+
+      // Only select pre-assigned room if it is genuinely available (not occupied by another guest)
+      if (arrival.roomId && rooms.some((r) => r.id === arrival.roomId)) {
+        setRoomId(arrival.roomId);
+      } else {
+        setRoomId("");
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load rooms";
       setError(msg);
@@ -77,7 +74,7 @@ export function CheckInModal({
     if (open && arrival) {
       void Promise.resolve().then(() => {
         if (!isMounted) return;
-        setRoomId(arrival.roomId || "");
+        setRoomId("");
         setAdults(arrival.adults || 1);
         setChildren(arrival.children || 0);
         setNotes("");
